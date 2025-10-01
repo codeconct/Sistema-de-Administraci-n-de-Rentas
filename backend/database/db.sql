@@ -1,125 +1,87 @@
--- ===============================
--- Users and Roles
--- ===============================
-CREATE TABLE users (
-    userid SERIAL PRIMARY KEY,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    passwordhash TEXT NOT NULL
-);
+import { Router } from 'express';
+import pool from './db.js';
 
--- ===============================
--- Owners
--- ===============================
-CREATE TABLE owners (
-    ownerid SERIAL PRIMARY KEY,
-    userid INT UNIQUE,
-    name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    email VARCHAR(100) UNIQUE,
-    governmentid VARCHAR(30) NOT NULL,
-    FOREIGN KEY (userid) REFERENCES users(userid)
-);
+const router = Router();
 
--- ===============================
--- Tenants
--- ===============================
-CREATE TABLE tenants (
-    tenantid SERIAL PRIMARY KEY,
-    userid INT UNIQUE,
-    name VARCHAR(100) NOT NULL,
-    phone VARCHAR(20),
-    email VARCHAR(100) UNIQUE,
-    governmentid VARCHAR(30) NOT NULL,
-    FOREIGN KEY (userid) REFERENCES users(userid)
-);
+// ✅ GET all apartments
+router.get('/apartments', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM apartments');
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 
--- ===============================
--- Guarantors (Aval)
--- ===============================
-CREATE TABLE guarantors (
-    guarantorid SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
-    phone VARCHAR(20),
-    address TEXT,
-    governmentid VARCHAR(30) NOT NULL
-);
+// ✅ GET apartment by ID
+router.get('/apartments/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query('SELECT * FROM apartments WHERE apartmentid = $1', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Apartment not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 
--- ===============================
--- Apartments
--- ===============================
-CREATE TABLE apartments (
-    apartmentid SERIAL PRIMARY KEY,
-    ownerid INT NOT NULL,
-    address TEXT NOT NULL,
-    monthlyrent NUMERIC(10,2) NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('AVAILABLE','OCCUPIED')) DEFAULT 'AVAILABLE',
-    FOREIGN KEY (ownerid) REFERENCES owners(ownerid)
-);
+// ✅ POST (create) new apartment
+router.post('/apartments', async (req, res) => {
+  const { ownerid, address, monthlyrent, status } = req.body;
+  try {
+    const result = await pool.query(
+      `INSERT INTO apartments (ownerid, address, monthlyrent, status)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [ownerid, address, monthlyrent, status || 'AVAILABLE']
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 
--- ===============================
--- Rental Contracts
--- ===============================
-CREATE TABLE rentalcontracts (
-    contractid SERIAL PRIMARY KEY,
-    apartmentid INT NOT NULL,
-    tenantid INT NOT NULL,
-    guarantorid INT,
-    startdate DATE NOT NULL,
-    enddate DATE,
-    depositamount NUMERIC(10,2),
-    status VARCHAR(20) CHECK (status IN ('ACTIVE','EXPIRED','CANCELLED')) DEFAULT 'ACTIVE',
-    FOREIGN KEY (apartmentid) REFERENCES apartments(apartmentid),
-    FOREIGN KEY (tenantid) REFERENCES tenants(tenantid),
-    FOREIGN KEY (guarantorid) REFERENCES guarantors(guarantorid)
-);
+// ✅ PUT (update apartment by ID)
+router.put('/apartments/:id', async (req, res) => {
+  const { id } = req.params;
+  const { ownerid, address, monthlyrent, status } = req.body;
+  try {
+    const result = await pool.query(
+      `UPDATE apartments
+       SET ownerid = $1, address = $2, monthlyrent = $3, status = $4
+       WHERE apartmentid = $5 RETURNING *`,
+      [ownerid, address, monthlyrent, status, id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Apartment not found' });
+    }
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 
--- ===============================
--- Invoices
--- ===============================
-CREATE TABLE invoices (
-    invoiceid SERIAL PRIMARY KEY,
-    contractid INT NOT NULL,
-    amount NUMERIC(10,2) NOT NULL,
-    duedate DATE NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('PENDING','PAID','OVERDUE')) DEFAULT 'PENDING',
-    FOREIGN KEY (contractid) REFERENCES rentalcontracts(contractid)
-);
+// ✅ DELETE apartment
+router.delete('/apartments/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      'DELETE FROM apartments WHERE apartmentid = $1 RETURNING *',
+      [id]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: 'Apartment not found' });
+    }
+    res.json({ message: `Apartment ${id} deleted`, apartment: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Database error' });
+  }
+});
 
--- ===============================
--- Payments
--- ===============================
-CREATE TABLE payments (
-    paymentid SERIAL PRIMARY KEY,
-    invoiceid INT NOT NULL,
-    paymentdate DATE NOT NULL,
-    amount NUMERIC(10,2) NOT NULL,
-    method VARCHAR(20) CHECK (method IN ('CASH','TRANSFER','CARD','AUTOMATIC')) NOT NULL,
-    FOREIGN KEY (invoiceid) REFERENCES invoices(invoiceid)
-);
-
--- ===============================
--- Documents
--- ===============================
-CREATE TABLE documents (
-    documentid SERIAL PRIMARY KEY,
-    contractid INT NOT NULL,
-    type VARCHAR(20) CHECK (type IN ('CONTRACT','PROMISSORY_NOTE','RECEIPT')) NOT NULL,
-    filepath TEXT NOT NULL,
-    FOREIGN KEY (contractid) REFERENCES rentalcontracts(contractid)
-);
-
--- ===============================
--- Maintenance Requests
--- ===============================
-CREATE TABLE maintenancerequests (
-    requestid SERIAL PRIMARY KEY,
-    apartmentid INT NOT NULL,
-    tenantid INT,
-    requestdate DATE NOT NULL,
-    description TEXT NOT NULL,
-    status VARCHAR(20) CHECK (status IN ('PENDING','IN_PROGRESS','COMPLETED')) DEFAULT 'PENDING',
-    completiondate DATE,
-    FOREIGN KEY (apartmentid) REFERENCES apartments(apartmentid),
-    FOREIGN KEY (tenantid) REFERENCES tenants(tenantid)
-);
+export default router;

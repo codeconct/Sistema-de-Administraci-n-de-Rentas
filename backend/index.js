@@ -1,12 +1,12 @@
 import express, { request } from "express";
 import { PORT } from "./config.js"
+import apartmentsRouter from './routes/aparments.routes.js';
 
 const app = express();
 
-app.get('/', (req, res)=>{
-    res.status(200);
-    res.send("Welcome to root URL of Server");
-});
+app.use(express.json());
+
+app.use('/api', apartmentsRouter);
 
 app.listen(PORT, (error) =>{
     if(!error)
