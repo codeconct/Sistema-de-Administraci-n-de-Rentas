@@ -32,11 +32,11 @@ router.get('/apartments/:id', async (req, res) => {
 
 // POST (create) a new apartment
 router.post('/apartments', async (req, res) => {
-  const { name, location, price } = req.body; // adapt fields to your table
+  const { ownerid, address, monthlyrent, status} = req.body; // adapt fields to your table
   try {
     const result = await pool.query(
-      'INSERT INTO apartments (name, location, price) VALUES ($1, $2, $3) RETURNING *',
-      [name, location, price]
+      'INSERT INTO apartments (ownerid, address, monthlyrent, status) VALUES ($1, $2, $3, $4) RETURNING *',
+      [ownerid, address, monthlyrent, status]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -48,11 +48,11 @@ router.post('/apartments', async (req, res) => {
 // PUT (update) an apartment
 router.put('/apartments/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, location, price } = req.body;
+  const { ownerid, address, monthlyrent, status } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE apartments SET name = $1, location = $2, price = $3 WHERE id = $4 RETURNING *',
-      [name, location, price, id]
+      'UPDATE apartments SET ownerid = $1, address = $2, monthlyrent = $3, status =$4,  WHERE id = $5 RETURNING *',
+      [ownerid, address, monthlyrent, status, id]
     );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Apartment not found' });

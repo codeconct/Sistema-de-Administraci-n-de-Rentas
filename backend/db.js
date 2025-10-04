@@ -1,7 +1,6 @@
 import pkg from 'pg';
-const { Pool } = pkg;
 
-const {pool} = new pkg.Pool({
+const pool = new pkg.Pool({
     user: "postgres",
     host: "localhost",
     password: "213097",

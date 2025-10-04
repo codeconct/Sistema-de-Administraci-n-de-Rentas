@@ -12,13 +12,11 @@ CREATE TABLE users (
 -- ===============================
 CREATE TABLE owners (
     ownerid SERIAL PRIMARY KEY,
-    userid INT UNIQUE,
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     email VARCHAR(100) UNIQUE,
     governmentid VARCHAR(30) NOT NULL,
-    passwordhash TEXT NOT NULL,
-    FOREIGN KEY (userid) REFERENCES users(userid)
+    passwordhash TEXT NOT NULL
 );
 
 -- ===============================
@@ -26,13 +24,11 @@ CREATE TABLE owners (
 -- ===============================
 CREATE TABLE tenants (
     tenantid SERIAL PRIMARY KEY,
-    userid INT UNIQUE,
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     email VARCHAR(100) UNIQUE,
     governmentid VARCHAR(30) NOT NULL,
-    passwordhash TEXT NOT NULL,
-    FOREIGN KEY (userid) REFERENCES users(userid)
+    passwordhash TEXT NOT NULL
 );
 
 -- ===============================
