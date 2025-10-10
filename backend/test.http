@@ -28,3 +28,5 @@ Content-Type: application/json
 
 ### Delete apartment
 DELETE http://localhost:5555/api/apartments/1
+
+PUT http://localhost:3000/uploads/1696171523-contract.pdf
