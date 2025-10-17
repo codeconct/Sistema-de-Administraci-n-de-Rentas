@@ -12,7 +12,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: url('C:\Users\monja\OneDrive\Escritorio\Sistema-de-Administraci-n-de-Rentas-1\login\src\Componetns\Assets\fondo01.png')
+  background: url('./../Assets/fondo01.png')
   no-repeat;
   background-size: cover;
   background-position: center;
