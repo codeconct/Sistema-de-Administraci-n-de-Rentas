@@ -1,3 +1,32 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Property Rental Management
 This system aims to **comprehensively manage the entire leasing cycle of residential, commercial, and industrial properties**, covering everything from **contract administration** to the **automation of payments and access control**.
 ---
