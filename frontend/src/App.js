@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css';
 import LoginForm from './Components/LoginForm/LoginForm';
 import Home from './Components/Home/Home';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   return (
