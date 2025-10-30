@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import './LoginForm.css';
 import { FaUser, FaEnvelope } from "react-icons/fa6";
 import { FaLock } from "react-icons/fa6";
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
 
     const [action, setAction] = useState('');
+    const navigate = useNavigate();
 
     const registerLink = () => {
         setAction(' active');
@@ -15,10 +17,16 @@ const LoginForm = () => {
         setAction('');
     };
 
+     const handleLogin = (e) => {
+    e.preventDefault();
+    navigate('/home');
+    };
+
     return(
+    <div className='login-page'>
         <div className={`wrapper${action}`}>
             <div className='form-box login'>
-                <form>
+                <form onSubmit={handleLogin}>
                     <h1>Administracion de Rentas</h1>
                     <div className="input-box">
                         <input type="text" placeholder='Username' required/> <FaUser className='icon'/>
@@ -84,6 +92,7 @@ const LoginForm = () => {
                 </form>
             </div>
         </div>
+    </div>
     )
 }
 

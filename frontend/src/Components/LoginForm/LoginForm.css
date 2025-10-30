@@ -13,6 +13,19 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+.login-page {
+  font-family: "Poppins", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: url('./../Assets/fondo01.png')
+  no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+
 /*tamaño del register*/
 .wrapper.active{
     height: 800px;
