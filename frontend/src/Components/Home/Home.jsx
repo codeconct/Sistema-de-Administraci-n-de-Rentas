@@ -7,7 +7,7 @@ function Home() {
   return (
     <div className="home-page">
     <div style={{ textAlign: "center", marginTop: "50px" }}>
-      <h1>Bienvenido al Home 🎉</h1>
+      <h1>Bienvenido humano 🎉</h1>
       <p>Has iniciado sesión correctamente.</p>
       </div>
     </div>
