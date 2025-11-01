@@ -4,7 +4,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css';
 import LoginForm from './Components/LoginForm/LoginForm';
 import Home from './Components/Home/Home';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import Viviendas from './Components/AparmentList/AparmentList';
+import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
   return (
@@ -15,6 +16,9 @@ function App() {
 
         {/* Página a la que se redirige luego del login */}
         <Route path="/home" element={<Home />} />
+
+        {/* Página a la que se redirige luego del login */}
+        <Route path="/viviendas" element={<Viviendas />} />
       </Routes>
     </Router>
   );
