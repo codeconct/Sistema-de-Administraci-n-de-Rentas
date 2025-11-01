@@ -1,4 +1,5 @@
 import React from "react";
+import "./AparmentList.css"
 
 
 const Viviendas = () => {
@@ -50,37 +51,6 @@ const Viviendas = () => {
 
   return (
     <div className="bg-light min-vh-100">
-      {/* Navbar */}
-      <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
-        <div className="container-fluid">
-          <a className="navbar-brand d-flex align-items-center" href="#">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/235/235861.png"
-              width="40"
-              className="me-2"
-              alt="Logo"
-            />
-            <span className="fw-bold">Administración de Rentas</span>
-          </a>
-          <div className="d-flex align-items-center">
-            <a href="#" className="nav-link mx-2 fw-semibold">
-              Viviendas
-            </a>
-            <a href="#" className="nav-link mx-2 fw-semibold">
-              Dashboard
-            </a>
-            <a href="#" className="nav-link mx-2 fw-semibold">
-              Incidencias
-            </a>
-            <button className="btn btn-outline-secondary rounded-circle ms-3">
-              <i className="bi bi-gear"></i>
-            </button>
-            <button className="btn btn-outline-secondary rounded-circle ms-2">
-              <i className="bi bi-person"></i>
-            </button>
-          </div>
-        </div>
-      </nav>
 
       <div className="container py-4">
         {/* Search and filters */}
@@ -135,12 +105,8 @@ const Viviendas = () => {
             </div>
 
             <div className="col-3 d-flex align-items-center">
-              <img
-                src="https://via.placeholder.com/40"
-                className="tenant-img me-2"
-                alt="Arrendatario"
-              />
-              <span>{prop.arrendatario}</span>
+                <i className="bi bi-person-circle fs-4 me-2 text-secondary"></i>
+                <span>{prop.arrendatario}</span>
             </div>
 
             <div className="col-2 d-flex align-items-center">
@@ -202,46 +168,6 @@ const Viviendas = () => {
           </ul>
         </nav>
       </div>
-
-      {/* Inline CSS for custom styling */}
-      <style>{`
-        .status-dot {
-          height: 12px;
-          width: 12px;
-          border-radius: 50%;
-          display: inline-block;
-          margin-right: 5px;
-        }
-        .status-disponible { background-color: #28a745; }
-        .status-ocupado { background-color: #dc3545; }
-        .status-archivado { background-color: #6c757d; }
-        .property-card {
-          border-bottom: 1px solid #dee2e6;
-          padding: 1rem 0;
-          align-items: center;
-        }
-        .property-img {
-          width: 100px;
-          height: 80px;
-          object-fit: cover;
-          border-radius: 6px;
-        }
-        .tenant-img {
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          object-fit: cover;
-        }
-        .filter-btns .btn {
-          border-radius: 20px;
-          margin-right: 5px;
-        }
-        .table-header {
-          font-weight: 600;
-          border-bottom: 2px solid #dee2e6;
-          padding-bottom: 0.5rem;
-        }
-      `}</style>
     </div>
   );
 };

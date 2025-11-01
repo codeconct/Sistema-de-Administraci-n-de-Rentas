@@ -6,6 +6,7 @@ import LoginForm from './Components/LoginForm/LoginForm';
 import Home from './Components/Home/Home';
 import Viviendas from './Components/AparmentList/AparmentList';
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 
 function App() {
   return (
