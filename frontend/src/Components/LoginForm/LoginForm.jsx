@@ -19,7 +19,7 @@ const LoginForm = () => {
 
      const handleLogin = (e) => {
     e.preventDefault();
-    navigate('/home');
+    navigate('/viviendas');
     };
 
     return(

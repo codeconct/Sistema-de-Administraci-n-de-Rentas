@@ -51,6 +51,7 @@ const Viviendas = () => {
 
   return (
     <div className="bg-light min-vh-100">
+       <div className="apartment-page"></div>
 
       <div className="container py-4">
         {/* Search and filters */}
