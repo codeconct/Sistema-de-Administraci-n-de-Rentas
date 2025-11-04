@@ -1,5 +1,6 @@
 import React from "react";
-import "./AparmentList.css"
+import "./AparmentList.css";
+import Navbar from "../Navbar/Navbar";
 
 
 const Viviendas = () => {
@@ -51,7 +52,9 @@ const Viviendas = () => {
 
   return (
     <div className="bg-light min-vh-100">
-       <div className="apartment-page"></div>
+      <Navbar></Navbar>
+      
+      <div className="apartment-page"></div>
 
       <div className="container py-4">
         {/* Search and filters */}
@@ -114,11 +117,15 @@ const Viviendas = () => {
               <span>{prop.fechaPago}</span>
             </div>
 
-            <div className="col-3 text-end">
+            <div className="col-3 text-start">
               <button className="btn btn-sm btn-outline-primary me-2">
+                <i class="bi bi-pencil-square"></i>
+                <br />
                 Editar
               </button>
               <button className="btn btn-sm btn-outline-secondary me-2">
+                <i class="bi bi-eye-slash"></i>
+                <br />
                 Archivar
               </button>
               <button
@@ -128,11 +135,13 @@ const Viviendas = () => {
                     : "btn-outline-success"
                 }`}
               >
+                <i class="bi bi-check2-square"></i>
+                <br />
                 {prop.status === "ocupado" ? "Ocupado" : "Disponible"}
               </button>
               <a
                 href="#"
-                className="ms-3 text-decoration-none fw-semibold text-dark"
+                className="ms-3 fw-semibold text-dark"
               >
                 Contrato
               </a>
