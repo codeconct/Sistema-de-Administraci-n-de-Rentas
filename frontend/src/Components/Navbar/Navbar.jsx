@@ -6,13 +6,13 @@ import logo from './../Assets/casa.png';
 
 const Navbar = () => {
   return (
-    <nav className="navbar">
+    <nav className="navbar p-2">
       <div className="navbar-left">
         <img src={logo} alt="Logo" className="navbar-logo" />
         <h2>Administración <br /> de Rentas</h2>
       </div>
 
-      <ul className="navbar-center">
+      <ul className="navbar-center mb-0 p-0">
         <li><a href="#">Viviendas</a></li>
         <li><a href="#">Dashboard</a></li>
         <li><a href="#">Incidencias</a></li>
