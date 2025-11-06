@@ -1,5 +1,6 @@
 import React from 'react';
 import './Navbar.css';
+import { Link } from 'react-router-dom';
 import { FaUser, FaBell, FaCog } from "react-icons/fa";
 import logo from './../Assets/casa.png'; 
 
