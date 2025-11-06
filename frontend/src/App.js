@@ -15,11 +15,13 @@ function App() {
         {/* Página principal (login) */}
         <Route path="/" element={<LoginForm />} />
 
-        {/* Página a la que se redirige luego del login */}
+        {/*Esta por verse a donde se debe redirigir*/}
         <Route path="/home" element={<Home />} />
 
         {/* Página a la que se redirige luego del login */}
         <Route path="/viviendas" element={<Viviendas />} />
+
+
       </Routes>
     </Router>
   );
