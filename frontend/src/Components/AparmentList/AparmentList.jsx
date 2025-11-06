@@ -64,7 +64,10 @@ const Viviendas = () => {
             className="form-control w-25"
             placeholder="Buscar..."
           />
-          <button className="btn btn-primary">+ Nuevo Departamento</button>
+          <a>+ Nuevo Departamento</a>
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            Launch demo modal
+          </button>
         </div>
 
         {/* Status legend */}
@@ -135,13 +138,16 @@ const Viviendas = () => {
                     : "btn-outline-success"
                 }`}
               >
-                <i class="bi bi-check2-square"></i>
+                {prop.status === "ocupado" ? <> <i class="bi bi-check2-square"></i>
+                <br />Ocupado 
+                </>: <> 
+                <i class="bi bi-square fs-7"></i>
                 <br />
-                {prop.status === "ocupado" ? "Ocupado" : "Disponible"}
+                Disponible</>}
               </button>
               <a
                 href="#"
-                className="ms-3 fw-semibold text-dark"
+                className="ms-3 pl-3 fw-semibold text-dark"
               >
                 Contrato
               </a>
