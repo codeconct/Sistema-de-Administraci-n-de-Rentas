@@ -1,9 +1,12 @@
-function Home() {
-  return (
-    <div className="incidencias-page">
-      <h1>Bienvenido a la página principal</h1>
-      <p>Has iniciado sesión correctamente.</p>
-    </div>
-  );
-}
+import react from "react";
+import "./Incidencias.css";
 
+const Incidencias = () => {
+  return (
+    <h1>Incidencias funcionando ✅</h1>
+  );
+};
+
+
+
+export default Incidencias;

@@ -1,6 +1,5 @@
 import React from "react";
 import "./AparmentList.css";
-import Navbar from "../Navbar/Navbar";
 
 
 const Viviendas = () => {
@@ -52,7 +51,7 @@ const Viviendas = () => {
 
   return (
     <div className="bg-light min-vh-100">
-      <Navbar></Navbar>
+      
       
       <div className="apartment-page"></div>
 
@@ -64,10 +63,7 @@ const Viviendas = () => {
             className="form-control w-25"
             placeholder="Buscar..."
           />
-          <a>+ Nuevo Departamento</a>
-          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-            Launch demo modal
-          </button>
+          <button className="btn btn-primary">+ Nuevo Departamento</button>
         </div>
 
         {/* Status legend */}
@@ -138,16 +134,13 @@ const Viviendas = () => {
                     : "btn-outline-success"
                 }`}
               >
-                {prop.status === "ocupado" ? <> <i class="bi bi-check2-square"></i>
-                <br />Ocupado 
-                </>: <> 
-                <i class="bi bi-square fs-7"></i>
+                <i class="bi bi-check2-square"></i>
                 <br />
-                Disponible</>}
+                {prop.status === "ocupado" ? "Ocupado" : "Disponible"}
               </button>
               <a
                 href="#"
-                className="ms-3 pl-3 fw-semibold text-dark"
+                className="ms-3 fw-semibold text-dark"
               >
                 Contrato
               </a>

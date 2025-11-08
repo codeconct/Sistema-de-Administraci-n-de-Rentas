@@ -1,30 +1,42 @@
 import logo from './logo.svg';
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import './App.css';
 import LoginForm from './Components/LoginForm/LoginForm';
+import Navbar from './Components/Navbar/Navbar';
 import Home from './Components/Home/Home';
 import Viviendas from './Components/AparmentList/AparmentList';
+import Dashboard from './Components/Dashboard/Dashboard';
+import Incidencias from './Components/Incidencias/Incidencias';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 function App() {
   return (
     <Router>
+
+      {/* Rutas SIN navbar */}
       <Routes>
-        {/* Página principal (login) */}
         <Route path="/" element={<LoginForm />} />
 
-        {/*Esta por verse a donde se debe redirigir*/}
-        <Route path="/home" element={<Home />} />
+        {/* Rutas CON navbar */}
+        <Route path="/*" element={
+          <>
+            <Navbar />   {/* en esta parte de aca se pueden acomodar las diversas paginas y a donde deberian de ir */}
+            <Routes>
+              <Route path="viviendas" element={<Viviendas />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="incidencias" element={<Incidencias />} />
+            </Routes>
+          </>
+        } />
 
-        {/* Página a la que se redirige luego del login */}
-        <Route path="/viviendas" element={<Viviendas />} />
-
+        {/* en caso de que la ruta no exista */}
+        <Route path="*" element={<Navigate to="/" />} />
 
       </Routes>
+
     </Router>
   );
 }
-
 export default App;

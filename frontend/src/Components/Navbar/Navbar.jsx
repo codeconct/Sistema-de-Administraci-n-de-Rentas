@@ -13,9 +13,9 @@ const Navbar = () => {
       </div>
 
       <ul className="navbar-center mb-0 p-0">
-        <li><a href="#">Viviendas</a></li>
-        <li><a href="#">Dashboard</a></li>
-        <li><a href="#">Incidencias</a></li>
+        <li><Link to="/viviendas">Viviendas</Link></li>
+        <li><Link to="/dashboard">Dashboard</Link></li>
+        <li><Link to="/incidencias">Incidencias</Link></li>
       </ul>
 
       <div className="navbar-right">
