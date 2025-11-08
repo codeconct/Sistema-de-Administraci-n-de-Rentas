@@ -48,3 +48,34 @@
     border-radius: 20px;
     margin-right: 5px;
   }
+.contratos-modal {
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem 1.5rem;
+}
+
+.custom-input {
+  background-color: #f4f7fb;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.custom-input:focus {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+}
+
+.modal-content {
+  border: none;
+}
+
+.modal-header .btn-close {
+  background-color: transparent;
+  opacity: 0.8;
+}
+
+.modal-header .btn-close:hover {
+  opacity: 1;
+}
