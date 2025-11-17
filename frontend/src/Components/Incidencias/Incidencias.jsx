@@ -84,17 +84,17 @@ const Incidencias = () => {
 
         {/* Table header */}
         <div className="row table-header mb-2">
-          <div className="col-4">Ubicación</div>
-          <div className="col-3">Arrendatario</div>
-          <div className="col-2">Fecha de Pago</div>
-          <div className="col-3 text-end">Acciones</div>
+          <div className=" col-1"></div>
+          <div className="col-3">Ubicación</div>
+          <div className="col-2">Arrendatario</div>
+          <div className="col-4">Incidencia</div>
+          <div className="col-1 ">Resuelto</div>
         </div>
 
         {/* Property list */}
         {propiedades.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-4 d-flex align-items-center">
-              <span className={getStatusDot(prop.status)}></span>
               <img
                 src={prop.img}
                 className="property-img me-2"
@@ -102,47 +102,29 @@ const Incidencias = () => {
               />
               <div>
                 <p className="mb-1 fw-semibold">{prop.ubicacion}</p>
-                <small>{prop.precio}</small>
               </div>
             </div>
 
-            <div className="col-3 d-flex align-items-center">
-                <i className="bi bi-person-circle fs-4 me-2 text-secondary"></i>
+            <div className="col-2 d-flex align-items-center justify-content-center flex-column">
+                <i className="bi bi-person-circle fs-3  text-secondary"></i>
                 <span>{prop.arrendatario}</span>
             </div>
 
-            <div className="col-2 d-flex align-items-center">
+            <div className="col-4 d-flex align-items-center ">
               <span>{prop.fechaPago}</span>
             </div>
 
-            <div className="col-3 text-start">
-              <button className="btn btn-sm btn-outline-primary me-2">
-                <i class="bi bi-pencil-square"></i>
+            <div className="col-1 text-center">
+                {prop.status === "ocupado" ? <>
+                <i class="bi bi-check2-square fs-4"></i>
                 <br />
-                Editar
-              </button>
-              <button className="btn btn-sm btn-outline-secondary me-2">
-                <i class="bi bi-eye-slash"></i>
+                Resuelto
+                </> : 
+                <>
+                <i class="bi bi-square fs-4"></i>
                 <br />
-                Archivar
-              </button>
-              <button
-                className={`btn btn-sm ${
-                  prop.status === "ocupado"
-                    ? "btn-outline-danger"
-                    : "btn-outline-success"
-                }`}
-              >
-                <i class="bi bi-check2-square"></i>
-                <br />
-                {prop.status === "ocupado" ? "Ocupado" : "Disponible"}
-              </button>
-              <a
-                href="#"
-                className="ms-3 fw-semibold text-dark"
-              >
-                Contrato
-              </a>
+                Sin resolver
+                </>}
             </div>
           </div>
         ))}

@@ -77,7 +77,7 @@ const Viviendas = () => {
   tabindex="-1"
   aria-labelledby="contratosModalLabel"
   aria-hidden="true"
->
+>z
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content contratos-modal">
       <div class="modal-header border-0">
