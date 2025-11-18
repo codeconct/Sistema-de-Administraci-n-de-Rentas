@@ -1,18 +1,23 @@
 import React from "react";
 import "./AparmentList.css";
+import { useState } from "react";
 
 
 const Viviendas = () => {
-  const propiedades = [
+
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [ordenPrecio, setOrdenPrecio] = useState("none");
+
+  const [propiedades, setPropiedades] = useState([
     {
       id: 1,
       status: "ocupado",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: "$6,000 mn",
+      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "15 de Noviembre del 2025",
+      fechaPago: "2025-11-15",
     },
     {
       id: 2,
@@ -20,9 +25,9 @@ const Viviendas = () => {
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: "$6,000 mn",
-      arrendatario: "Pendiente",
-      fechaPago: "-",
+      precio: 6000,
+      arrendatario: null,
+      fechaPago: null,
     },
     {
       id: 3,
@@ -30,11 +35,19 @@ const Viviendas = () => {
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: "$6,000 mn",
+      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "19 de Diciembre del 2025",
+      fechaPago: "2025-12-01",
     },
-  ];
+  ]);
+
+  const propiedadesFiltradas = propiedades.filter((p) => {
+    if (filtroStatus === "todos") return true;
+    return p.status === filtroStatus;
+
+  });
+
+  
 
   const getStatusDot = (status) => {
     switch (status) {
@@ -172,12 +185,27 @@ const Viviendas = () => {
 
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
-          <button className="btn btn-outline-dark active">
+          <button 
+            className={'btn btn-outline-dark active${filtroStatus === "todos" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("todos")}>
             Total de Viviendas
           </button>
-          <button className="btn btn-outline-dark">Viviendas Ocupadas</button>
-          <button className="btn btn-outline-dark">Viviendas Disponibles</button>
-          <button className="btn btn-outline-dark">Viviendas Archivadas</button>
+
+          <button 
+            className={'btn btn-outline-dark active${filtroStatus === "ocupado" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("ocupado")}>
+            Viviendas Ocupadas
+            </button>
+          
+          <button className={'btn btn-outline-dark active${filtroStatus === "disponible" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("disponible")}>
+            Viviendas Disponibles
+            </button>
+          
+          <button className={'btn btn-outline-dark active${filtroStatus === "archivado" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("archivado")}>
+            Viviendas Archivadas
+            </button>
         </div>
 
         {/* Table header */}
@@ -189,7 +217,7 @@ const Viviendas = () => {
         </div>
 
         {/* Property list */}
-        {propiedades.map((prop) => (
+        {propiedadesFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-4 d-flex align-items-center">
               <span className={getStatusDot(prop.status)}></span>
