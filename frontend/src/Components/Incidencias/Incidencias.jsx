@@ -1,17 +1,22 @@
 import react from "react";
 import "./Incidencias.css";
+import { useState } from "react";
 
 const Incidencias = () => {
-  const propiedades = [
+
+    const [filtroStatus, setFiltroStatus] = useState("todos");
+    const [ordenPrecio, setOrdenPrecio] = useState("none");
+  
+    const [propiedades, setPropiedades] = useState([
     {
       id: 1,
       status: "ocupado",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: "$6,000 mn",
+      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "15 de Noviembre del 2025",
+      fechaPago: "2025-11-15",
     },
     {
       id: 2,
@@ -33,7 +38,13 @@ const Incidencias = () => {
       arrendatario: "José Eduardo Amaya",
       fechaPago: "19 de Diciembre del 2025",
     },
-  ];
+  ]);
+
+  const propiedadesFiltradas = propiedades.filter((p) => {
+    if (filtroStatus === "todos") return true;
+    return p.status === filtroStatus;
+
+  });
 
   const getStatusDot = (status) => {
     switch (status) {
@@ -62,24 +73,31 @@ const Incidencias = () => {
             className="form-control w-25"
             placeholder="Buscar..."
           />
-          <button className="btn btn-primary">+ Nuevo Departamento</button>
-        </div>
-
-        {/* Status legend */}
-        <div className="mb-3">
-          <span className="status-dot status-disponible"></span>Disponible
-          <span className="status-dot status-archivado ms-3"></span>Archivado
-          <span className="status-dot status-ocupado ms-3"></span>Ocupado
         </div>
 
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
-          <button className="btn btn-outline-dark active">
-            Total de Viviendas
+          <button 
+            className={'btn btn-outline-dark active${filtroStatus === "todos" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("todos")}>
+            Total de Incidencias
           </button>
-          <button className="btn btn-outline-dark">Viviendas Ocupadas</button>
-          <button className="btn btn-outline-dark">Viviendas Disponibles</button>
-          <button className="btn btn-outline-dark">Viviendas Archivadas</button>
+
+          <button className={'btn btn-outline-dark active${filtroStatus === "disponible" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("disponible")}>
+            Incidencias Sin Resolver
+            </button>
+
+          <button className={'btn btn-outline-dark active${filtroStatus === "ascendente" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("ocupado")}>
+            Ordenar Ascendente
+            </button>
+          
+          <button className={'btn btn-outline-dark active${filtroStatus === "descendente" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("disponible")}>
+            Ordenar Descendente
+            </button>
+
         </div>
 
         {/* Table header */}
@@ -92,7 +110,7 @@ const Incidencias = () => {
         </div>
 
         {/* Property list */}
-        {propiedades.map((prop) => (
+        {propiedadesFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-4 d-flex align-items-center">
               <img

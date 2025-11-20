@@ -4,7 +4,6 @@ import { useState } from "react";
 
 
 const Viviendas = () => {
-
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [ordenPrecio, setOrdenPrecio] = useState("none");
 
@@ -38,6 +37,16 @@ const Viviendas = () => {
       precio: 6000,
       arrendatario: "José Eduardo Amaya",
       fechaPago: "2025-12-01",
+    },
+        {
+      id: 4,
+      status: "archivado",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
+      precio: 6000,
+      arrendatario: null,
+      fechaPago: null,
     },
   ]);
 
@@ -232,8 +241,8 @@ const Viviendas = () => {
               </div>
             </div>
 
-            <div className="col-3 d-flex align-items-center">
-                <i className="bi bi-person-circle fs-4 me-2 text-secondary"></i>
+            <div className="col-3 d-flex align-items-center justify-content-center flex-column">
+                <i className="bi bi-person-circle fs-3  text-secondary"></i>
                 <span>{prop.arrendatario}</span>
             </div>
 
