@@ -1,0 +1,81 @@
+.status-dot {
+  flex-shrink: 0;           /* Prevent stretching or shrinking */
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  background-color: gray;   /* default, overridden by status classes */
+  margin-right: 8px;
+  align-self: center;       /* Vertically centers inside flex rows */
+}
+  .status-disponible { background-color: #28a745; }
+  .status-ocupado { background-color: #dc3545; }
+  .status-archivado { background-color: #6c757d; }
+
+  .property-card {
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem 0;
+    align-items: center;
+  }
+
+  /* ✅ Add vertical lines between columns */
+  .property-card .col-4,
+  .property-card .col-3,
+  .property-card .col-2 {
+    border-right: 1px solid #dee2e6;
+  }
+
+  /* Remove the last border on the right side */
+  .property-card .col-3.text-end {
+    border-right: none;
+  }
+
+  .property-img {
+    width: 100px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+
+  .tenant-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .filter-btns .btn {
+    border-radius: 20px;
+    margin-right: 5px;
+  }
+.contratos-modal {
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem 1.5rem;
+}
+
+.custom-input {
+  background-color: #f4f7fb;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.custom-input:focus {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+}
+
+.modal-content {
+  border: none;
+}
+
+.modal-header .btn-close {
+  background-color: transparent;
+  opacity: 0.8;
+}
+
+.modal-header .btn-close:hover {
+  opacity: 1;
+}
