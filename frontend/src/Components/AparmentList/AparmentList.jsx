@@ -38,6 +38,16 @@ const Viviendas = () => {
       arrendatario: "José Eduardo Amaya",
       fechaPago: "2025-12-01",
     },
+        {
+      id: 4,
+      status: "ocupado",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
+      precio: 6000,
+      arrendatario: "José Eduardo Amaya",
+      fechaPago: "2025-12-01",
+    },
  
   ]);
 
