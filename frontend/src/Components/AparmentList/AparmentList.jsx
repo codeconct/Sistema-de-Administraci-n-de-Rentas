@@ -5,6 +5,7 @@ import { useState } from "react";
 
 const Viviendas = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroBusqueda, setFiltroBusqueda]= useState("");
   const [ordenPrecio, setOrdenPrecio] = useState("none");
 
   const [propiedades, setPropiedades] = useState([
@@ -23,7 +24,7 @@ const Viviendas = () => {
       status: "disponible",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
+        "21 de Marzo 456, Col. Centro, 34000 Durango, Dgo.",
       precio: 6000,
       arrendatario: null,
       fechaPago: null,
@@ -40,10 +41,10 @@ const Viviendas = () => {
     },
         {
       id: 4,
-      status: "ocupado",
+      status: "archivado",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
       precio: 6000,
       arrendatario: "José Eduardo Amaya",
       fechaPago: "2025-12-01",
@@ -51,10 +52,18 @@ const Viviendas = () => {
  
   ]);
 
-  const propiedadesFiltradas = propiedades.filter((p) => {
+const propiedadesFiltradas = propiedades
+  .filter((p) => {
     if (filtroStatus === "todos") return true;
     return p.status === filtroStatus;
-
+  })
+  .filter((p) => {
+    const texto = filtroBusqueda.toLowerCase();
+    return (
+      p.ubicacion.toLowerCase().includes(texto) ||
+      (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
+      p.id.toString().includes(texto)
+    );
   });
 
   
@@ -79,21 +88,29 @@ const Viviendas = () => {
       <div className="apartment-page"></div>
 
       <div className="container py-4">
+        
         {/* Search and filters */}
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <input
-            type="text"
-            className="form-control w-25"
-            placeholder="Buscar..."
-          />
+          <div className="search-pill d-flex align-items-center">
+            <i className="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Buscar..."
+              value={filtroBusqueda}
+              onChange={(e) => setFiltroBusqueda(e.target.value)}
+            />
+          </div>
+
           <button
             type="button"
-            className="btn btn-primary"
+            className="btn btn-link text-dark contrato-btn fw-semibold"
             data-bs-toggle="modal"
             data-bs-target="#contratosModal"
           >
-            Crear contrato
+            Añadir Vivienda
           </button>
+
 <div
   class="modal fade"
   id="contratosModal"
@@ -196,23 +213,23 @@ const Viviendas = () => {
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
           <button 
-            className={'btn btn-outline-dark active${filtroStatus === "todos" ? " active" : ""}'}
+            className={'btn btn-outline-dark ${filtroStatus === "todos" ? " active" : ""}'}
             onClick={() => setFiltroStatus("todos")}>
             Total de Viviendas
           </button>
 
           <button 
-            className={'btn btn-outline-dark active${filtroStatus === "ocupado" ? " active" : ""}'}
+            className={'btn btn-outline-dark ${filtroStatus === "ocupado" ? " active" : ""}'}
             onClick={() => setFiltroStatus("ocupado")}>
             Viviendas Ocupadas
             </button>
           
-          <button className={'btn btn-outline-dark active${filtroStatus === "disponible" ? " active" : ""}'}
+          <button className={'btn btn-outline-dark ${filtroStatus === "disponible" ? " active" : ""}'}
             onClick={() => setFiltroStatus("disponible")}>
             Viviendas Disponibles
             </button>
           
-          <button className={'btn btn-outline-dark active${filtroStatus === "archivado" ? " active" : ""}'}
+          <button className={'btn btn-outline-dark ${filtroStatus === "archivado" ? " active" : ""}'}
             onClick={() => setFiltroStatus("archivado")}>
             Viviendas Archivadas
             </button>
