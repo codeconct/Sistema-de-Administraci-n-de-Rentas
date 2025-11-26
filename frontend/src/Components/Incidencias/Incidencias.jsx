@@ -5,6 +5,7 @@ import { useState } from "react";
 const Incidencias = () => {
 
     const [filtroStatus, setFiltroStatus] = useState("todos");
+    const [filtroBusqueda, setFiltroBusqueda]= useState("");
     const [ordenPrecio, setOrdenPrecio] = useState("none");
   
     const [propiedades, setPropiedades] = useState([
@@ -50,11 +51,20 @@ const Incidencias = () => {
     },
   ]);
 
-  const propiedadesFiltradas = propiedades.filter((p) => {
+const propiedadesFiltradas = propiedades
+  .filter((p) => {
     if (filtroStatus === "todos") return true;
     return p.status === filtroStatus;
-
+  })
+  .filter((p) => {
+    const texto = filtroBusqueda.toLowerCase();
+    return (
+      p.ubicacion.toLowerCase().includes(texto) ||
+      (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
+      p.id.toString().includes(texto)
+    );
   });
+
 
   const getStatusDot = (status) => {
     switch (status) {
@@ -78,13 +88,17 @@ const Incidencias = () => {
       <div className="container py-4">
         {/* Search and filters */}
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <input
-            type="text"
-            className="form-control w-25"
-            placeholder="Buscar..."
-          />
+          <div className="search-pill d-flex align-items-center">
+            <i className="bi bi-search search-icon"></i>
+            <input
+              type="text"
+              className="search-input"
+              placeholder="Buscar..."
+              value={filtroBusqueda}
+              onChange={(e) => setFiltroBusqueda(e.target.value)}
+            />
+          </div>
         </div>
-
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
           <button 

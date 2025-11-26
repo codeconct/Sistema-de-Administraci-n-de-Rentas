@@ -25,6 +25,43 @@
     border-right: 1px solid #dee2e6;
   }
 
+  /* Search box */
+.search-pill {
+  background: #ffffff;
+  border: 1px solid #dcdfe6;
+  border-radius: 18px; 
+  padding: 6px 14px;
+  width: 260px; 
+  transition: all 0.2s ease;
+}
+
+.search-pill:focus-within {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0,123,255,0.2);
+}
+
+.search-icon {
+  font-size: 1rem;
+  color: #6c6c6c;
+  margin-right: 8px;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  flex-grow: 1;
+  font-size: 0.95rem;
+  background: transparent;
+}
+
+.search-input::placeholder {
+  color: #a8a8a8;
+}
+
+/*Crear Contrato button*/
+
+
+
   /* Remove the last border on the right side */
   .property-card .col-3.text-end {
     border-right: none;
@@ -46,8 +83,31 @@
 
   .filter-btns .btn {
     border-radius: 20px;
-    margin-right: 5px;
+    padding: 6px 18px;
+    margin-right: 12px;
+    font-weight: 500;
+    background-color: #dee4e9;
+    border-color: #EDF2F7;
+    color: #444;
   }
+
+  .filter-btns .btn:last-child {
+    margin-right: 0;
+}
+
+  .filter-btns .btn.active {
+    background-color: #929292;
+    border-color: #5a5a5a;
+    color: #1d2dff;
+    font-weight: 600;
+  }
+
+  .filter-btns .btn:hover {
+    background-color: #030303;
+    border-color: #929292;
+}
+
+
 .contratos-modal {
   border-radius: 16px;
   background-color: #ffffff;
