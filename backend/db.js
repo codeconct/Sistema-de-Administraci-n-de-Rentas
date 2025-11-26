@@ -1,11 +1,9 @@
-import pkg from 'pg';
+import pkg from "pg";
+const { Pool } = pkg;
 
-const pool = new pkg.Pool({
-    user: "postgres",
-    host: "localhost",
-    password: "213097",
-    database: "RentasDatabase",
-    port: "5432"
-})
+const pool = new Pool({
+  connectionString: "postgresql://postgres:UxAqPXgEMiITDqmftnGzmuxNMlQZOKKY@gondola.proxy.rlwy.net:25879/railway",
+  ssl: { rejectUnauthorized: false },
+});
 
 export default pool;

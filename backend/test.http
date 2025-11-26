@@ -29,4 +29,14 @@ Content-Type: application/json
 ### Delete apartment
 DELETE http://localhost:5555/api/apartments/1
 
+### Create owner
+POST http://localhost:5555/api/owners
+Content-Type: application/json
+
+{
+  "name": "Axel",
+  "phone": "123456789"
+}
+
+###
 PUT http://localhost:3000/uploads/1696171523-contract.pdf
