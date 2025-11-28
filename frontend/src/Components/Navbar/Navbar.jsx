@@ -20,7 +20,10 @@ const Navbar = () => {
 
       <div className="navbar-right">
         <FaUser className="navbar-icon" />
-        <FaCog className="navbar-icon" />
+        <a>
+          <FaCog className="navbar-icon" />
+        </a>
+
         <FaBell className="navbar-icon" />
         <div className="user-avatar"></div>
       </div>

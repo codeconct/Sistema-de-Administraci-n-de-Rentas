@@ -1,6 +1,12 @@
 import React from "react";
 import "./AparmentList.css";
+import "../Forms/Viviendaform"
+import "../Forms/Editarform"
+import "../Forms/Contratoform"
 import { useState } from "react";
+import ViviendaForm from "../Forms/Viviendaform";
+import EditarForm from "../Forms/Editarform";
+import ContratoForm from "../Forms/Contratoform";
 
 
 const Viviendas = () => {
@@ -42,6 +48,16 @@ const Viviendas = () => {
         {
       id: 4,
       status: "archivado",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
+      arrendatario: "José Eduardo Amaya",
+      fechaPago: "2025-12-01",
+    },
+    {
+      id: 5,
+      status: "disponible",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
@@ -111,95 +127,9 @@ const propiedadesFiltradas = propiedades
             Añadir Vivienda
           </button>
 
-<div
-  class="modal fade"
-  id="contratosModal"
-  tabindex="-1"
-  aria-labelledby="contratosModalLabel"
-  aria-hidden="true"
->z
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content contratos-modal">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-bold" id="contratosModalLabel">
-          Contratos
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-
-      <div class="modal-body">
-        <form>
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Fecha de Firma</label>
-            <input
-              type="date"
-              class="form-control form-control-sm custom-input"
-              placeholder="Selecciona el día"
-            />
-          </div>
-
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Nombre Completo</label>
-            <input
-              type="text"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. Jorge Lupin"
-            />
-          </div>
-
-          <h6 class="fw-bold mt-4 mb-3">Revisar Contratos Pasados</h6>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Número de Teléfono</label>
-            <input
-              type="tel"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. 6181234567"
-            />
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Correo Electrónico</label>
-            <input
-              type="email"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. jorge@email.com"
-            />
-          </div>
-
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Domicilio</label>
-            <input
-              type="text"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. Calle, fracc, num 123"
-            />
-          </div>
-
-          <div class="mt-4">
-            <label class="form-label fw-semibold">Subir Contrato</label>
-            <div class="d-flex flex-column align-items-start gap-2">
-              <button
-                type="button"
-                class="btn btn-outline-dark btn-sm px-3 py-1 w-auto custom-upload-btn"
-              >
-                Subir Documento en PDF
-              </button>
-              <button type="submit" class="btn btn-primary btn-sm px-4 py-1 w-auto">
-                Guardar
-              </button>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
+          <ViviendaForm></ViviendaForm>
+          <EditarForm></EditarForm>
+          <ContratoForm></ContratoForm>
 
         </div>
 
@@ -269,7 +199,7 @@ const propiedadesFiltradas = propiedades
             </div>
 
             <div className="col-3 text-start">
-              <button className="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#contratosModal">
+              <button className="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#editModal">
                 <i class="bi bi-pencil-square"></i>
                 <br />
                 Editar
@@ -293,6 +223,7 @@ const propiedadesFiltradas = propiedades
               <a
                 href="#"
                 className="ms-3 fw-semibold text-dark"
+                data-bs-toggle="modal" data-bs-target="#contratosModal"
               >
                 Contrato
               </a>
