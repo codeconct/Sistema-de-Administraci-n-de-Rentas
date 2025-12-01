@@ -13,6 +13,34 @@ const Viviendas = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda]= useState("");
   const [ordenPrecio, setOrdenPrecio] = useState("none");
+  const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
+
+const cambiarEstado = (id) => {
+  setPropiedades((prev) =>
+    prev.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            status: p.status === "ocupado" ? "disponible" : "ocupado",
+          }
+        : p
+    )
+  );
+};
+
+const archivarVivienda = (id) => {
+  setPropiedades((prev) =>
+    prev.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            status: p.status === "archivado" ? "disponible" : "archivado",
+          }
+        : p
+    )
+  );
+};
+
 
   const [propiedades, setPropiedades] = useState([
     {
@@ -68,13 +96,25 @@ const Viviendas = () => {
  
   ]);
 
+
+const agregarPropiedad = (nuevaPropiedad) => {
+  const nextId = propiedades.length ? Math.max(...propiedades.map(p => p.id)) + 1 : 1;
+    setPropiedades(prev => [...prev, { id: nextId, ...nuevaPropiedad }]);
+  };
+
+const actualizarPropiedad = (propiedadActualizada) => {
+  setPropiedades(prev =>
+    prev.map(p => p.id == propiedadActualizada.id ? propiedadActualizada : p)
+  );
+};
+
 const propiedadesFiltradas = propiedades
   .filter((p) => {
     if (filtroStatus === "todos") return true;
     return p.status === filtroStatus;
   })
-  .filter((p) => {
-    const texto = filtroBusqueda.toLowerCase();
+.filter((p) => {
+  const texto = filtroBusqueda.toLowerCase();
     return (
       p.ubicacion.toLowerCase().includes(texto) ||
       (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
@@ -122,13 +162,17 @@ const propiedadesFiltradas = propiedades
             type="button"
             className="btn btn-link text-dark contrato-btn fw-semibold"
             data-bs-toggle="modal"
-            data-bs-target="#contratosModal"
+            data-bs-target="#viviendaModal"
           >
             Añadir Vivienda
           </button>
 
-          <ViviendaForm></ViviendaForm>
-          <EditarForm></EditarForm>
+          <ViviendaForm agregarPropiedad={agregarPropiedad} />
+          <EditarForm     
+            propiedad={propiedadSeleccionada} 
+            actualizarPropiedad={actualizarPropiedad}
+              />
+
           <ContratoForm></ContratoForm>
 
         </div>
@@ -156,12 +200,12 @@ const propiedadesFiltradas = propiedades
           
           <button className={'btn btn-outline-dark ${filtroStatus === "disponible" ? " active" : ""}'}
             onClick={() => setFiltroStatus("disponible")}>
-            Viviendas Disponibles
+            Disponibles
             </button>
           
           <button className={'btn btn-outline-dark ${filtroStatus === "archivado" ? " active" : ""}'}
             onClick={() => setFiltroStatus("archivado")}>
-            Viviendas Archivadas
+            Archivadas
             </button>
         </div>
 
@@ -170,7 +214,6 @@ const propiedadesFiltradas = propiedades
           <div className="col-4">Ubicación</div>
           <div className="col-3">Arrendatario</div>
           <div className="col-2">Fecha de Pago</div>
-          <div className="col-3 text-end">Acciones</div>
         </div>
 
         {/* Property list */}
@@ -198,31 +241,43 @@ const propiedadesFiltradas = propiedades
               <span>{prop.fechaPago}</span>
             </div>
 
+            {/* Butons */}
             <div className="col-3 text-start">
-              <button className="btn btn-sm btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#editModal">
+              <button className="action-btn" data-bs-toggle="modal" data-bs-target="#editModal"
+                onClick={() => setPropiedadSeleccionada(prop)}>
                 <i class="bi bi-pencil-square"></i>
-                <br />
                 Editar
               </button>
-              <button className="btn btn-sm btn-outline-secondary me-2">
-                <i class="bi bi-eye-slash"></i>
-                <br />
-                Archivar
-              </button>
-              <button
-                className={`btn btn-sm ${
-                  prop.status === "ocupado"
-                    ? "btn-outline-danger"
-                    : "btn-outline-success"
-                }`}
-              >
-                <i class="bi bi-check2-square"></i>
-                <br />
-                {prop.status === "ocupado" ? "Ocupado" : "Disponible"}
-              </button>
+
+              {prop.status === "archivado" ? (
+                <button className="btn-status archivado" onClick={() => archivarVivienda(prop.id)}>
+                  <i className="bi bi bi-eye"></i>
+                  Archivado
+                </button>
+              ) : (
+                <button className="btn-status desarchivar" onClick={() => archivarVivienda(prop.id)}>
+                  <i className="bi bi-eye-slash"></i>
+                  Desarchivado
+                </button>
+              )}
+
+              {prop.status === "ocupado" ? (
+                <button className="btn-status ocupado" onClick={() => cambiarEstado(prop.id)}>
+                  <i className="bi bi-x-circle"></i>
+                  Ocupado
+                </button>
+              ) : (
+                <button className="btn-status disponible" onClick={() => cambiarEstado(prop.id)}>
+                  <i className="bi bi-check-circle"></i>
+                  Disponible
+                </button>
+              )}
+
+
+
               <a
                 href="#"
-                className="ms-3 fw-semibold text-dark"
+                className="action-btn ms-3 fw-semibold text-dark"
                 data-bs-toggle="modal" data-bs-target="#contratosModal"
               >
                 Contrato
