@@ -1,6 +1,9 @@
 // routes/owners.routes.js
 import { Router } from 'express';
 import pool from '../db.js';  // adjust path if needed
+import {hash, compare} from 'bcryptjs';
+import {JWT_EXPIRES_IN, JWT_SECRET} from '../config.js'
+import jwt from "jsonwebtoken";
 
 const router = Router();
 
@@ -35,12 +38,15 @@ router.get('/owners/:id', async (req, res) => {
 
 // CREATE owner
 router.post('/owners', async (req, res) => {
-  const { name, phone, email, governmentid, passwordhash } = req.body;
+  const { name, phone, email, governmentid, password} = req.body;
+  
+  const passwordhash = await hash(password, 10);
+
   try {
     const result = await pool.query(
       `INSERT INTO owners (name, phone, email, governmentid, passwordhash)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [userid, name, phone, email, governmentid, passwordhash]
+      [name, phone, email, governmentid, passwordhash]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -53,7 +59,9 @@ router.post('/owners', async (req, res) => {
 // UPDATE owner
 router.put('/owners/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, phone, email, governmentid, passwordhash } = req.body;
+  const { name, phone, email, governmentid, password} = req.body;
+  
+  const passwordhash = await hash(password, 10);
   try {
     const result = await pool.query(
       `UPDATE owners
@@ -84,6 +92,59 @@ router.delete('/owners/:id', async (req, res) => {
       return res.status(404).json({ message: 'Owner not found' });
     }
     res.json({ message: `Owner ${id} deleted`, owner: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const result = await pool.query(
+      `SELECT * FROM owners WHERE email = $1`,
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    const user = result.rows[0];
+
+    const validPassword = await compare(password, user.passwordhash);
+
+    if (!validPassword) {
+      return res.status(401).json({ message: "Wrong password" });
+    }
+
+    // ---------- GENERATE TOKEN ----------
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email
+      },
+      JWT_SECRET,
+      {
+        expiresIn: JWT_EXPIRES_IN || "1d"
+      }
+    );
+    // ------------------------------------
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        email: user.email
+      }
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

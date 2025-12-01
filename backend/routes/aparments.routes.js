@@ -51,7 +51,7 @@ router.put('/apartments/:id', async (req, res) => {
   const { ownerid, address, monthlyrent, status } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE apartments SET ownerid = $1, address = $2, monthlyrent = $3, status =$4,  WHERE id = $5 RETURNING *',
+      'UPDATE apartments SET ownerid = $1, address = $2, monthlyrent = $3, status =$4  WHERE id = $5 RETURNING *',
       [ownerid, address, monthlyrent, status, id]
     );
     if (result.rows.length === 0) {

@@ -9,7 +9,7 @@ POST http://localhost:5555/api/apartments
 Content-Type: application/json
 
 {
-  "ownerid": 1,
+  "ownerid": 0,
   "address": "123 Main St",
   "monthlyrent": 800.00,
   "status": "AVAILABLE"
@@ -20,7 +20,7 @@ PUT http://localhost:5555/api/apartments/1
 Content-Type: application/json
 
 {
-  "ownerid": 1,
+  "ownerid": 0,
   "address": "456 Elm Street",
   "monthlyrent": 950.00,
   "status": "OCCUPIED"
@@ -35,7 +35,20 @@ Content-Type: application/json
 
 {
   "name": "Axel",
-  "phone": "123456789"
+  "phone": "123456789",
+  "email": "example@example",
+  "governmentid": "INE",
+  "password": "12345678"
+}
+
+
+### Login
+POST http://localhost:5555/api/login
+Content-Type: application/json
+
+{
+  "email": "example@example",
+  "password": "12345678"
 }
 
 ###
