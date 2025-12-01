@@ -2,96 +2,131 @@ import react from "react";
 
 const ViviendaForm = () => {
   return (
-    <div
-  class="modal fade"
-  id="viviendasModal"
-  tabindex="-1"
-  aria-labelledby="viviendasModalLabel"
-  aria-hidden="true"
->z
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content contratos-modal">
-      <div class="modal-header border-0">
-        <h5 class="modal-title fw-bold" id="viviendasModalLabel">
-          Contratos
-        </h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-
-      <div class="modal-body">
-        <form>
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Fecha de Firma</label>
-            <input
-              type="date"
-              class="form-control form-control-sm custom-input"
-              placeholder="Selecciona el día"
-            />
+<div
+      className="modal fade"
+      id="viviendaModal"
+      tabIndex="-1"
+      aria-labelledby="viviendaModalLabel"
+      aria-hidden="true"
+    >
+      <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-content contratos-modal">
+          <div className="modal-header border-0">
+            <h5 className="modal-title fw-bold" id="viviendaModalLabel">
+              Agregar Nueva Viviendas
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
           </div>
 
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Nombre Completo</label>
-            <input
-              type="text"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. Jorge Lupin"
-            />
-          </div>
+          {/* FORMULARIO */}
+          <form className="p-4">
+            <h6 className="fw-bold mt-4 mb-3">Informacion General de la Vivienda</h6>
 
-          <h6 class="fw-bold mt-4 mb-3">Revisar Contratos Pasados</h6>
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Código Postal</label>
+              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. 34000" />
+            </div>
 
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Número de Teléfono</label>
-            <input
-              type="tel"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. 6181234567"
-            />
-          </div>
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Estado</label>
+              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Durango" />
+            </div>
 
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Correo Electrónico</label>
-            <input
-              type="email"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. jorge@email.com"
-            />
-          </div>
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Municipio</label>
+              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Durango" />
+            </div>
 
-          <div class="mb-4">
-            <label class="form-label fw-semibold">Domicilio</label>
-            <input
-              type="text"
-              class="form-control form-control-sm custom-input"
-              placeholder="Ejem. Calle, fracc, num 123"
-            />
-          </div>
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Domicilio</label>
+              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Calle, fracc, num 123" />
+            </div>
 
-          <div class="mt-4">
-            <label class="form-label fw-semibold">Subir Contrato</label>
-            <div class="d-flex flex-column align-items-start gap-2">
-              <button
-                type="button"
-                class="btn btn-outline-dark btn-sm px-3 py-1 w-auto custom-upload-btn"
-              >
-                Subir Documento en PDF
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Precio de Renta</label>
+              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. $3500" />
+            </div>
+
+            <h6 className="fw-bold mt-4 mb-3">Datos del Arrendatario</h6>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Nombre Completo</label>
+              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Joseph Joestar" />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Numero de Teléfono</label>
+              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. 618-123-4567" />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Correo Electrónico</label>
+              <input type="email" className="form-control form-control-sm custom-input" placeholder="Ejem. jorge@gmail.com" />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Domicilio (Opcional)</label>
+              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Calle, fracc, num 123" />
+            </div>
+
+            <h6 className="fw-bold mt-4 mb-3">Datos del Aval</h6>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Nombre Completo</label>
+              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Joseph Joestar" />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Número de Teléfono</label>
+              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. 618-123-4567" />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Correo Electrónico</label>
+              <input type="email" className="form-control form-control-sm custom-input" placeholder="Ejem. jorge@gmail.com" />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label fw-semibold">Domicilio</label>
+              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Calle, fracc, num 123" />
+            </div>
+
+            <h6 className="fw-bold mt-4 mb-3">Contrato</h6>
+
+            <div className="mb-4">
+              <label className="form-label fw-semibold">Fecha de Firma</label>
+              <input type="date" className="form-control form-control-sm custom-input" />
+            </div>
+
+            <div className="mb-4">
+              <label className="form-label fw-semibold">Fecha de Pago</label>
+              <input type="date" className="form-control form-control-sm custom-input" />
+            </div>
+
+            <div className="d-flex flex-column align-items-start gap-2">
+              <label className="form-label fw-semibold">Descargar Contrato de la Vivienda</label>
+              <button type="button" className="btn btn-outline-dark btn-sm px-3 py-1 w-auto">
+                Descargar Documento PDF
               </button>
-              <button type="submit" class="btn btn-primary btn-sm px-4 py-1 w-auto">
-                Guardar
+
+              <label className="form-label fw-semibold mt-3">Subir Contrato Firmado</label>
+              <button type="button" className="btn btn-outline-dark btn-sm px-3 py-1 w-auto">
+                Subir Documento PDF
               </button>
             </div>
-          </div>
-        </form>
+
+            <button type="submit" className="btn btn-primary btn-sm px-4 py-1 mt-3 w-auto">
+              Guardar
+            </button>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
-</div>
   );
 };
-
 export default ViviendaForm;

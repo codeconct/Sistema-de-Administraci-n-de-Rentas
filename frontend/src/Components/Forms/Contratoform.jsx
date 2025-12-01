@@ -77,8 +77,7 @@ const ContratoForm = () => {
             <div class="d-flex flex-column align-items-start gap-2">
               <button
                 type="button"
-                class="btn btn-outline-dark btn-sm px-3 py-1 w-auto custom-upload-btn"
-              >
+                class="btn btn-outline-dark btn-sm px-3 py-1 w-auto custom-upload-btn">
                 Subir Documento en PDF
               </button>
               <button type="submit" class="btn btn-primary btn-sm px-4 py-1 w-auto">

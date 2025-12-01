@@ -156,6 +156,7 @@ const propiedadesFiltradas = propiedades
               <span>{prop.fechaPago}</span>
             </div>
 
+
             <div className="col-1 text-center">
                 {prop.status === "ocupado" ? <>
                 <i class="bi bi-check2-square fs-4"></i>

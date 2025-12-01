@@ -107,6 +107,32 @@
     border-color: #929292;
 }
 
+/*type buttons*/
+.action-btn, .btn-status {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0 12px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 14px;
+  color: #000; /* Texto en negro */
+}
+
+.action-btn i , .btn-status i{
+  font-size: 20px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+/* Hover suave como en el UI */
+.action-btn:hover {
+  opacity: 0.6;
+}
+
+/*Status Button*/
+
+/**/
 
 .contratos-modal {
   border-radius: 16px;
@@ -138,4 +164,30 @@
 
 .modal-header .btn-close:hover {
   opacity: 1;
+}
+
+/* En AparmentList.css */
+.btn-contract {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  color: #212529 !important;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.btn-contract:hover {
+  background-color: #e9ecef;
+  text-decoration: none;
+}
+
+.action-btn, .btn-status, .btn-contract {
+  font-size: 0.875rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.d-flex.flex-wrap.gap-1 {
+  gap: 0.25rem !important;
 }
