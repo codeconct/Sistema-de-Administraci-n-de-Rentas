@@ -9,7 +9,7 @@ import apartmentsRouter from './routes/aparments.routes.js';
 import rentalContractsRouter from './routes/rentalContracts.routes.js';
 import invoicesRouter from './routes/invoices.routes.js';
 import paymentsRouter from './routes/payments.routes.js';
-import documentsRouter from './routes/documents.routes.js';
+//import documentsRouter from './routes/documents.routes.js';
 import maintenanceRequestsRouter from './routes/maintenanceRequests.routes.js';
 
 const app = express();
