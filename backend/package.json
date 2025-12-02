@@ -20,6 +20,7 @@
   "homepage": "https://github.com/codeconct/Sistema-de-Administraci-n-de-Rentas#readme",
   "description": "",
   "dependencies": {
+    "@vendia/serverless-express": "^4.12.6",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",

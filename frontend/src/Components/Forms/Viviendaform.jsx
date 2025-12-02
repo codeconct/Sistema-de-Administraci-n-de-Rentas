@@ -1,5 +1,4 @@
 import react from "react";
-
 const ViviendaForm = () => {
   return (
 <div

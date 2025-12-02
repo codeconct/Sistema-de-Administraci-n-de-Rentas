@@ -1,112 +1,81 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./AparmentList.css";
-import "../Forms/Viviendaform"
-import "../Forms/Editarform"
-import "../Forms/Contratoform"
-import { useState } from "react";
 import ViviendaForm from "../Forms/Viviendaform";
 import EditarForm from "../Forms/Editarform";
 import ContratoForm from "../Forms/Contratoform";
+import { api } from "../../api";
+
+import { jwtDecode } from "jwt-decode";
 
 
 const Viviendas = () => {
+  const [propiedades, setPropiedades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [filtroStatus, setFiltroStatus] = useState("todos");
-  const [filtroBusqueda, setFiltroBusqueda]= useState("");
-  const [ordenPrecio, setOrdenPrecio] = useState("none");
+  const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
 
-const cambiarEstado = (id) => {
-  setPropiedades((prev) =>
-    prev.map((p) =>
-      p.id === id
-        ? {
-            ...p,
-            status: p.status === "ocupado" ? "disponible" : "ocupado",
-          }
-        : p
-    )
-  );
-};
+  // ⬇️ Fetch data from backend on page load
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(api("/viviendas"), {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
-const archivarVivienda = (id) => {
-  setPropiedades((prev) =>
-    prev.map((p) =>
-      p.id === id
-        ? {
-            ...p,
-            status: p.status === "archivado" ? "disponible" : "archivado",
-          }
-        : p
-    )
-  );
-};
+        if (!res.ok) throw new Error("Error loading data");
 
+        const data = await res.json();
+        setPropiedades(data);
+      } catch (err) {
+        console.error(err);
+        setError("Error loading viviendas");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const [propiedades, setPropiedades] = useState([
-    {
-      id: 1,
-      status: "ocupado",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-11-15",
-    },
-    {
-      id: 2,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "21 de Marzo 456, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: null,
-      fechaPago: null,
-    },
-    {
-      id: 3,
-      status: "ocupado",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-        {
-      id: 4,
-      status: "archivado",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-    {
-      id: 5,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
- 
-  ]);
+    fetchData();
+  }, []);
 
+  // ------------------------------
+  //  Helpers to modify UI locally
+  // ------------------------------
 
-const agregarPropiedad = (nuevaPropiedad) => {
-  const nextId = propiedades.length ? Math.max(...propiedades.map(p => p.id)) + 1 : 1;
-    setPropiedades(prev => [...prev, { id: nextId, ...nuevaPropiedad }]);
+  const cambiarEstado = (id) => {
+    setPropiedades(prev =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, status: p.status === "ocupado" ? "disponible" : "ocupado" }
+          : p
+      )
+    );
   };
 
-const actualizarPropiedad = (propiedadActualizada) => {
-  setPropiedades(prev =>
-    prev.map(p => p.id == propiedadActualizada.id ? propiedadActualizada : p)
-  );
-};
+  const archivarVivienda = (id) => {
+    setPropiedades(prev =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, status: p.status === "archivado" ? "disponible" : "archivado" }
+          : p
+      )
+    );
+  };
+
+  const agregarPropiedad = (nueva) => {
+    setPropiedades(prev => [...prev, nueva]);
+  };
+
+  const actualizarPropiedad = (propActualizada) => {
+    setPropiedades(prev =>
+      prev.map((p) =>
+        p.id === propActualizada.id ? propActualizada : p
+      )
+    );
+  };
+
 
 const propiedadesFiltradas = propiedades
   .filter((p) => {
