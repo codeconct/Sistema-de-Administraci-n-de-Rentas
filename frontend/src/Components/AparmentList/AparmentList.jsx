@@ -211,15 +211,15 @@ const propiedadesFiltradas = propiedades
 
         {/* Table header */}
         <div className="row table-header mb-2">
-          <div className="col-4">Ubicación</div>
-          <div className="col-3">Arrendatario</div>
+          <div className="col-3">Ubicación</div>
+          <div className="col-2">Arrendatario</div>
           <div className="col-2">Fecha de Pago</div>
         </div>
 
         {/* Property list */}
         {propiedadesFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
-            <div className="col-4 d-flex align-items-center">
+            <div className="col-3 d-flex align-items-center">
               <span className={getStatusDot(prop.status)}></span>
               <img
                 src={prop.img}
@@ -232,17 +232,17 @@ const propiedadesFiltradas = propiedades
               </div>
             </div>
 
-            <div className="col-3 d-flex align-items-center justify-content-center flex-column">
+            <div className="col-2 d-flex align-items-center justify-content-center flex-column">
                 <i className="bi bi-person-circle fs-3  text-secondary"></i>
                 <span>{prop.arrendatario}</span>
             </div>
 
-            <div className="col-2 d-flex align-items-center">
+            <div className="col-1 d-flex align-items-center">
               <span>{prop.fechaPago}</span>
             </div>
 
             {/* Butons */}
-            <div className="col-3 text-start">
+            <div className="col-6 text-end">
               <button className="action-btn" data-bs-toggle="modal" data-bs-target="#editModal"
                 onClick={() => setPropiedadSeleccionada(prop)}>
                 <i class="bi bi-pencil-square"></i>
@@ -272,8 +272,6 @@ const propiedadesFiltradas = propiedades
                   Disponible
                 </button>
               )}
-
-
 
               <a
                 href="#"

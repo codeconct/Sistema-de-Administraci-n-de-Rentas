@@ -12,7 +12,7 @@ const EditarForm = () => {
       <div className="modal-dialog modal-lg modal-dialog-centered">
         <div className="modal-content contratos-modal">
           <div className="modal-header border-0">
-            <h5 className="modal-title fw-bold" id="editModalLabel">
+            <h5 className="modal-title fw-bold fs-5" id="editModalLabel">
               Editar Viviendas
             </h5>
             <button
@@ -25,7 +25,7 @@ const EditarForm = () => {
 
           {/* FORMULARIO */}
           <form className="p-4">
-            <h6 className="fw-bold mt-4 mb-3">Informacion General de la Vivienda</h6>
+            <h6 className="fw-bold mt-4 mb-3 fs-3"> Informacion General de la Vivienda</h6>
 
             <div className="mb-3">
               <label className="form-label fw-semibold">Código Postal</label>
