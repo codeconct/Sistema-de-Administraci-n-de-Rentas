@@ -11,6 +11,7 @@ import Incidencias from './Components/Incidencias/Incidencias';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
+import ProtectedRoute from "./Components/ProtectedRoute";
 
 function App() {
   return (
@@ -25,9 +26,9 @@ function App() {
           <>
             <Navbar />   {/* en esta parte de aca se pueden acomodar las diversas paginas y a donde deberian de ir */}
             <Routes>
-              <Route path="viviendas" element={<Viviendas />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="incidencias" element={<Incidencias />} />
+              <Route path="viviendas" element={<ProtectedRoute> <Viviendas /> </ProtectedRoute>} />
+              <Route path="dashboard" element={<ProtectedRoute> <Dashboard /> </ProtectedRoute>} />
+              <Route path="incidencias" element={<ProtectedRoute> <Incidencias /> </ProtectedRoute>} />
             </Routes>
           </>
         } />

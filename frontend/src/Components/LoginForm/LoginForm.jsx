@@ -17,10 +17,36 @@ const LoginForm = () => {
         setAction('');
     };
 
-     const handleLogin = (e) => {
-    e.preventDefault();
-    navigate('/viviendas');
-    };
+    const handleLogin = async (e) => {
+  e.preventDefault();
+
+  const name = e.target[0].value;
+  const password = e.target[1].value;
+
+  try {
+    const response = await fetch("http://localhost:5555/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, password })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert("Invalid credentials");
+      return;
+    }
+
+    // Save token in localStorage
+    localStorage.setItem("token", data.token);
+
+    navigate("/viviendas");
+
+  } catch (error) {
+    console.error(error);
+    alert("Server error");
+  }
+};
 
     return(
     <div className='login-page'>

@@ -99,20 +99,20 @@ router.delete('/owners/:id', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+  const { name, password } = req.body;
 
   try {
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+    if (!name || !password) {
+      return res.status(400).json({ message: "Name and password are required" });
     }
 
     const result = await pool.query(
-      `SELECT * FROM owners WHERE email = $1`,
-      [email]
+      `SELECT * FROM owners WHERE name = $1`,
+      [name]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Email not found" });
+      return res.status(404).json({ message: "Name not found" });
     }
 
     const user = result.rows[0];
@@ -127,7 +127,7 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign(
       {
         id: user.id,
-        email: user.email
+        name: user.name
       },
       JWT_SECRET,
       {
@@ -141,7 +141,7 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: user.id,
-        email: user.email
+        name: user.name
       }
     });
 
