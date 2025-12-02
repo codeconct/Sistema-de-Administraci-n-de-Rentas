@@ -1,4 +1,3 @@
-import { PORT } from "./config.js"
 import express from 'express';
 import cors from 'cors';
 
@@ -15,7 +14,6 @@ import maintenanceRequestsRouter from './routes/maintenanceRequests.routes.js';
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -30,10 +28,5 @@ app.use('/api', paymentsRouter);
 app.use('/api', documentsRouter);
 app.use('/api', maintenanceRequestsRouter);
 
-app.listen(PORT, (error) =>{
-    if(!error)
-        console.log("Server is Successfully Running, and App is listening on port "+ PORT);
-    else 
-        console.log("Error occurred, server can't start", error);
-    }
-);
+// ❗ Export the app as the default handler
+export default app;
