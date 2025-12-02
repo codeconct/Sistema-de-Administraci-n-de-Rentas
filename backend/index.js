@@ -25,7 +25,7 @@ app.use('/api', apartmentsRouter);
 app.use('/api', rentalContractsRouter);
 app.use('/api', invoicesRouter);
 app.use('/api', paymentsRouter);
-app.use('/api', documentsRouter);
+//app.use('/api', documentsRouter);
 app.use('/api', maintenanceRequestsRouter);
 
 // ❗ Export the app as the default handler
