@@ -47,6 +47,12 @@ const Viviendas = () => {
     fetchData();
   }, []);
 
+
+
+  const formatDate = (date) => {
+  if (!date) return ""; // ← If null, return nothing
+  return new Date(date).toLocaleDateString("es-MX");
+};
   // ------------------------------
   //  Helpers to modify UI locally
   // ------------------------------
@@ -219,11 +225,11 @@ const Viviendas = () => {
 
             <div className="col-2 d-flex align-items-center justify-content-center flex-column">
                 <i className="bi bi-person-circle fs-3  text-secondary"></i>
-                <span></span>
+                <span>{prop.tenant_name}</span>
             </div>
 
             <div className="col-1 d-flex align-items-center">
-              <span>{prop.monthlyrent}</span>
+              <span>{formatDate(prop.payDate)}</span>
             </div>
 
             {/* Butons */}
