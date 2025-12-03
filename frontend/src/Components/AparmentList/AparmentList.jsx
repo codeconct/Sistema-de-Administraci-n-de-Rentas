@@ -47,7 +47,7 @@ const Viviendas = () => {
     setPropiedades(prev =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, status: p.status === "OCCUPAID" ? "ARCHIVED" : "OCCUPAID" }
+          ? { ...p, status: p.status === "OCCUPIED" ? "ARCHIVED" : "OCCUPIED" }
           : p
       )
     );
@@ -57,10 +57,23 @@ const Viviendas = () => {
     setPropiedades(prev =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, status: p.status === "ARCHIVED" ? "AVALAIBLE" : "ARCHIVED" }
+          ? { ...p, status: p.status === "ARCHIVED" ? "AVAILABLE" : "ARCHIVED" }
           : p
       )
     );
+  };
+
+  const getStatusDot = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "status-dot status-disponible";
+      case "OCCUPIED":
+        return "status-dot status-ocupado";
+      case "ARCHIVED":
+        return "status-dot status-archivado";
+      default:
+        return "";
+    }
   };
 
   const agregarPropiedad = (nueva) => {
@@ -179,7 +192,7 @@ const Viviendas = () => {
         {propiedadesFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-3 d-flex align-items-center">
-              <span className={prop.status}></span>
+              <span className={getStatusDot(prop.status)}></span>
               <img
                 src="https://th.bing.com/th/id/OIP.6XIv3DVREt05mi0sSNtUDgHaE8?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"
                 className="property-img me-2"
