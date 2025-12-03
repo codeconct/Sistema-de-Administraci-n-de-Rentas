@@ -1,14 +1,5 @@
-<<<<<<< HEAD
-import React, { use } from "react";
-import "./AparmentList.css";
-import "../Forms/Viviendaform"
-import "../Forms/Editarform"
-import "../Forms/Contratoform"
-import { useState, useEffect } from "react";
-=======
 import React, { useState, useEffect } from "react";
 import "./AparmentList.css";
->>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
 import ViviendaForm from "../Forms/Viviendaform";
 import EditarForm from "../Forms/Editarform";
 import ContratoForm from "../Forms/Contratoform";
@@ -16,16 +7,11 @@ import {REACT_APP_API_URL} from '../../config'
 
 const token = localStorage.getItem("token");
 
-<<<<<<< HEAD
-const Viviendas = () => { 
-  
-=======
 const Viviendas = () => {
   const [propiedades, setPropiedades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
->>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
@@ -36,23 +22,8 @@ const Viviendas = () => {
   
   {/* in this part you can change the number of items that appears in one page */}
   const [paginaActual, setPaginaActual] = useState(1);
-  const itemsPorPagina = 5; //only you need to change this number
+  const itemsPorPagina = 5; //only you need to change this number for change the items per page
 
-<<<<<<< HEAD
-{/* this part you need it because with this the state of the building change */}
-const cambiarEstado = (id) => {
-  setPropiedades((prev) =>
-    prev.map((p) =>
-      p.id === id
-        ? {
-            ...p,
-            status: p.status === "ocupado" ? "disponible" : "ocupado",
-          }
-        : p
-    )
-  );
-};
-=======
   // ⬇️ Fetch data from backend on page load
   useEffect(() => {
     const fetchData = async () => {
@@ -60,153 +31,9 @@ const cambiarEstado = (id) => {
         const res = await fetch(`${REACT_APP_API_URL}/apartments`, {
           headers: { Authorization: `Bearer ${token}` }
         });
->>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
 
         if (!res.ok) throw new Error("Error loading data");
 
-<<<<<<< HEAD
-{/* propierty list */}
-  const [propiedades, setPropiedades] = useState([
-    {
-      id: 1,
-      status: "ocupado",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-11-15",
-    },
-    {
-      id: 2,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "21 de Marzo 456, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: null,
-      fechaPago: null,
-    },
-    {
-      id: 3,
-      status: "ocupado",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-        {
-      id: 4,
-      status: "archivado",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-    {
-      id: 5,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-    {
-      id: 6,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-    {
-      id: 7,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-    {
-      id: 8,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
-    {
-      id: 9,
-      status: "disponible",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-12-01",
-    },
- 
-  ]);
-  
-const agregarPropiedad = (nuevaPropiedad) => {
-  const nextId = propiedades.length ? Math.max(...propiedades.map(p => p.id)) + 1 : 1;
-    setPropiedades(prev => [...prev, { id: nextId, ...nuevaPropiedad }]);
-  };
-
-const actualizarPropiedad = (propiedadActualizada) => {
-  setPropiedades(prev =>
-    prev.map(p => p.id == propiedadActualizada.id ? propiedadActualizada : p)
-  );
-};
-
-
-// Filtering and pagination
-const propiedadesFiltradas = propiedades
-  .filter((p) => {
-    if (filtroStatus === "todos") return true;
-    return p.status === filtroStatus;
-  })
-  .filter((p) => {
-    const texto = filtroBusqueda.toLowerCase();
-    return (
-      p.ubicacion.toLowerCase().includes(texto) ||
-      (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
-      p.id.toString().includes(texto)
-    );
-  });
-
-const indexInicio = (paginaActual - 1) * itemsPorPagina;
-const indexFin = indexInicio + itemsPorPagina;
-const propiedadesPaginadas = propiedadesFiltradas.slice(indexInicio, indexFin);
-const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
-
-
-  
-
-  const getStatusDot = (status) => {
-    switch (status) {
-      case "disponible":
-        return "status-dot status-disponible";
-      case "ocupado":
-        return "status-dot status-ocupado";
-      case "archivado":
-        return "status-dot status-archivado";
-      default:
-        return "";
-    }
-=======
         const data = await res.json();
         setPropiedades(data);
       } catch (err) {
@@ -232,7 +59,6 @@ const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
           : p
       )
     );
->>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
   };
 
   const archivarVivienda = (id) => {
@@ -358,7 +184,7 @@ const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
         </div>
 
         {/* Property list */}
-        {propiedadesPaginadas.map((prop) => (
+        {propiedadesFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-3 d-flex align-items-center">
               <span className={prop.status}></span>
@@ -443,7 +269,6 @@ const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
               ))}
           </ul>
         </nav>
-
       </div>
     </div>
   );
