@@ -3,12 +3,9 @@ import "./AparmentList.css";
 import ViviendaForm from "../Forms/Viviendaform";
 import EditarForm from "../Forms/Editarform";
 import ContratoForm from "../Forms/Contratoform";
-import { api } from "../../api";
+import {REACT_APP_API_URL} from '../../config'
 
-import { jwtDecode } from "jwt-decode";
 const token = localStorage.getItem("token");
-
-
 
 const Viviendas = () => {
   const [propiedades, setPropiedades] = useState([]);
@@ -23,7 +20,7 @@ const Viviendas = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(api("/aparments"), {
+        const res = await fetch(`${REACT_APP_API_URL}/apartments`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -50,7 +47,7 @@ const Viviendas = () => {
     setPropiedades(prev =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, status: p.status === "ocupado" ? "disponible" : "ocupado" }
+          ? { ...p, status: p.status === "OCCUPAID" ? "ARCHIVED" : "OCCUPAID" }
           : p
       )
     );
@@ -60,7 +57,7 @@ const Viviendas = () => {
     setPropiedades(prev =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, status: p.status === "archivado" ? "disponible" : "archivado" }
+          ? { ...p, status: p.status === "ARCHIVED" ? "AVALAIBLE" : "ARCHIVED" }
           : p
       )
     );
@@ -78,45 +75,36 @@ const Viviendas = () => {
     );
   };
 
+  // ------------------------------
+  //  Filtering logic
+  // ------------------------------
 
-const propiedadesFiltradas = propiedades
-  .filter((p) => {
-    if (filtroStatus === "todos") return true;
-    return p.status === filtroStatus;
-  })
-.filter((p) => {
-  const texto = filtroBusqueda.toLowerCase();
-    return (
-      p.ubicacion.toLowerCase().includes(texto) ||
-      (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
-      p.id.toString().includes(texto)
-    );
-  });
+  const propiedadesFiltradas = propiedades
+    .filter((p) => filtroStatus === "todos" || p.status === filtroStatus)
+    .filter((p) => {
+      const texto = filtroBusqueda.toLowerCase();
+      return (
+        p.address.toLowerCase().includes(texto) ||
+        p.id.toString().includes(texto)
+      );
+    });
 
-  
+  // ------------------------------
+  //  UI States: Loading and Error
+  // ------------------------------
 
-  const getStatusDot = (status) => {
-    switch (status) {
-      case "disponible":
-        return "status-dot status-disponible";
-      case "ocupado":
-        return "status-dot status-ocupado";
-      case "archivado":
-        return "status-dot status-archivado";
-      default:
-        return "";
-    }
-  };
+  if (loading) return <div className="text-center py-5">Cargando datos...</div>;
+  if (error) return <div className="text-center py-5 text-danger">{error}</div>;
+
+  // ------------------------------
+  //  NORMAL RENDER
+  // ------------------------------
 
   return (
     <div className="bg-light min-vh-100">
-      
-      
-      <div className="apartment-page"></div>
-
       <div className="container py-4">
-        
-        {/* Search and filters */}
+
+        {/* Search + Add */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div className="search-pill d-flex align-items-center">
             <i className="bi bi-search search-icon"></i>
@@ -139,21 +127,21 @@ const propiedadesFiltradas = propiedades
           </button>
 
           <ViviendaForm agregarPropiedad={agregarPropiedad} />
-          <EditarForm     
-            propiedad={propiedadSeleccionada} 
+          <EditarForm
+            propiedad={propiedadSeleccionada}
             actualizarPropiedad={actualizarPropiedad}
-              />
-
-          <ContratoForm></ContratoForm>
-
+          />
+          <ContratoForm />
         </div>
 
-        {/* Status legend */}
+        {/* STATUS INDICATORS */}
         <div className="mb-3">
           <span className="status-dot status-disponible"></span>Disponible
           <span className="status-dot status-archivado ms-3"></span>Archivado
           <span className="status-dot status-ocupado ms-3"></span>Ocupado
         </div>
+
+        
 
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
@@ -191,25 +179,25 @@ const propiedadesFiltradas = propiedades
         {propiedadesFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-3 d-flex align-items-center">
-              <span className={getStatusDot(prop.status)}></span>
+              <span className={prop.status}></span>
               <img
-                src={prop.img}
+                src="https://th.bing.com/th/id/OIP.6XIv3DVREt05mi0sSNtUDgHaE8?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"
                 className="property-img me-2"
                 alt="Departamento"
               />
               <div>
-                <p className="mb-1 fw-semibold">{prop.ubicacion}</p>
-                <small>{prop.precio}</small>
+                <p className="mb-1 fw-semibold">{prop.address}</p>
+                <small>{prop.monthlyrent.toLocaleString('en-US')}$</small>
               </div>
             </div>
 
             <div className="col-2 d-flex align-items-center justify-content-center flex-column">
                 <i className="bi bi-person-circle fs-3  text-secondary"></i>
-                <span>{prop.arrendatario}</span>
+                <span></span>
             </div>
 
             <div className="col-1 d-flex align-items-center">
-              <span>{prop.fechaPago}</span>
+              <span>{prop.monthlyrent}</span>
             </div>
 
             {/* Butons */}
@@ -283,6 +271,7 @@ const propiedadesFiltradas = propiedades
             </li>
           </ul>
         </nav>
+
       </div>
     </div>
   );
