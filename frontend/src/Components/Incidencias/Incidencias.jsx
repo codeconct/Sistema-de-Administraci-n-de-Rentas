@@ -17,7 +17,7 @@ const Incidencias = () => {
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
       precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-11-15",
+      fechaPago: "fuga de gas en la cocina",
     },
     {
       id: 2,
@@ -27,7 +27,7 @@ const Incidencias = () => {
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
       precio: "$6,000 mn",
       arrendatario: "Pendiente",
-      fechaPago: "-",
+      fechaPago: "foco fundido en la sala de estar",
     },
     {
       id: 3,
@@ -37,7 +37,7 @@ const Incidencias = () => {
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
       precio: "$6,000 mn",
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "19 de Diciembre del 2025",
+      fechaPago: "cortina rota en el dormitorio",
     },
       {
       id: 4,
@@ -47,7 +47,7 @@ const Incidencias = () => {
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
       precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "2025-11-15",
+      fechaPago: "falta de agua caliente",
     },
   ]);
 

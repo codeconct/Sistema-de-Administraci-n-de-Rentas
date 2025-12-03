@@ -15,6 +15,14 @@ const Viviendas = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
+  
+  useEffect(() => {
+    setPaginaActual(1); // Reset to first page on filter change
+  }, [filtroStatus, filtroBusqueda]);
+  
+  {/* in this part you can change the number of items that appears in one page */}
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 5; //only you need to change this number for change the items per page
 
   // ⬇️ Fetch data from backend on page load
   useEffect(() => {
@@ -258,33 +266,22 @@ const Viviendas = () => {
 
         {/* Pagination */}
         <nav className="mt-4">
-          <ul className="pagination justify-content-center">
-            <li className="page-item active">
-              <a className="page-link" href="#">
-                1
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                2
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                3
-              </a>
-            </li>
-            <li className="page-item">
-              <span className="page-link">...</span>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                10
-              </a>
-            </li>
+          <ul className="pagination justify-content-center custom-pagination">
+            {Array.from(
+              {length: Math.ceil(propiedadesFiltradas.length / itemsPorPagina)},
+              (_, idx) => (
+                <li
+                  key={idx + 1}
+                    className={`page-item ${paginaActual === idx + 1 ? "active" : ""}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => setPaginaActual(idx + 1)}>
+                      {idx + 1}
+                  </button>
+                </li> 
+              ))}
           </ul>
         </nav>
-
       </div>
     </div>
   );

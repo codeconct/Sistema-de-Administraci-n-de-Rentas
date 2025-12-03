@@ -1,0 +1,17 @@
+.table th {
+  font-weight: 600;
+}
+
+.table td, .table th {
+  padding: 12px;
+}
+
+.shadow-sm {
+  border-radius: 12px;
+}
+
+/* pagination buttons */
+.pagination-btns .btn {
+  font-size: 0.80rem; /*number size*/
+  padding: 4px 10px;/*button size*/
+}
