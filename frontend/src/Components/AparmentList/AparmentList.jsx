@@ -6,6 +6,8 @@ import ContratoForm from "../Forms/Contratoform";
 import { api } from "../../api";
 
 import { jwtDecode } from "jwt-decode";
+const token = localStorage.getItem("token");
+
 
 
 const Viviendas = () => {
@@ -21,7 +23,7 @@ const Viviendas = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(api("/viviendas"), {
+        const res = await fetch(api("/aparments"), {
           headers: { Authorization: `Bearer ${token}` }
         });
 
