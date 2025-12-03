@@ -1,7 +1,7 @@
 // apartments.routes.js
 import { Router } from 'express';
 import pool from '../db.js';
-import authMiddleware from '../middlewares/auth.js'
+import { authMiddleware } from '../middlewares/auth.js'
 
 const router = Router();
 
