@@ -1,20 +1,30 @@
-import React from "react";
+import React, { use } from "react";
 import "./AparmentList.css";
 import "../Forms/Viviendaform"
 import "../Forms/Editarform"
 import "../Forms/Contratoform"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ViviendaForm from "../Forms/Viviendaform";
 import EditarForm from "../Forms/Editarform";
 import ContratoForm from "../Forms/Contratoform";
 
 
-const Viviendas = () => {
+const Viviendas = () => { 
+  
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda]= useState("");
   const [ordenPrecio, setOrdenPrecio] = useState("none");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
+  
+  useEffect(() => {
+    setPaginaActual(1); // Reset to first page on filter change
+  }, [filtroStatus, filtroBusqueda]);
+  
+  {/* in this part you can change the number of items that appears in one page */}
+  const [paginaActual, setPaginaActual] = useState(1);
+  const itemsPorPagina = 5; //only you need to change this number
 
+{/* this part you need it because with this the state of the building change */}
 const cambiarEstado = (id) => {
   setPropiedades((prev) =>
     prev.map((p) =>
@@ -41,7 +51,7 @@ const archivarVivienda = (id) => {
   );
 };
 
-
+{/* propierty list */}
   const [propiedades, setPropiedades] = useState([
     {
       id: 1,
@@ -93,10 +103,49 @@ const archivarVivienda = (id) => {
       arrendatario: "José Eduardo Amaya",
       fechaPago: "2025-12-01",
     },
+    {
+      id: 6,
+      status: "disponible",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
+      arrendatario: "José Eduardo Amaya",
+      fechaPago: "2025-12-01",
+    },
+    {
+      id: 7,
+      status: "disponible",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
+      arrendatario: "José Eduardo Amaya",
+      fechaPago: "2025-12-01",
+    },
+    {
+      id: 8,
+      status: "disponible",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
+      arrendatario: "José Eduardo Amaya",
+      fechaPago: "2025-12-01",
+    },
+    {
+      id: 9,
+      status: "disponible",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
+      arrendatario: "José Eduardo Amaya",
+      fechaPago: "2025-12-01",
+    },
  
   ]);
-
-
+  
 const agregarPropiedad = (nuevaPropiedad) => {
   const nextId = propiedades.length ? Math.max(...propiedades.map(p => p.id)) + 1 : 1;
     setPropiedades(prev => [...prev, { id: nextId, ...nuevaPropiedad }]);
@@ -108,19 +157,27 @@ const actualizarPropiedad = (propiedadActualizada) => {
   );
 };
 
+
+// Filtering and pagination
 const propiedadesFiltradas = propiedades
   .filter((p) => {
     if (filtroStatus === "todos") return true;
     return p.status === filtroStatus;
   })
-.filter((p) => {
-  const texto = filtroBusqueda.toLowerCase();
+  .filter((p) => {
+    const texto = filtroBusqueda.toLowerCase();
     return (
       p.ubicacion.toLowerCase().includes(texto) ||
       (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
       p.id.toString().includes(texto)
     );
   });
+
+const indexInicio = (paginaActual - 1) * itemsPorPagina;
+const indexFin = indexInicio + itemsPorPagina;
+const propiedadesPaginadas = propiedadesFiltradas.slice(indexInicio, indexFin);
+const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
+
 
   
 
@@ -217,7 +274,7 @@ const propiedadesFiltradas = propiedades
         </div>
 
         {/* Property list */}
-        {propiedadesFiltradas.map((prop) => (
+        {propiedadesPaginadas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-3 d-flex align-items-center">
               <span className={getStatusDot(prop.status)}></span>
@@ -286,30 +343,20 @@ const propiedadesFiltradas = propiedades
 
         {/* Pagination */}
         <nav className="mt-4">
-          <ul className="pagination justify-content-center">
-            <li className="page-item active">
-              <a className="page-link" href="#">
-                1
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                2
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                3
-              </a>
-            </li>
-            <li className="page-item">
-              <span className="page-link">...</span>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                10
-              </a>
-            </li>
+          <ul className="pagination justify-content-center custom-pagination">
+            {Array.from(
+              {length: Math.ceil(propiedadesFiltradas.length / itemsPorPagina)},
+              (_, idx) => (
+                <li
+                  key={idx + 1}
+                    className={`page-item ${paginaActual === idx + 1 ? "active" : ""}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => setPaginaActual(idx + 1)}>
+                      {idx + 1}
+                  </button>
+                </li> 
+              ))}
           </ul>
         </nav>
       </div>
