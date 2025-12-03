@@ -1,17 +1,23 @@
 // apartments.routes.js
 import { Router } from 'express';
 import pool from '../db.js';
+import authMiddleware from '../middlewares/auth.js'
 
 const router = Router();
 
 // GET all apartments
-router.get('/apartments', async (req, res) => {
+router.get("/apartments", authMiddleware, async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM apartments');
+    const ownerId = req.user.id; // <-- from the JWT
+
+    const result = await pool.query(
+      "SELECT * FROM apartments WHERE ownerid = $1",
+      [ownerId]
+    );
+
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Database error' });
+    res.status(500).json({ error: "Error fetching apartments" });
   }
 });
 

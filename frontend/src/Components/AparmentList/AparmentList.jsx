@@ -55,7 +55,7 @@ const Viviendas = () => {
     setPropiedades(prev =>
       prev.map((p) =>
         p.id === id
-          ? { ...p, status: p.status === "OCCUPIED" ? "ARCHIVED" : "OCCUPIED" }
+          ? { ...p, status: p.status === "OCCUPIED" ? "AVAILABLE" : "OCCUPIED" }
           : p
       )
     );
@@ -110,6 +110,11 @@ const Viviendas = () => {
       );
     });
 
+
+    const indexInicio = (paginaActual - 1) * itemsPorPagina;
+    const indexFin = indexInicio + itemsPorPagina;
+    const propiedadesPaginadas = propiedadesFiltradas.slice(indexInicio, indexFin);
+    const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
   // ------------------------------
   //  UI States: Loading and Error
   // ------------------------------
@@ -173,18 +178,18 @@ const Viviendas = () => {
           </button>
 
           <button 
-            className={'btn btn-outline-dark ${filtroStatus === "ocupado" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("ocupado")}>
+            className={'btn btn-outline-dark ${filtroStatus === "OCCUPIED" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("OCCUPIED")}>
             Viviendas Ocupadas
             </button>
           
-          <button className={'btn btn-outline-dark ${filtroStatus === "disponible" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("disponible")}>
+          <button className={'btn btn-outline-dark ${filtroStatus === "AVAILABLE" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("AVAILABLE")}>
             Disponibles
             </button>
           
-          <button className={'btn btn-outline-dark ${filtroStatus === "archivado" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("archivado")}>
+          <button className={'btn btn-outline-dark ${filtroStatus === "ARCHIVED" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("ARCHIVED")}>
             Archivadas
             </button>
         </div>
@@ -197,7 +202,7 @@ const Viviendas = () => {
         </div>
 
         {/* Property list */}
-        {propiedadesFiltradas.map((prop) => (
+        {propiedadesPaginadas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-3 d-flex align-items-center">
               <span className={getStatusDot(prop.status)}></span>
