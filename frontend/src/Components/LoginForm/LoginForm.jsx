@@ -3,6 +3,7 @@ import './LoginForm.css';
 import { FaUser, FaEnvelope } from "react-icons/fa6";
 import { FaLock } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
+import {api} from '../../api';
 
 const LoginForm = () => {
 
@@ -24,7 +25,7 @@ const LoginForm = () => {
   const password = e.target[1].value;
 
   try {
-    const response = await fetch("http://localhost:5555/api/login", {
+    const response = await fetch(api("/login"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, password })

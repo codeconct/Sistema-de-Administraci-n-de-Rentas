@@ -1,19 +1,33 @@
+<<<<<<< HEAD
 import React, { use } from "react";
 import "./AparmentList.css";
 import "../Forms/Viviendaform"
 import "../Forms/Editarform"
 import "../Forms/Contratoform"
 import { useState, useEffect } from "react";
+=======
+import React, { useState, useEffect } from "react";
+import "./AparmentList.css";
+>>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
 import ViviendaForm from "../Forms/Viviendaform";
 import EditarForm from "../Forms/Editarform";
 import ContratoForm from "../Forms/Contratoform";
+import {REACT_APP_API_URL} from '../../config'
 
+const token = localStorage.getItem("token");
 
+<<<<<<< HEAD
 const Viviendas = () => { 
   
+=======
+const Viviendas = () => {
+  const [propiedades, setPropiedades] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+>>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
   const [filtroStatus, setFiltroStatus] = useState("todos");
-  const [filtroBusqueda, setFiltroBusqueda]= useState("");
-  const [ordenPrecio, setOrdenPrecio] = useState("none");
+  const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
   
   useEffect(() => {
@@ -24,6 +38,7 @@ const Viviendas = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 5; //only you need to change this number
 
+<<<<<<< HEAD
 {/* this part you need it because with this the state of the building change */}
 const cambiarEstado = (id) => {
   setPropiedades((prev) =>
@@ -37,20 +52,19 @@ const cambiarEstado = (id) => {
     )
   );
 };
+=======
+  // ⬇️ Fetch data from backend on page load
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`${REACT_APP_API_URL}/apartments`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+>>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
 
-const archivarVivienda = (id) => {
-  setPropiedades((prev) =>
-    prev.map((p) =>
-      p.id === id
-        ? {
-            ...p,
-            status: p.status === "archivado" ? "disponible" : "archivado",
-          }
-        : p
-    )
-  );
-};
+        if (!res.ok) throw new Error("Error loading data");
 
+<<<<<<< HEAD
 {/* propierty list */}
   const [propiedades, setPropiedades] = useState([
     {
@@ -192,17 +206,87 @@ const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
       default:
         return "";
     }
+=======
+        const data = await res.json();
+        setPropiedades(data);
+      } catch (err) {
+        console.error(err);
+        setError("Error loading viviendas");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // ------------------------------
+  //  Helpers to modify UI locally
+  // ------------------------------
+
+  const cambiarEstado = (id) => {
+    setPropiedades(prev =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, status: p.status === "OCCUPAID" ? "ARCHIVED" : "OCCUPAID" }
+          : p
+      )
+    );
+>>>>>>> ff79c1a540492ed17b0ea8e9db5a0052979b42a1
   };
+
+  const archivarVivienda = (id) => {
+    setPropiedades(prev =>
+      prev.map((p) =>
+        p.id === id
+          ? { ...p, status: p.status === "ARCHIVED" ? "AVALAIBLE" : "ARCHIVED" }
+          : p
+      )
+    );
+  };
+
+  const agregarPropiedad = (nueva) => {
+    setPropiedades(prev => [...prev, nueva]);
+  };
+
+  const actualizarPropiedad = (propActualizada) => {
+    setPropiedades(prev =>
+      prev.map((p) =>
+        p.id === propActualizada.id ? propActualizada : p
+      )
+    );
+  };
+
+  // ------------------------------
+  //  Filtering logic
+  // ------------------------------
+
+  const propiedadesFiltradas = propiedades
+    .filter((p) => filtroStatus === "todos" || p.status === filtroStatus)
+    .filter((p) => {
+      const texto = filtroBusqueda.toLowerCase();
+      return (
+        p.address.toLowerCase().includes(texto) ||
+        p.id.toString().includes(texto)
+      );
+    });
+
+  // ------------------------------
+  //  UI States: Loading and Error
+  // ------------------------------
+
+  if (loading) return <div className="text-center py-5">Cargando datos...</div>;
+  if (error) return <div className="text-center py-5 text-danger">{error}</div>;
+
+  // ------------------------------
+  //  NORMAL RENDER
+  // ------------------------------
 
   return (
     <div className="bg-light min-vh-100">
-      
-      
-      <div className="apartment-page"></div>
-
       <div className="container py-4">
-        
-        {/* Search and filters */}
+
+        {/* Search + Add */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div className="search-pill d-flex align-items-center">
             <i className="bi bi-search search-icon"></i>
@@ -225,21 +309,21 @@ const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
           </button>
 
           <ViviendaForm agregarPropiedad={agregarPropiedad} />
-          <EditarForm     
-            propiedad={propiedadSeleccionada} 
+          <EditarForm
+            propiedad={propiedadSeleccionada}
             actualizarPropiedad={actualizarPropiedad}
-              />
-
-          <ContratoForm></ContratoForm>
-
+          />
+          <ContratoForm />
         </div>
 
-        {/* Status legend */}
+        {/* STATUS INDICATORS */}
         <div className="mb-3">
           <span className="status-dot status-disponible"></span>Disponible
           <span className="status-dot status-archivado ms-3"></span>Archivado
           <span className="status-dot status-ocupado ms-3"></span>Ocupado
         </div>
+
+        
 
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
@@ -277,25 +361,25 @@ const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
         {propiedadesPaginadas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-3 d-flex align-items-center">
-              <span className={getStatusDot(prop.status)}></span>
+              <span className={prop.status}></span>
               <img
-                src={prop.img}
+                src="https://th.bing.com/th/id/OIP.6XIv3DVREt05mi0sSNtUDgHaE8?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"
                 className="property-img me-2"
                 alt="Departamento"
               />
               <div>
-                <p className="mb-1 fw-semibold">{prop.ubicacion}</p>
-                <small>{prop.precio}</small>
+                <p className="mb-1 fw-semibold">{prop.address}</p>
+                <small>{prop.monthlyrent.toLocaleString('en-US')}$</small>
               </div>
             </div>
 
             <div className="col-2 d-flex align-items-center justify-content-center flex-column">
                 <i className="bi bi-person-circle fs-3  text-secondary"></i>
-                <span>{prop.arrendatario}</span>
+                <span></span>
             </div>
 
             <div className="col-1 d-flex align-items-center">
-              <span>{prop.fechaPago}</span>
+              <span>{prop.monthlyrent}</span>
             </div>
 
             {/* Butons */}
@@ -359,6 +443,7 @@ const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
               ))}
           </ul>
         </nav>
+
       </div>
     </div>
   );
