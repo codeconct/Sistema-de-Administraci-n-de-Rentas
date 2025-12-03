@@ -120,7 +120,7 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
         <div className="col-md-8">
           <div className="shadow-sm p-3 bg-white rounded">
             <h6>Ingreso Mensual</h6>
-            <LineChart width={990} height={250} data={dataMensual}>
+            <LineChart width={890} height={250} data={dataMensual}>
               <Line type="monotone" dataKey="a" stroke="#7e57c2" strokeWidth={2} />
               <Line type="monotone" dataKey="b" stroke="#ce93d8" strokeWidth={2} />
               <Line type="monotone" dataKey="c" stroke="#6e41baff" strokeWidth={2} />
@@ -136,7 +136,7 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
         <div className="col-md-4">
           <div className="shadow-sm p-3 bg-white rounded text-center">
             <h6>Incidencias</h6>
-            <PieChart width={500} height={250}>
+            <PieChart width={430} height={250}>
               <Pie
                 data={incidencias}
                 dataKey="value"
