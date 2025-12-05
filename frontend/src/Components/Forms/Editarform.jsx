@@ -1,7 +1,44 @@
 import React from "react";
 
 const EditarForm = () => {
+  const [formData, setFormData] = useState({
+    zipcode: "",
+    estado: "",
+    municipio: "",
+    domicilio: "",
+    precio_renta: "",
+    tenant_name: "",
+    tenant_phone: "",
+    tenant_email: "",
+    tenant_address: "",
+    aval_name: "",
+    aval_phone: "",
+    aval_email: "",
+    aval_address: "",
+    fecha_firma: "",
+    fecha_pago: "",
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/viviendas`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) alert("Guardado!");
+    else alert("Error al guardar");
+  };
+
   return (
+    
     <div
       className="modal fade"
       id="editModal"
