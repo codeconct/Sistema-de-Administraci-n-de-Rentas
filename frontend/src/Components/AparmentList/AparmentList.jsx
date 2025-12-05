@@ -24,7 +24,7 @@ const Viviendas = () => {
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 5; //only you need to change this number for change the items per page
 
-  // ⬇️ Fetch data from backend on page load
+  // ⬇ Fetch data from backend on page load
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -83,9 +83,7 @@ const Viviendas = () => {
     );
   };
 
-  // ------------------------------
   //  Filtering logic
-  // ------------------------------
 
   const propiedadesFiltradas = propiedades
     .filter((p) => filtroStatus === "todos" || p.status === filtroStatus)
