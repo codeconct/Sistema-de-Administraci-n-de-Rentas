@@ -6,7 +6,13 @@ const Incidencias = () => {
 
     const [filtroStatus, setFiltroStatus] = useState("todos");
     const [filtroBusqueda, setFiltroBusqueda]= useState("");
-    const [ordenPrecio, setOrdenPrecio] = useState("none");
+      useEffect(() => {
+        setPaginaActual(1); // Reset to first page on filter change
+      }, [filtroStatus, filtroBusqueda]);
+      
+      {/* in this part you can change the number of items that appears in one page */}
+      const [paginaActual, setPaginaActual] = useState(1);
+      const itemsPorPagina = 5;
   
     const [propiedades, setPropiedades] = useState([
     {
@@ -15,19 +21,19 @@ const Incidencias = () => {
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "fuga de gas en la cocina",
+      descripcion: "fuga de gas en la cocina",
+
     },
     {
       id: 2,
       status: "disponible",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: "$6,000 mn",
-      arrendatario: "Pendiente",
-      fechaPago: "foco fundido en la sala de estar",
+        "Privada Puerta Norte Int. 199, 34155 Jardines Dgo",
+      arrendatario: "Javier Hernández López",
+      descripcion: "foco fundido en la sala de estar",
+      resuelto: true,
     },
     {
       id: 3,
@@ -35,9 +41,9 @@ const Incidencias = () => {
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: "$6,000 mn",
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "cortina rota en el dormitorio",
+      descripcion: "cortina rota en el dormitorio",
+      resuelto: false,
     },
       {
       id: 4,
@@ -45,35 +51,29 @@ const Incidencias = () => {
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      fechaPago: "falta de agua caliente",
+      descripcion: "falta de agua caliente",
+      resuelto: true,
     },
   ]);
-
-const propiedadesFiltradas = propiedades
-  .filter((p) => {
-    if (filtroStatus === "todos") return true;
-    return p.status === filtroStatus;
-  })
-  .filter((p) => {
-    const texto = filtroBusqueda.toLowerCase();
-    return (
-      p.ubicacion.toLowerCase().includes(texto) ||
-      (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
-      p.id.toString().includes(texto)
-    );
-  });
-
+const incidenciasFiltradas = incidencias.filter((i) => {
+  if (filtroStatus === "todos") return true;
+  return i.status === filtroStatus;
+}).filter((i) => {
+  const texto = filtroBusqueda.toLowerCase();
+  return (
+    i.ubicacion.toLowerCase().includes(texto) ||
+    (i.arrendatario && i.arrendatario.toLowerCase().includes(texto)) ||
+    i.id.toString().includes(texto)
+  );
+});
 
   const getStatusDot = (status) => {
     switch (status) {
-      case "disponible":
-        return "status-dot status-disponible";
-      case "ocupado":
-        return "status-dot status-ocupado";
-      case "archivado":
-        return "status-dot status-archivado";
+      case "resuelto":
+        return "status-dot status-resuelto";
+      case "sin resolver":
+        return "status-dot status-sin-resolver";
       default:
         return "";
     }
@@ -102,26 +102,20 @@ const propiedadesFiltradas = propiedades
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
           <button 
-            className={'btn btn-outline-dark active${filtroStatus === "todos" ? " active" : ""}'}
+            className={'btn btn-outline-dark ${filtroStatus === "todos" ? " active" : ""}'}
             onClick={() => setFiltroStatus("todos")}>
             Total de Incidencias
           </button>
 
-          <button className={'btn btn-outline-dark active${filtroStatus === "disponible" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("disponible")}>
+          <button className={'btn btn-outline-dark ${filtroStatus === "sinResolver" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("sinResolver")}>
             Incidencias Sin Resolver
             </button>
 
-          <button className={'btn btn-outline-dark active${filtroStatus === "ascendente" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("ocupado")}>
-            Ordenar Ascendente
+          <button className={'btn btn-outline-dark ${filtroStatus === "resuelto" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("resuelto")}>
+            Incidencias Resueltas
             </button>
-          
-          <button className={'btn btn-outline-dark active${filtroStatus === "descendente" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("disponible")}>
-            Ordenar Descendente
-            </button>
-
         </div>
 
         {/* Table header */}
@@ -130,11 +124,11 @@ const propiedadesFiltradas = propiedades
           <div className="col-3">Ubicación</div>
           <div className="col-2">Arrendatario</div>
           <div className="col-4">Incidencia</div>
-          <div className="col-1 ">Resuelto</div>
+          <div className="col-1 "></div>
         </div>
 
         {/* Property list */}
-        {propiedadesFiltradas.map((prop) => (
+        {incidenciasFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-4 d-flex align-items-center">
               <img
@@ -174,30 +168,20 @@ const propiedadesFiltradas = propiedades
 
         {/* Pagination */}
         <nav className="mt-4">
-          <ul className="pagination justify-content-center">
-            <li className="page-item active">
-              <a className="page-link" href="#">
-                1
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                2
-              </a>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                3
-              </a>
-            </li>
-            <li className="page-item">
-              <span className="page-link">...</span>
-            </li>
-            <li className="page-item">
-              <a className="page-link" href="#">
-                10
-              </a>
-            </li>
+          <ul className="pagination justify-content-center custom-pagination">
+            {Array.from(
+              {length: Math.ceil(incidenciasFiltradas.length / itemsPorPagina)},
+              (_, idx) => (
+                <li
+                  key={idx + 1}
+                    className={`page-item ${paginaActual === idx + 1 ? "active" : ""}`}>
+                  <button
+                    className="page-link"
+                    onClick={() => setPaginaActual(idx + 1)}>
+                      {idx + 1}
+                  </button>
+                </li> 
+              ))}
           </ul>
         </nav>
       </div>
