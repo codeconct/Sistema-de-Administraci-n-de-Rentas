@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import {REACT_APP_API_URL} from '../../config'
+
 const EditarForm = () => {
   const [formData, setFormData] = useState({
     zipcode: "",
@@ -24,7 +26,7 @@ const EditarForm = () => {
 
     const token = localStorage.getItem("token");
 
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/viviendas`, {
+    const response = await fetch(`${REACT_APP_API_URL}/viviendas`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
