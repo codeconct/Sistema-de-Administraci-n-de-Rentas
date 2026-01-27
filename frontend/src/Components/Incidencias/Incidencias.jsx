@@ -1,6 +1,5 @@
-import react from "react";
 import "./Incidencias.css";
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const Incidencias = () => {
 
@@ -14,7 +13,7 @@ const Incidencias = () => {
       const [paginaActual, setPaginaActual] = useState(1);
       const itemsPorPagina = 5;
   
-    const [propiedades, setPropiedades] = useState([
+    const [incidencias, setPropiedades] = useState([
     {
       id: 1,
       status: "ocupado",
