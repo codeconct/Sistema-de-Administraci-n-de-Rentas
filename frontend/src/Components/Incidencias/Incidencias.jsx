@@ -1,78 +1,118 @@
-import "./Incidencias.css";
-import React, { useState, useEffect } from "react";
+import React from "react";
+
+import { useState } from "react";
+
+
 
 const Incidencias = () => {
+  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroBusqueda, setFiltroBusqueda]= useState("");
 
-    const [filtroStatus, setFiltroStatus] = useState("todos");
-    const [filtroBusqueda, setFiltroBusqueda]= useState("");
-      useEffect(() => {
-        setPaginaActual(1); // Reset to first page on filter change
-      }, [filtroStatus, filtroBusqueda]);
-      
-      {/* in this part you can change the number of items that appears in one page */}
-      const [paginaActual, setPaginaActual] = useState(1);
-      const itemsPorPagina = 5;
-  
-    const [incidencias, setPropiedades] = useState([
+const cambiarEstado = (id) => {
+  setPropiedades((prev) =>
+    prev.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            status: p.status === "ocupado" ? "disponible" : "ocupado",
+          }
+        : p
+    )
+  );
+};
+
+const archivarVivienda = (id) => {
+  setPropiedades((prev) =>
+    prev.map((p) =>
+      p.id === id
+        ? {
+            ...p,
+            status: p.status === "archivado" ? "disponible" : "archivado",
+          }
+        : p
+    )
+  );
+};
+
+
+  const [incidencias, setIncidencias] = useState([
     {
       id: 1,
-      status: "ocupado",
+      status: "resuelto",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
+      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      descripcion: "fuga de gas en la cocina",
-
+      fechaPago: "2025-11-15",
     },
     {
       id: 2,
-      status: "disponible",
+      status: "resuelto",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
-        "Privada Puerta Norte Int. 199, 34155 Jardines Dgo",
-      arrendatario: "Javier Hernández López",
-      descripcion: "foco fundido en la sala de estar",
-      resuelto: true,
+        "21 de Marzo 456, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
+      arrendatario: null,
+      fechaPago: null,
     },
     {
       id: 3,
-      status: "ocupado",
+      status: "pendiente",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
         "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
+      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      descripcion: "cortina rota en el dormitorio",
-      resuelto: false,
+      fechaPago: "2025-12-01",
     },
-      {
+        {
       id: 4,
-      status: "archivado",
+      status: "pendiente",
       img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
       ubicacion:
-        "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
       arrendatario: "José Eduardo Amaya",
-      descripcion: "falta de agua caliente",
-      resuelto: true,
+      fechaPago: "2025-12-01",
     },
+    {
+      id: 5,
+      status: "resuelto",
+      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+      ubicacion:
+        "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
+      precio: 6000,
+      arrendatario: "José Eduardo Amaya",
+      fechaPago: "2025-12-01",
+    },
+ 
   ]);
-const incidenciasFiltradas = incidencias.filter((i) => {
-  if (filtroStatus === "todos") return true;
-  return i.status === filtroStatus;
-}).filter((i) => {
-  const texto = filtroBusqueda.toLowerCase();
-  return (
-    i.ubicacion.toLowerCase().includes(texto) ||
-    (i.arrendatario && i.arrendatario.toLowerCase().includes(texto)) ||
-    i.id.toString().includes(texto)
-  );
-});
+
+const propiedadesFiltradas = propiedades
+  .filter((p) => {
+    if (filtroStatus === "todos") return true;
+    return p.status === filtroStatus;
+  })
+  .filter((p) => {
+    const texto = filtroBusqueda.toLowerCase();
+    return (
+      p.ubicacion.toLowerCase().includes(texto) ||
+      (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
+      p.id.toString().includes(texto)
+    );
+  });
+
+  
 
   const getStatusDot = (status) => {
     switch (status) {
-      case "resuelto":
-        return "status-dot status-resuelto";
-      case "sin resolver":
-        return "status-dot status-sin-resolver";
+      case "disponible":
+        return "status-dot status-disponible";
+      case "ocupado":
+        return "status-dot status-ocupado";
+      case "archivado":
+        return "status-dot status-archivado";
       default:
         return "";
     }
@@ -85,6 +125,7 @@ const incidenciasFiltradas = incidencias.filter((i) => {
       <div className="apartment-page"></div>
 
       <div className="container py-4">
+        
         {/* Search and filters */}
         <div className="d-flex justify-content-between align-items-center mb-3">
           <div className="search-pill d-flex align-items-center">
@@ -97,39 +138,62 @@ const incidenciasFiltradas = incidencias.filter((i) => {
               onChange={(e) => setFiltroBusqueda(e.target.value)}
             />
           </div>
+
+          <button
+            type="button"
+            className="btn btn-link text-dark contrato-btn fw-semibold"
+            data-bs-toggle="modal"
+            data-bs-target="#contratosModal"
+          >
+            Añadir Vivienda
+          </button>
+
+
         </div>
+
+        {/* Status legend */}
+        <div className="mb-3">
+          <span className="status-dot status-disponible"></span>Resuelta
+          <span className="status-dot status-archivado ms-3"></span>Pendiente
+        </div>
+
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
           <button 
             className={'btn btn-outline-dark ${filtroStatus === "todos" ? " active" : ""}'}
             onClick={() => setFiltroStatus("todos")}>
-            Total de Incidencias
+            Total de Viviendas
           </button>
 
-          <button className={'btn btn-outline-dark ${filtroStatus === "sinResolver" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("sinResolver")}>
-            Incidencias Sin Resolver
+          <button 
+            className={'btn btn-outline-dark ${filtroStatus === "ocupado" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("ocupado")}>
+            Viviendas Ocupadas
             </button>
-
-          <button className={'btn btn-outline-dark ${filtroStatus === "resuelto" ? " active" : ""}'}
-            onClick={() => setFiltroStatus("resuelto")}>
-            Incidencias Resueltas
+          
+          <button className={'btn btn-outline-dark ${filtroStatus === "disponible" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("disponible")}>
+            Disponibles
+            </button>
+          
+          <button className={'btn btn-outline-dark ${filtroStatus === "archivado" ? " active" : ""}'}
+            onClick={() => setFiltroStatus("archivado")}>
+            Archivadas
             </button>
         </div>
 
         {/* Table header */}
         <div className="row table-header mb-2">
-          <div className=" col-1"></div>
-          <div className="col-3">Ubicación</div>
-          <div className="col-2">Arrendatario</div>
-          <div className="col-4">Incidencia</div>
-          <div className="col-1 "></div>
+          <div className="col-4">Ubicación</div>
+          <div className="col-3">Arrendatario</div>
+          <div className="col-2">Incidencia </div>
         </div>
 
         {/* Property list */}
-        {incidenciasFiltradas.map((prop) => (
+        {propiedadesFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-4 d-flex align-items-center">
+              <span className={getStatusDot(prop.status)}></span>
               <img
                 src={prop.img}
                 className="property-img me-2"
@@ -137,57 +201,84 @@ const incidenciasFiltradas = incidencias.filter((i) => {
               />
               <div>
                 <p className="mb-1 fw-semibold">{prop.ubicacion}</p>
+                <small>{prop.precio}</small>
               </div>
             </div>
 
-            <div className="col-2 d-flex align-items-center justify-content-center flex-column">
+            <div className="col-3 d-flex align-items-center justify-content-center flex-column">
                 <i className="bi bi-person-circle fs-3  text-secondary"></i>
                 <span>{prop.arrendatario}</span>
             </div>
 
-            <div className="col-4 d-flex align-items-center ">
+            <div className="col-2 d-flex align-items-center">
               <span>{prop.fechaPago}</span>
             </div>
 
+            {/* Butons */}
+            <div className="col-3 text-start">
+              <button className="action-btn" data-bs-toggle="modal" data-bs-target="#editModal"> 
+                <i class="bi bi-pencil-square"></i>
+                Editar
+              </button>
 
-            <div className="col-1 text-center">
-                {prop.status === "ocupado" ? <>
-                <i class="bi bi-check2-square fs-4"></i>
-                <br />
-                Resuelto
-                </> : 
-                <>
-                <i class="bi bi-square fs-4"></i>
-                <br />
-                Sin resolver
-                </>}
+              {prop.status === "archivado" ? (
+                <button className="btn-status archivado" onClick={() => archivarVivienda(prop.id)}>
+                  <i className="bi bi bi-eye"></i>
+                  Archivado
+                </button>
+              ) : (
+                <button className="btn-status desarchivar" onClick={() => archivarVivienda(prop.id)}>
+                  <i className="bi bi-eye-slash"></i>
+                  Desarchivado
+                </button>
+              )}
+
+              {prop.status === "ocupado" ? (
+                <button className="btn-status ocupado" onClick={() => cambiarEstado(prop.id)}>
+                  <i className="bi bi-x-circle"></i>
+                  Ocupado
+                </button>
+              ) : (
+                <button className="btn-status disponible" onClick={() => cambiarEstado(prop.id)}>
+                  <i className="bi bi-check-circle"></i>
+                  Disponible
+                </button>
+              )}
             </div>
           </div>
         ))}
 
         {/* Pagination */}
         <nav className="mt-4">
-          <ul className="pagination justify-content-center custom-pagination">
-            {Array.from(
-              {length: Math.ceil(incidenciasFiltradas.length / itemsPorPagina)},
-              (_, idx) => (
-                <li
-                  key={idx + 1}
-                    className={`page-item ${paginaActual === idx + 1 ? "active" : ""}`}>
-                  <button
-                    className="page-link"
-                    onClick={() => setPaginaActual(idx + 1)}>
-                      {idx + 1}
-                  </button>
-                </li> 
-              ))}
+          <ul className="pagination justify-content-center">
+            <li className="page-item active">
+              <a className="page-link" href="#">
+                1
+              </a>
+            </li>
+            <li className="page-item">
+              <a className="page-link" href="#">
+                2
+              </a>
+            </li>
+            <li className="page-item">
+              <a className="page-link" href="#">
+                3
+              </a>
+            </li>
+            <li className="page-item">
+              <span className="page-link">...</span>
+            </li>
+            <li className="page-item">
+              <a className="page-link" href="#">
+                10
+              </a>
+            </li>
           </ul>
         </nav>
       </div>
     </div>
   );
 };
-
-
 
 export default Incidencias;
