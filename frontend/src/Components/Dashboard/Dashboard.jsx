@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./Dashboard.css";
+import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, Legend } from "recharts";
 
-import {LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, Legend} from "recharts";
-
-// Sample data for the line chart
+// --- DATOS DE EJEMPLO ---
 const dataMensual = [
   { name: "Jan", a: 40, b: 30, c: 20 },
   { name: "Feb", a: 55, b: 45, c: 25 },
@@ -11,83 +10,74 @@ const dataMensual = [
   { name: "Apr", a: 60, b: 40, c: 30 },
   { name: "May", a: 35, b: 25, c: 20 }
 ];
-// Sample data for the pie chart
+
 const incidencias = [
   { name: "Por Resolver", value: 20 },
   { name: "Resueltas", value: 40 },
   { name: "Pendientes", value: 15 }
 ];
 
-
 const dataPagos = [
-  {
-    nombre: "Juan Perez",
-    departamento: "101",
-    telefono: "555-1234",
-    ubicacion: "Zona A",
-    estatus: "Pagado",
-    recibo: "#"
-  },  
-  {
-    nombre: "Jose Gomez",
-    departamento: "165",
-    telefono: "555-12785",
-    ubicacion: "Zona b",
-    estatus: "Pendiente",
-    recibo: "#"
-  },
-  {
-    nombre: "Ana Martinez",
-    departamento: "210",
-    telefono: "555-9876",
-    ubicacion: "Zona C",
-    estatus: "Vencido",
-    recibo: "#"
-  },
-    {
-    nombre: "Juan Perez",
-    departamento: "101",
-    telefono: "555-1234",
-    ubicacion: "Zona A",
-    estatus: "Pagado",
-    recibo: "#"
-  },  
-  {
-    nombre: "Jose Gomez",
-    departamento: "165",
-    telefono: "555-12785",
-    ubicacion: "Zona b",
-    estatus: "Pendiente",
-    recibo: "#"
-  },
-  {
-    nombre: "Ana Martinez",
-    departamento: "210",
-    telefono: "555-9876",
-    ubicacion: "Zona C",
-    estatus: "Vencido",
-    recibo: "#"
-  },
+  { nombre: "Juan Perez", departamento: "101", telefono: "555-1234", ubicacion: "Zona A", estatus: "Pagado", recibo: "#" },
+  { nombre: "Jose Gomez", departamento: "165", telefono: "555-12785", ubicacion: "Zona b", estatus: "Pendiente", recibo: "#" },
+  { nombre: "Ana Martinez", departamento: "210", telefono: "555-9876", ubicacion: "Zona C", estatus: "Vencido", recibo: "#" },
+  { nombre: "Juan Perez", departamento: "101", telefono: "555-1234", ubicacion: "Zona A", estatus: "Pagado", recibo: "#" },
+  { nombre: "Jose Gomez", departamento: "165", telefono: "555-12785", ubicacion: "Zona b", estatus: "Pendiente", recibo: "#" },
+  { nombre: "Ana Martinez", departamento: "210", telefono: "555-9876", ubicacion: "Zona C", estatus: "Vencido", recibo: "#" },
 ];
-
-
 
 const colors = ["#5f2db5ff", "#b893d8ff", "#896bbcff"];
 
 const Dashboard = () => {
+  // --- ESTADOS ---
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [tipoMora, setTipoMora] = useState('FIJO'); 
+  const [valorMora, setValorMora] = useState(0);    
 
-const [paginaActual, setPaginaActual] = useState(1);
-const registrosPorPagina = 5;//change if you want to show more or less items in the table
+  // Paginación
+  const registrosPorPagina = 5;
+  const ultimoIndex = paginaActual * registrosPorPagina;
+  const primerIndex = ultimoIndex - registrosPorPagina;
+  const registrosActuales = dataPagos.slice(primerIndex, ultimoIndex);
+  const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
 
-const ultimoIndex = paginaActual * registrosPorPagina;
-const primerIndex = ultimoIndex - registrosPorPagina;
-const registrosActuales = dataPagos.slice(primerIndex, ultimoIndex);
-const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
+  // --- FUNCIÓN PARA GENERAR FACTURAS (CORREGIDA) ---
+  const generarFacturas = async () => {
+    // 1. Validar que haya un valor de mora (opcional)
+    if (valorMora <= 0) {
+      if(!window.confirm("La mora es 0. ¿Quieres generar facturas SIN recargos?")) return;
+    } else {
+      if (!window.confirm(`¿Generar facturas con Mora ${tipoMora} de ${valorMora}?`)) return;
+    }
+
+    try {
+      // 2. Llamar al servidor ENVIANDO los datos de la mora
+      const respuesta = await fetch('http://localhost:5000/api/generar-facturas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          moraType: tipoMora, 
+          moraValue: valorMora 
+        })
+      });
+
+      const data = await respuesta.json();
+
+      if (data.success) {
+        alert("✅ Facturas generadas correctamente.");
+      } else {
+        alert("❌ Error: " + data.error);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("⚠️ Error de conexión con el servidor.");
+    }
+  };
 
   return (
     <div className="container-fluid p-4 bg-light min-vh-100">
       
-      {/*top cards*/}
+      {/* --- TARJETAS SUPERIORES (KPIs) --- */}
       <div className="row g-3 mb-4">
         <div className="col-md-3">
           <div className="shadow-sm p-3 bg-white rounded">
@@ -95,14 +85,12 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
             <h2>$15,568</h2>
           </div>
         </div>
-
         <div className="col-md-3">
           <div className="shadow-sm p-3 bg-white rounded">
             <small>Viviendas Ocupadas</small>
             <h2>250 / 500</h2>
           </div>
         </div>
-
         <div className="col-md-3">
           <div className="shadow-sm p-3 bg-white rounded">
             <small>Facturas Vencidas</small>
@@ -110,12 +98,62 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
           </div>
         </div>
 
+        {/* --- WIDGET: CONFIGURACIÓN DE MORA Y FACTURACIÓN --- */}
         <div className="col-md-3">
-          <div className="shadow-sm p-5 bg-white rounded" ></div>
+          <div className="shadow-sm p-3 bg-white rounded h-100" style={{ borderLeft: '5px solid #6e41ba' }}>
+            
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <small className="fw-bold text-secondary">⚙️ Config. Mora</small>
+              <span className="badge bg-light text-dark border">
+                {tipoMora === 'FIJO' ? '$' : '%'}
+              </span>
+            </div>
+
+            <div className="row g-2">
+              <div className="col-6">
+                <label style={{ fontSize: '10px' }} className="text-muted">TIPO</label>
+                <select 
+                  className="form-select form-select-sm"
+                  value={tipoMora}
+                  onChange={(e) => setTipoMora(e.target.value)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <option value="FIJO">Fijo ($)</option>
+                  <option value="PORCENTAJE">Porc. (%)</option>
+                </select>
+              </div>
+              <div className="col-6">
+                <label style={{ fontSize: '10px' }} className="text-muted">VALOR</label>
+                <input 
+                  type="number" 
+                  className="form-control form-control-sm"
+                  value={valorMora}
+                  onChange={(e) => setValorMora(e.target.value)}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="mt-2 text-center" style={{ fontSize: '11px', color: '#888' }}>
+              Multa aplicada: <strong>{tipoMora === 'FIJO' ? `$${valorMora}` : `${valorMora}%`}</strong>
+            </div>
+
+            {/* BOTÓN MAGICO DE FACTURACIÓN */}
+            <div className="d-grid mt-3">
+              <button 
+                onClick={generarFacturas}
+                className="btn btn-primary btn-sm"
+                style={{ backgroundColor: '#6e41ba', borderColor: '#6e41ba' }}
+              >
+                📄 Generar Facturas
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
 
-      {/*  line chart */}
+      {/* --- GRÁFICAS --- */}
       <div className="row mb-4">
         <div className="col-md-8">
           <div className="shadow-sm p-3 bg-white rounded">
@@ -132,7 +170,6 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
           </div>
         </div>
 
-        {/* pie chart */}
         <div className="col-md-4">
           <div className="shadow-sm p-3 bg-white rounded text-center">
             <h6>Incidencias</h6>
@@ -158,7 +195,7 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
         </div>
       </div>
 
-      {/*Payment Table*/}
+      {/* --- TABLA DE PAGOS --- */}
       <div className="shadow-sm p-3 bg-white rounded">
         <h6>Registro de pago</h6>
 
@@ -187,11 +224,14 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
           </tbody>
         </table>
 
-        {/* Pagination buttons */}
+        {/* Paginación */}
         <div className="d-flex justify-content-center mt-3 pagination-btns">
-          {Array.from({ length: totalPaginas}, (_, i) => (
-            <button key={i} className={`btn btn-outline-dark mx-1 ${paginaActual === i + 1 ? "active" : ""}`}
-              onClick={() => setPaginaActual(i + 1)}>
+          {Array.from({ length: totalPaginas }, (_, i) => (
+            <button 
+              key={i} 
+              className={`btn btn-outline-dark mx-1 ${paginaActual === i + 1 ? "active" : ""}`}
+              onClick={() => setPaginaActual(i + 1)}
+            >
               {i + 1}
             </button>
           ))}
@@ -200,4 +240,5 @@ const totalPaginas = Math.ceil(dataPagos.length / registrosPorPagina);
     </div>
   );
 };
+
 export default Dashboard;
