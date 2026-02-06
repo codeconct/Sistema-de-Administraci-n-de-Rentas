@@ -9,7 +9,7 @@ const Incidencias = () => {
   const [filtroBusqueda, setFiltroBusqueda]= useState("");
 
 const cambiarEstado = (id) => {
-  setPropiedades((prev) =>
+  setIncidencias((prev) =>
     prev.map((p) =>
       p.id === id
         ? {
@@ -22,7 +22,7 @@ const cambiarEstado = (id) => {
 };
 
 const archivarVivienda = (id) => {
-  setPropiedades((prev) =>
+  setIncidencias((prev) =>
     prev.map((p) =>
       p.id === id
         ? {
@@ -89,8 +89,7 @@ const archivarVivienda = (id) => {
  
   ]);
 
-const propiedadesFiltradas = propiedades
-  .filter((p) => {
+const incidenciasFiltradas = incidencias.filter((p) => {
     if (filtroStatus === "todos") return true;
     return p.status === filtroStatus;
   })
@@ -190,7 +189,7 @@ const propiedadesFiltradas = propiedades
         </div>
 
         {/* Property list */}
-        {propiedadesFiltradas.map((prop) => (
+        {incidenciasFiltradas.map((prop) => (
           <div className="row property-card" key={prop.id}>
             <div className="col-4 d-flex align-items-center">
               <span className={getStatusDot(prop.status)}></span>
