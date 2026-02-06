@@ -6,19 +6,21 @@ import cors from 'cors';
 const app = express();
 const PORT = 5000;
 
-// Habilitar CORS y lectura de JSON (Esto permite recibir los datos del Dashboard)
+// --- MIDDLEWARE ---
+// 1. Allow Frontend to talk to Backend (CORS)
 app.use(cors());
+// 2. Allow Backend to read JSON data (CRITICAL for receiving Surcharge Config)
 app.use(express.json());
 
-// --- CONEXIÓN A BASE DE DATOS ---
+// --- DATABASE CONNECTION ---
 const pool = new Pool({
   connectionString: "postgresql://postgres:orozco24@localhost:5432/postgres",
   ssl: false 
 });
 
-// --- RUTAS API ---
+// --- API ROUTES ---
 
-// 1. Obtener Facturas para el Dashboard
+// 1. Get Invoices (For Dashboard Table)
 app.get('/api/facturas', async (req, res) => {
   try {
     const sql = `
@@ -34,56 +36,66 @@ app.get('/api/facturas', async (req, res) => {
     const result = await pool.query(sql);
     res.json(result.rows);
   } catch (err) {
-    console.error("❌ Error en API:", err.message);
+    console.error("❌ API Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// 2. Generar Facturas Masivas (ACTUALIZADO CON LÓGICA DE MORA)
+// 2. Generate Bulk Invoices (WITH SURCHARGE LOGIC)
 app.post('/api/generar-facturas', async (req, res) => {
   try {
-    // 1. Recibimos la configuración del Frontend
+    // A. Receive Configuration from Frontend
     const { moraType, moraValue } = req.body;
     
-    // Convertimos el valor a número (por seguridad)
+    // Parse value to number (safety check)
     const valorMora = parseFloat(moraValue) || 0;
 
-    console.log(`📡 Solicitud recibida: Mora ${moraType} de ${valorMora}`);
+    console.log(`📡 Request Received: Generating invoices with Mora: ${moraType} | Value: ${valorMora}`);
 
+    // B. Get Active Contracts
     const contratos = await pool.query("SELECT * FROM rentalcontracts WHERE status = 'ACTIVE'");
-    const periodo = new Date().toISOString().slice(0, 7); // YYYY-MM
+    const periodo = new Date().toISOString().slice(0, 7); // YYYY-MM Format
     
-    // Fecha de vencimiento (ej. 10 días después de hoy)
-    const vto = new Date(); vto.setDate(vto.getDate() + 10);
+    // Set Due Date (e.g., 10 days from today)
+    const vto = new Date(); 
+    vto.setDate(vto.getDate() + 10);
     const vtoStr = vto.toISOString().slice(0, 10);
 
     let creadas = 0;
 
+    // C. The Loop (Iterate through contracts)
     for (const contrato of contratos.rows) {
-      // Verificar si ya existe factura este mes
+      
+      // Check for Idempotency (Does invoice exist for this month?)
       const existe = await pool.query(
         "SELECT * FROM invoices WHERE contractid = $1 AND TO_CHAR(duedate, 'YYYY-MM') = $2",
         [contrato.id, periodo]
       );
 
       if (existe.rows.length === 0) {
-        // Obtenemos la renta base del apartamento
+        // Get Base Rent for this specific apartment
         const apto = await pool.query("SELECT monthlyrent FROM apartments WHERE id = $1", [contrato.apartmentid]);
         
         if (apto.rows.length > 0) {
           let rentaBase = parseFloat(apto.rows[0].monthlyrent);
           let totalAPagar = rentaBase;
 
-          // --- AQUÍ APLICAMOS LA MATEMÁTICA DE LA MORA ---
+          // --- BUSINESS LOGIC ENGINE (Point 2 of Documentation) ---
           if (valorMora > 0) {
             if (moraType === 'FIJO') {
+              // Logic A: Add Fixed Amount
               totalAPagar += valorMora;
+              console.log(`   -> Contract ${contrato.id}: Base ${rentaBase} + Fixed ${valorMora} = ${totalAPagar}`);
             } else if (moraType === 'PORCENTAJE') {
-              totalAPagar += (rentaBase * (valorMora / 100));
+              // Logic B: Add Percentage
+              const extra = (rentaBase * (valorMora / 100));
+              totalAPagar += extra;
+              console.log(`   -> Contract ${contrato.id}: Base ${rentaBase} + ${valorMora}% (${extra}) = ${totalAPagar}`);
             }
           }
+          // -------------------------------------------------------
 
-          // Insertamos la factura con el TOTAL calculado
+          // D. Persistence (Save to DB)
           await pool.query(
             "INSERT INTO invoices (contractid, amount, duedate, status) VALUES ($1, $2, $3, 'PENDING')",
             [contrato.id, totalAPagar, vtoStr]
@@ -92,14 +104,15 @@ app.post('/api/generar-facturas', async (req, res) => {
         }
       }
     }
-    res.json({ success: true, message: `Se generaron ${creadas} facturas nuevas.` });
+    res.json({ success: true, message: `Successfully generated ${creadas} new invoices.` });
+
   } catch (err) {
-    console.error("❌ Error Generando:", err.message);
+    console.error("❌ Generation Error:", err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 3. Registrar Pago
+// 3. Register Payment
 app.post('/api/registrar-pago', async (req, res) => {
   const { invoiceid, amount, method } = req.body;
   try {
@@ -109,13 +122,13 @@ app.post('/api/registrar-pago', async (req, res) => {
     );
     await pool.query("UPDATE invoices SET status = 'PAID' WHERE id = $1", [invoiceid]);
     
-    res.json({ success: true, message: "Pago registrado correctamente" });
+    res.json({ success: true, message: "Payment registered successfully" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 4. Crear Nueva Propiedad
+// 4. Create New Property
 app.post('/api/propiedades', async (req, res) => {
   try {
     const { nombre, direccion, renta, fecha_limite, tipo_mora, valor_mora } = req.body;
@@ -129,10 +142,10 @@ app.post('/api/propiedades', async (req, res) => {
     const newProperty = await pool.query(query, values);
     res.json(newProperty.rows[0]);
   } catch (err) {
-    console.error("Error al guardar propiedad:", err.message);
-    res.status(500).send("Error del servidor");
+    console.error("Error saving property:", err.message);
+    res.status(500).send("Server Error");
   }
 });
 
-// --- INICIAR SERVIDOR ---
-app.listen(PORT, () => console.log(`🚀 API Backend lista en http://localhost:${PORT}`));
+// --- START SERVER ---
+app.listen(PORT, () => console.log(`🚀 API Backend Ready at http://localhost:${PORT}`));
