@@ -1,28 +1,26 @@
 import express from 'express';
 import pkg from 'pg';
 const { Pool } = pkg;
-import cors from 'cors'; // Importamos CORS
+import cors from 'cors';
 
 const app = express();
-const PORT = 5000; // Cambiamos a 5000 para no chocar con React
+const PORT = 5000;
 
-// Habilitar CORS para que React pueda pedir datos
+// Habilitar CORS y lectura de JSON (Esto permite recibir los datos del Dashboard)
 app.use(cors());
 app.use(express.json());
 
-// Tu conexión a Supabase
+// --- CONEXIÓN A BASE DE DATOS ---
 const pool = new Pool({
-  connectionString: "postgresql://postgres.ckxadrogfdgzlsrpwmvt:TU_PASSWORD_AQUI@aws-1-us-east-2.pooler.supabase.com:5432/postgres",
-  ssl: { rejectUnauthorized: false },
+  connectionString: "postgresql://postgres:orozco24@localhost:5432/postgres",
+  ssl: false 
 });
 
-// --- RUTAS API (Devuelven JSON) ---
+// --- RUTAS API ---
 
 // 1. Obtener Facturas para el Dashboard
 app.get('/api/facturas', async (req, res) => {
   try {
-    // Agregué t.phone y a.apartment_number (o similar) si existen en tu BD
-    // Si no tienes columna 'phone' en tenants, bórrala de este SELECT
     const sql = `
       SELECT i.id AS invoiceid, i.amount, i.duedate, i.status,
              t.name AS tenant_name, t.phone AS tenant_phone,
@@ -34,8 +32,6 @@ app.get('/api/facturas', async (req, res) => {
       ORDER BY i.duedate DESC
     `;
     const result = await pool.query(sql);
-    
-    // Enviamos JSON puro
     res.json(result.rows);
   } catch (err) {
     console.error("❌ Error en API:", err.message);
@@ -43,27 +39,54 @@ app.get('/api/facturas', async (req, res) => {
   }
 });
 
-// 2. Generar Facturas Masivas
+// 2. Generar Facturas Masivas (ACTUALIZADO CON LÓGICA DE MORA)
 app.post('/api/generar-facturas', async (req, res) => {
   try {
+    // 1. Recibimos la configuración del Frontend
+    const { moraType, moraValue } = req.body;
+    
+    // Convertimos el valor a número (por seguridad)
+    const valorMora = parseFloat(moraValue) || 0;
+
+    console.log(`📡 Solicitud recibida: Mora ${moraType} de ${valorMora}`);
+
     const contratos = await pool.query("SELECT * FROM rentalcontracts WHERE status = 'ACTIVE'");
     const periodo = new Date().toISOString().slice(0, 7); // YYYY-MM
+    
+    // Fecha de vencimiento (ej. 10 días después de hoy)
     const vto = new Date(); vto.setDate(vto.getDate() + 10);
     const vtoStr = vto.toISOString().slice(0, 10);
 
     let creadas = 0;
+
     for (const contrato of contratos.rows) {
+      // Verificar si ya existe factura este mes
       const existe = await pool.query(
         "SELECT * FROM invoices WHERE contractid = $1 AND TO_CHAR(duedate, 'YYYY-MM') = $2",
         [contrato.id, periodo]
       );
 
       if (existe.rows.length === 0) {
+        // Obtenemos la renta base del apartamento
         const apto = await pool.query("SELECT monthlyrent FROM apartments WHERE id = $1", [contrato.apartmentid]);
+        
         if (apto.rows.length > 0) {
+          let rentaBase = parseFloat(apto.rows[0].monthlyrent);
+          let totalAPagar = rentaBase;
+
+          // --- AQUÍ APLICAMOS LA MATEMÁTICA DE LA MORA ---
+          if (valorMora > 0) {
+            if (moraType === 'FIJO') {
+              totalAPagar += valorMora;
+            } else if (moraType === 'PORCENTAJE') {
+              totalAPagar += (rentaBase * (valorMora / 100));
+            }
+          }
+
+          // Insertamos la factura con el TOTAL calculado
           await pool.query(
             "INSERT INTO invoices (contractid, amount, duedate, status) VALUES ($1, $2, $3, 'PENDING')",
-            [contrato.id, apto.rows[0].monthlyrent, vtoStr]
+            [contrato.id, totalAPagar, vtoStr]
           );
           creadas++;
         }
@@ -92,4 +115,24 @@ app.post('/api/registrar-pago', async (req, res) => {
   }
 });
 
+// 4. Crear Nueva Propiedad
+app.post('/api/propiedades', async (req, res) => {
+  try {
+    const { nombre, direccion, renta, fecha_limite, tipo_mora, valor_mora } = req.body;
+    const query = `
+      INSERT INTO propiedades 
+      (nombre, direccion, renta, fecha_limite, tipo_mora, valor_mora) 
+      VALUES ($1, $2, $3, $4, $5, $6) 
+      RETURNING *
+    `;
+    const values = [nombre, direccion, renta, fecha_limite, tipo_mora, valor_mora];
+    const newProperty = await pool.query(query, values);
+    res.json(newProperty.rows[0]);
+  } catch (err) {
+    console.error("Error al guardar propiedad:", err.message);
+    res.status(500).send("Error del servidor");
+  }
+});
+
+// --- INICIAR SERVIDOR ---
 app.listen(PORT, () => console.log(`🚀 API Backend lista en http://localhost:${PORT}`));
