@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { FaUser, FaBell, FaCog } from "react-icons/fa";
 import logo from './../Assets/casa.png'; 
 
-const Navbar = () => {
+const Navbar = ({onOpenConfig}) => {
   return (
     <nav className="navbar p-2">
       <div className="navbar-left">
@@ -21,7 +21,13 @@ const Navbar = () => {
       <div className="navbar-right">
         <FaUser className="navbar-icon" />
         <a>
-          <FaCog className="navbar-icon" />
+
+          <FaCog 
+            className="navbar-icon"
+            onClick={onOpenConfig}
+            style={{cursor: 'pointer'}}
+          />
+
         </a>
 
         <FaBell className="navbar-icon" />
