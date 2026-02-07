@@ -11,4 +11,18 @@ router.get("/alertas", (req, res) => {
     const alertas = verPagos(pagos);
     res.json(alertas);
 });
+const {
+    obtenerHistorial,
+    obtenerPorArrendatario
+} = require("../models/historialNotificaciones");
+
+router.get("/", (req, res) => {
+    res.json(obtenerHistorial());
+});
+
+router.get("/:nombre", (req, res) => {
+    const { nombre } = req.params;
+    res.json(obtenerPorArrendatario(nombre));
+});
+
 module.exports = Pagosrouter;
