@@ -1,291 +1,227 @@
-import React, { useState, useEffect, useMemo } from "react";
-import "./Dashboard.css";
-import { LineChart, Line, CartesianGrid, Tooltip, XAxis, YAxis, PieChart, Pie, Cell, Legend, ResponsiveContainer } from "recharts";
-import { Settings, Bell, AlertTriangle, User, DollarSign, Calendar, TrendingUp } from 'lucide-react'; 
+import React, { useState, useEffect } from "react";
+import {
+  LineChart, Line, XAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Label
+} from 'recharts';
+import {
+  TrendingUp, Home, FileText, CreditCard
+} from 'lucide-react';
+import './Dashboard.css';
 
-// --- 1. COMPONENTE: MODAL DE CONFIGURACIÓN ---
-const SettingsModal = ({ 
-  isOpen, onClose, appName, setAppName, logo, setLogo,
-  tipoMora, setTipoMora, valorMora, setValorMora
-}) => {
-  const [activeTab, setActiveTab] = useState('app');
-  const [tempName, setTempName] = useState(appName);
+// --- 1. DATOS FICTICIOS PARA IGUALAR TU DISEÑO ---
+// Datos para la gráfica de ondas (Ingreso Mensual con 3 líneas como la imagen)
+const dataIngresos = [
+  { name: 'Jan', ingreso: 4000, gasto: 2400, neto: 1400 },
+  { name: 'Feb', ingreso: 5000, gasto: 1398, neto: 2210 },
+  { name: 'Mar', ingreso: 2000, gasto: 3800, neto: 2290 },
+  { name: 'Apr', ingreso: 2780, gasto: 3908, neto: 2000 },
+  { name: 'May', ingreso: 1890, gasto: 4800, neto: 2181 },
+  { name: 'Jun', ingreso: 2390, gasto: 3800, neto: 2500 },
+];
 
-  useEffect(() => { if (isOpen) setTempName(appName); }, [isOpen, appName]);
-  if (!isOpen) return null;
+// Datos para la gráfica de dona (Incidencias)
+const dataIncidencias = [
+  { name: 'Por resolver', value: 11, color: '#F4C8FC' }, // Rosa claro
+  { name: 'Resueltas', value: 8, color: '#3A2C60' },    // Morado oscuro
+  { name: 'Pendientes', value: 5, color: '#A685FA' }    // Lila
+];
 
-  const handleSave = () => {
-    setAppName(tempName);
-    onClose();
-    alert("✅ Configuración guardada correctamente.");
-  };
-
-  const handleLogoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) setLogo(URL.createObjectURL(file));
-  };
-
-  return (
-    <div className="modal-overlay" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-      <div className="bg-white rounded shadow-lg d-flex overflow-hidden" style={{width: '750px', height: '550px'}}>
-        <div className="bg-light p-4 border-end" style={{width: '220px'}}>
-          <h6 className="mb-4 fw-bold text-secondary">CONFIGURACIÓN</h6>
-          <div className={`p-3 cursor-pointer rounded mb-2 d-flex align-items-center gap-2 ${activeTab === 'app' ? 'bg-white shadow-sm fw-bold text-primary' : 'text-muted'}`} onClick={() => setActiveTab('app')}> <Settings size={18}/> General </div>
-          <div className={`p-3 cursor-pointer rounded mb-2 d-flex align-items-center gap-2 ${activeTab === 'pago' ? 'bg-white shadow-sm fw-bold text-primary' : 'text-muted'}`} onClick={() => setActiveTab('pago')}> <DollarSign size={18}/> Cobros y Mora </div>
-        </div>
-        <div className="p-4 flex-grow-1 d-flex flex-column">
-          <div className="d-flex justify-content-between mb-4 border-bottom pb-3">
-            <h5 className="fw-bold m-0">{activeTab === 'app' ? 'Apariencia' : 'Reglas de Negocio'}</h5>
-            <button className="btn-close" onClick={onClose}></button>
-          </div>
-          <div className="flex-grow-1 overflow-auto pe-2">
-            {activeTab === 'app' && (
-              <>
-                <div className="mb-4">
-                  <label className="form-label fw-bold">Nombre del Edificio</label>
-                  <input type="text" className="form-control" value={tempName} onChange={(e) => setTempName(e.target.value)} />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label fw-bold">Logotipo</label>
-                  <input type="file" className="form-control" onChange={handleLogoChange} accept="image/*"/>
-                </div>
-              </>
-            )}
-            {activeTab === 'pago' && (
-               <div className="p-3 bg-light rounded border">
-                 <h6 className="fw-bold mb-3"><AlertTriangle size={18} className="text-warning"/> Configuración de Mora</h6>
-                 <div className="row g-3">
-                    <div className="col-md-6">
-                        <label className="form-label small fw-bold">Tipo</label>
-                        <select className="form-select" value={tipoMora} onChange={(e) => setTipoMora(e.target.value)}>
-                            <option value="PORCENTAJE">Porcentaje (%)</option>
-                            <option value="FIJO">Monto Fijo ($)</option>
-                        </select>
-                    </div>
-                    <div className="col-md-6">
-                        <label className="form-label small fw-bold">Valor</label>
-                        <div className="input-group">
-                            <span className="input-group-text">{tipoMora === 'FIJO' ? '$' : '%'}</span>
-                            <input type="number" className="form-control" value={valorMora} onChange={(e) => setValorMora(e.target.value)}/>
-                        </div>
-                    </div>
-                 </div>
-               </div>
-            )}
-          </div>
-          <div className="text-end mt-3 border-top pt-3">
-             <button className="btn btn-primary px-4" onClick={handleSave}>Guardar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+// Estilos de colores extraídos de tu imagen
+const THEME = {
+  bgApp: '#FFFFFF',          // Fondo blanco general
+  bgCard: '#F4F7FE',         // Color gris azulado de las tarjetas
+  textDark: '#2B3674',       // Azul oscuro para textos
+  textLight: '#A3AED0',      // Gris para subtítulos
+  purpleDark: '#4318FF',     
+  purpleLight: '#6AD2FF',
+  linePurple: '#4318FF',
+  linePink: '#FFB5E8'
 };
 
-// --- 2. DATOS BASE (CON INFORMACIÓN DE CONTRATOS) ---
-// Agregamos 'duracionContrato' (meses totales) y 'mesesRestantes' (cuánto falta por cobrar)
-const dataBase = [
-  { id: 1, nombre: "Juan Perez", departamento: "101", montoOriginal: 5000, estatus: "Pagado", duracionContrato: 12, mesesRestantes: 10 },
-  { id: 2, nombre: "Jose Gomez", departamento: "165", montoOriginal: 4500, estatus: "Pendiente", duracionContrato: 6, mesesRestantes: 5 },
-  { id: 3, nombre: "Ana Martinez", departamento: "210", montoOriginal: 5200, estatus: "Vencido", duracionContrato: 12, mesesRestantes: 2 },
-  { id: 4, nombre: "Carlos Ruiz", departamento: "305", montoOriginal: 5000, estatus: "Vencido", duracionContrato: 6, mesesRestantes: 1 },
-  { id: 5, nombre: "Mario Bros", departamento: "101", montoOriginal: 5000, estatus: "Vencido", duracionContrato: 12, mesesRestantes: 11 }, 
-];
-
-const dataMensual = [
-  { name: "Ene", ingresos: 4000 }, { name: "Feb", ingresos: 3000 }, { name: "Mar", ingresos: 2000 }, 
-  { name: "Abr", ingresos: 2780 }, { name: "May", ingresos: 1890 }, { name: "Jun", ingresos: 2390 },
-];
-
-const formatoMoneda = (valor) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(valor);
-
-// --- 3. DASHBOARD PRINCIPAL ---
 const Dashboard = () => {
-  const [appName, setAppName] = useState("Administración de Rentas");
-  const [appLogo, setAppLogo] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [tipoMora, setTipoMora] = useState('PORCENTAJE'); 
-  const [valorMora, setValorMora] = useState(10); 
-  
-  // Cálculo de Mora y Totales
-  const datosProcesados = useMemo(() => {
-    return dataBase.map(item => {
-      let moraCalculada = 0;
-      let totalPagar = item.montoOriginal;
+  // Lógica de configuración (se mantiene funcional pero invisible)
+  const [moraSettings, setMoraSettings] = useState({ tipo: 'PORCENTAJE', valor: 10 });
 
-      if (item.estatus === 'Vencido') {
-        if (tipoMora === 'FIJO') {
-          moraCalculada = parseFloat(valorMora) || 0;
-        } else {
-          moraCalculada = (item.montoOriginal * (parseFloat(valorMora) || 0)) / 100;
-        }
-        totalPagar = item.montoOriginal + moraCalculada;
-      }
-      return { ...item, mora: moraCalculada, total: totalPagar };
-    });
-  }, [tipoMora, valorMora]);
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('moraSettings'));
+    if (saved) setMoraSettings(saved);
+    
+    const handleStorage = () => {
+       const updated = JSON.parse(localStorage.getItem('moraSettings'));
+       if(updated) setMoraSettings(updated);
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
-  // KPIs MENSUALES
-  const carteraVencidaTotal = datosProcesados.filter(p => p.estatus === 'Vencido').reduce((acc, curr) => acc + curr.total, 0); 
-  const totalRecaudado = datosProcesados.filter(p => p.estatus === 'Pagado').reduce((acc, curr) => acc + curr.total, 0);
-
-  // --- LÓGICA NUEVA: INGRESO GLOBAL PENDIENTE (PROYECCIÓN) ---
-  // Suma de (Renta Mensual * Meses que faltan en el contrato)
-  const ingresoPendienteGlobal = datosProcesados.reduce((acc, curr) => {
-    return acc + (curr.montoOriginal * curr.mesesRestantes);
-  }, 0);
+  // Formateador de moneda
+  const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(val);
 
   return (
-    <div className="container-fluid bg-light min-vh-100 d-flex flex-column font-sans">
+    <div className="min-vh-100 d-flex flex-column font-sans" style={{ backgroundColor: THEME.bgApp }}>
       
-      {/* HEADER */}
-      <div className="bg-white shadow-sm py-3 px-4 mb-4 d-flex justify-content-between align-items-center sticky-top">
-        <div className="d-flex align-items-center gap-3">
-            {appLogo ? <img src={appLogo} alt="Logo" style={{height: '40px'}} /> : <span className="fs-2">🏘️</span>}
-            <h5 className="m-0 fw-bold text-dark">{appName}</h5>
-        </div>
-        <div className="d-flex align-items-center gap-4 text-secondary">
-             <button className="btn btn-light rounded-circle p-2" onClick={() => setShowSettings(true)}><Settings size={20} /></button>
-            <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style={{width: '35px', height: '35px'}}>JP</div>
-        </div>
-      </div>
-
-      <div className="container-fluid px-4">
+      <div className="container-fluid px-4 py-4">
         
-        {/* TARJETAS KPI */}
+        {/* --- TÍTULO Y SUBTÍTULO --- */}
+        <div className="mb-4">
+          <h1 className="fw-bold m-0" style={{ color: '#1B2559', fontSize: '34px' }}>Dashboard</h1>
+          <p className="m-0 mt-1 fs-6" style={{ color: '#707EAE' }}>
+            Consulta estadísticas e información importante de las rentas.
+          </p>
+        </div>
+
+        {/* --- TARJETAS SUPERIORES (KPIs) --- */}
+        {/* Se usa el color de fondo exacto #F4F7FE y bordes redondeados suaves */}
         <div className="row g-3 mb-4">
           
-          {/* NUEVA TARJETA: INGRESO PENDIENTE GLOBAL */}
-          <div className="col-md-4">
-            <div className="bg-primary text-white p-4 rounded shadow-sm h-100 position-relative overflow-hidden">
-               <div className="position-relative z-1">
-                  <div className="d-flex align-items-center gap-2 mb-2">
-                    <small className="text-uppercase fw-bold text-white-50">Ingreso Global Pendiente</small>
-                    <TrendingUp size={16} className="text-white-50"/>
-                  </div>
-                  <h2 className="fw-bold mb-0">{formatoMoneda(ingresoPendienteGlobal)}</h2>
-                  <small className="text-white-50 d-block mt-2" style={{fontSize: '0.85rem'}}>
-                    Suma total de meses restantes en contratos activos. Disminuye con el tiempo.
-                  </small>
-               </div>
-               {/* Decoración de fondo */}
-               <TrendingUp size={100} className="position-absolute bottom-0 end-0 text-white opacity-10" style={{transform: 'translate(20%, 20%)'}}/>
+          {/* Card 1: Ganancia Mensual */}
+          <div className="col-md-3">
+            <div className="h-100 p-3 rounded-4 d-flex flex-column justify-content-center" style={{ backgroundColor: THEME.bgCard }}>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <TrendingUp size={18} style={{ color: '#A3AED0' }} />
+                <span className="fw-medium" style={{ color: '#A3AED0', fontSize: '14px' }}>Ganancia Mensual</span>
+              </div>
+              <div className="fw-bold" style={{ color: '#1B2559', fontSize: '24px' }}>$15,568</div>
             </div>
           </div>
 
-          <div className="col-md-4">
-            <div className="bg-white p-4 rounded shadow-sm border-start border-5 border-success h-100">
-              <small className="text-uppercase text-muted fw-bold">Recaudado (Mes Actual)</small>
-              <h2 className="text-dark fw-bold mb-0 mt-2">{formatoMoneda(totalRecaudado)}</h2>
+          {/* Card 2: Viviendas Ocupadas */}
+          <div className="col-md-3">
+            <div className="h-100 p-3 rounded-4 d-flex flex-column justify-content-center" style={{ backgroundColor: THEME.bgCard }}>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <Home size={18} style={{ color: '#A3AED0' }} />
+                <span className="fw-medium" style={{ color: '#A3AED0', fontSize: '14px' }}>Viviendas Ocupadas</span>
+              </div>
+              <div className="fw-bold" style={{ color: '#1B2559', fontSize: '24px' }}>
+                250 <span className="fs-6 fw-normal" style={{ color: '#05CD99' }}>/ 500</span>
+              </div>
             </div>
           </div>
-          
-          <div className="col-md-4">
-            <div className="bg-white p-4 rounded shadow-sm border-start border-5 border-danger h-100">
-              <div className="d-flex align-items-center justify-content-between">
-                 <small className="text-uppercase text-muted fw-bold">Cartera Vencida</small>
-                 <span className="badge bg-danger rounded-pill">Con Mora</span>
+
+          {/* Card 3: Facturas Vencidas */}
+          <div className="col-md-3">
+            <div className="h-100 p-3 rounded-4 d-flex flex-column justify-content-center" style={{ backgroundColor: THEME.bgCard }}>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <FileText size={18} style={{ color: '#A3AED0' }} />
+                <span className="fw-medium" style={{ color: '#A3AED0', fontSize: '14px' }}>Facturas Vencidas</span>
               </div>
-              <h2 className="text-danger fw-bold mb-0 mt-2">{formatoMoneda(carteraVencidaTotal)}</h2>
+              <div className="fw-bold" style={{ color: '#1B2559', fontSize: '24px' }}>
+                7 <span className="fs-6 fw-normal" style={{ color: '#05CD99' }}>/ 250</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: Cobro Pendiente */}
+          <div className="col-md-3">
+            <div className="h-100 p-3 rounded-4 d-flex flex-column justify-content-center" style={{ backgroundColor: THEME.bgCard }}>
+              <div className="d-flex align-items-center gap-2 mb-1">
+                <CreditCard size={18} style={{ color: '#A3AED0' }} />
+                <span className="fw-medium" style={{ color: '#A3AED0', fontSize: '14px' }}>Cobro Pendiente</span>
+              </div>
+              <div className="fw-bold" style={{ color: '#1B2559', fontSize: '24px' }}>$10,220</div>
             </div>
           </div>
         </div>
 
-        {/* GRÁFICA Y TABLA */}
-        <div className="row">
-            <div className="col-lg-8 mb-4">
-                <div className="bg-white p-4 rounded shadow-sm h-100">
-                    <h6 className="fw-bold mb-4">Proyección Mensual</h6>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={dataMensual}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                            <XAxis dataKey="name" />
-                            <YAxis />
-                            <Tooltip />
-                            <Line type="monotone" dataKey="ingresos" stroke="#6e41ba" strokeWidth={3} dot={{r:6}} />
-                        </LineChart>
-                    </ResponsiveContainer>
+        {/* --- SECCIÓN DE GRÁFICAS --- */}
+        <div className="row g-3">
+          
+          {/* Gráfica Izquierda: Ingreso Mensual (Ondas) */}
+          <div className="col-lg-8">
+            <div className="p-4 rounded-4 h-100" style={{ backgroundColor: THEME.bgCard }}>
+              <div className="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                   <div className="d-flex align-items-center gap-2 text-muted small mb-1">
+                      <TrendingUp size={16}/> Estadísticas
+                   </div>
+                   <h5 className="fw-bold m-0" style={{ color: '#1B2559' }}>Ingreso Mensual</h5>
                 </div>
+              </div>
+              
+              <div style={{ width: '100%', height: 280 }}>
+                <ResponsiveContainer>
+                  <LineChart data={dataIngresos} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                    <CartesianGrid vertical={false} stroke="#E0E5F2" strokeDasharray="0" />
+                    <XAxis 
+                        dataKey="name" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{ fill: '#A3AED0', fontSize: 12 }} 
+                        dy={10} 
+                    />
+                    <Tooltip 
+                        contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 5px 15px rgba(0,0,0,0.1)' }}
+                        cursor={{ stroke: '#E0E5F2', strokeWidth: 2 }} 
+                    />
+                    {/* Líneas suavizadas (type="monotone") para el efecto de ondas */}
+                    <Line type="monotone" dataKey="ingreso" stroke="#4318FF" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                    <Line type="monotone" dataKey="gasto" stroke="#6AD2FF" strokeWidth={3} dot={false} />
+                    <Line type="monotone" dataKey="neto" stroke="#E1E9F8" strokeWidth={3} dot={false} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
+          </div>
 
-            <div className="col-lg-4 mb-4">
-                <div className="bg-white p-4 rounded shadow-sm h-100">
-                    <h6 className="fw-bold mb-4">Resumen de Estatus</h6>
-                    <ResponsiveContainer width="100%" height={300}>
+          {/* Gráfica Derecha: Incidencias (Dona) */}
+          <div className="col-lg-4">
+            <div className="p-4 rounded-4 h-100 d-flex flex-column" style={{ backgroundColor: THEME.bgCard }}>
+              <div className="mb-2">
+                 <div className="d-flex align-items-center gap-2 text-muted small mb-1">
+                    <TrendingUp size={16}/> Estadísticas
+                 </div>
+                 <h5 className="fw-bold m-0" style={{ color: '#1B2559' }}>Incidencias</h5>
+              </div>
+
+              <div className="flex-grow-1 position-relative d-flex align-items-center justify-content-center">
+                 <div style={{ width: '100%', height: 220 }}>
+                    <ResponsiveContainer>
                         <PieChart>
                             <Pie 
-                                data={[
-                                    { name: 'Pagado', value: datosProcesados.filter(d=>d.estatus==='Pagado').length },
-                                    { name: 'Vencido', value: datosProcesados.filter(d=>d.estatus==='Vencido').length },
-                                    { name: 'Pendiente', value: datosProcesados.filter(d=>d.estatus==='Pendiente').length }
-                                ]} 
-                                innerRadius={60} outerRadius={80} fill="#8884d8" dataKey="value"
+                                data={dataIncidencias} 
+                                innerRadius={65} 
+                                outerRadius={85} 
+                                dataKey="value" 
+                                paddingAngle={0}
+                                stroke="none"
                             >
-                                <Cell fill="#198754" /><Cell fill="#dc3545" /><Cell fill="#ffc107" />
+                                {dataIncidencias.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))}
+                                {/* Texto central Total */}
+                                <Label 
+                                    value="24" 
+                                    position="center" 
+                                    fill="#1B2559" 
+                                    style={{ fontSize: '32px', fontWeight: 'bold' }}
+                                />
                             </Pie>
-                            <Tooltip />
-                            <Legend verticalAlign="bottom" height={36}/>
                         </PieChart>
                     </ResponsiveContainer>
-                </div>
+                 </div>
+              </div>
+
+              {/* Leyenda Personalizada */}
+              <div className="d-flex justify-content-around mt-2 text-center">
+                  {dataIncidencias.map((item, index) => (
+                      <div key={index} className="d-flex flex-column align-items-center">
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, marginBottom: 4 }}></div>
+                          <span className="fw-bold" style={{ color: '#1B2559', fontSize: '14px' }}>{item.value}</span>
+                          <span className="text-muted" style={{ fontSize: '11px' }}>{item.name}</span>
+                      </div>
+                  ))}
+              </div>
+
             </div>
+          </div>
+
         </div>
 
-        {/* TABLA DE CONTRATOS (ACTUALIZADA CON INFORMACIÓN DE TIEMPO) */}
-        <div className="bg-white rounded shadow-sm p-4 mb-5">
-            <h5 className="fw-bold mb-4">Detalle de Contratos y Pagos</h5>
-            <table className="table align-middle table-hover">
-                <thead className="table-light">
-                    <tr>
-                        <th>Inquilino</th>
-                        <th>Contrato</th>
-                        <th>Meses Restantes</th>
-                        <th>Renta Base</th>
-                        <th>Total + Mora</th>
-                        <th>Estatus</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {datosProcesados.map((item) => (
-                        <tr key={item.id}>
-                            <td className="fw-bold text-secondary">{item.nombre} <div className="small text-muted fw-normal">Depto {item.departamento}</div></td>
-                            <td><span className="badge bg-light text-dark border">{item.duracionContrato} meses</span></td>
-                            
-                            {/* Visualización de meses restantes */}
-                            <td>
-                                <div className="d-flex align-items-center gap-2">
-                                    <div className="progress flex-grow-1" style={{height: '6px', width: '80px'}}>
-                                        <div 
-                                            className="progress-bar bg-primary" 
-                                            style={{width: `${((item.duracionContrato - item.mesesRestantes) / item.duracionContrato) * 100}%`}}
-                                        ></div>
-                                    </div>
-                                    <span className="small text-muted">{item.mesesRestantes} m</span>
-                                </div>
-                            </td>
-
-                            <td>{formatoMoneda(item.montoOriginal)}</td>
-                            <td className={item.mora > 0 ? "text-danger fw-bold" : "fw-bold"}>{formatoMoneda(item.total)}</td>
-                            <td>
-                                <span className={`badge rounded-pill ${
-                                    item.estatus === 'Pagado' ? 'bg-success' : 
-                                    item.estatus === 'Vencido' ? 'bg-danger' : 'bg-warning text-dark'
-                                }`}>
-                                    {item.estatus}
-                                </span>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+        {/* Tabla opcional (si la necesitas abajo, descomenta esta sección, 
+            pero la imagen original cortaba aquí) */}
+        {/* <div className="mt-4"> ...Tabla... </div> */}
 
       </div>
-      <SettingsModal 
-        isOpen={showSettings} onClose={() => setShowSettings(false)} 
-        appName={appName} setAppName={setAppName} logo={appLogo} setLogo={setAppLogo}
-        tipoMora={tipoMora} setTipoMora={setTipoMora} valorMora={valorMora} setValorMora={setValorMora}
-      />
     </div>
   );
 };
