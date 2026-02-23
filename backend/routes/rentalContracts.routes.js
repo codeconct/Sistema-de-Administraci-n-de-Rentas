@@ -7,7 +7,7 @@ const router = Router();
 // GET all contracts
 router.get('/rentalcontracts', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM rentalcontracts');
+    const result = await pool.query('SELECT (c.id, a.address, t.name, c.startdate, c.enddate c depositamount) FROM rentalcontracts c, tenants t, apartments a WHERE c.apartmentid = a.id AND c.tenantid = t.id');
     res.json(result.rows);
   } catch (err) {
     console.error(err);
