@@ -63,7 +63,7 @@ const Configuracion = () => {
             {seccion === 'app' && <AppSettings />}
             {seccion === 'pago' && <PagSettings />}
             {seccion === 'arrendador' && <ArrendadorSettings />}
-            {seccion === 'cobros mora' && <CobrosMora />}
+            {seccion === 'cobros' && <CobrosMora />}
             {seccion === 'pasarelas' && <PasarelasSettings />}
           </div>
 
