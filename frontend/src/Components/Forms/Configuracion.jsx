@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from "react-router-dom"
 import './Configuracion.css';
-
 import AppSettings from './AppSettings';
 import PagSettings from './PagSettings';
 import ArrendadorSettings from './ArrendadorSettings';
+import CobrosMora from './CobrosMora';
+import PasarelasSettings from './PasarelasSettings';
 
-const Configuracion = ({ onClose }) => {
+const Configuracion = () => {
+  const navigate = useNavigate();
   const [seccion, setSeccion] = useState('app');
 
   return (
     <div className="modal-overlay">
       <div className="modal-content config-modal">
 
-        <button className="modal-close" onClick={onClose}>✕</button>
+        <button className="modal-close" onClick={() => navigate("/viviendas")}>✕</button>
 
         <h2 className="config-title">Configuración</h2>
 
@@ -39,12 +42,29 @@ const Configuracion = ({ onClose }) => {
             >
               Datos del Arrendador
             </button>
+
+            <button
+              className={seccion === 'cobros' ? 'active' : ''}
+              onClick={() => setSeccion('cobros')}
+            >
+              Cobros y Mora
+            </button>
+
+            <button
+              className={seccion === 'pasarelas' ? 'active' : ''}
+              onClick={() => setSeccion('pasarelas')}
+            >
+              Pasarelas de Pago
+            </button>
+
           </div>
 
           <div className="config-content">
             {seccion === 'app' && <AppSettings />}
             {seccion === 'pago' && <PagSettings />}
             {seccion === 'arrendador' && <ArrendadorSettings />}
+            {seccion === 'cobros' && <CobrosMora />}
+            {seccion === 'pasarelas' && <PasarelasSettings />}
           </div>
 
         </div>
