@@ -102,15 +102,13 @@ const Viviendas = () => {
 
               {contratos.map((prop) => (
                 <tr>
-                  <td>Contrato-{prop.id}</td>
+                  <td>Contrato-{String(prop.id).padStart(4, '0')}</td>
                   <td>
-                    <div className="fw-semibold">Departamento Corredor Privada Puerta Norte int. 109</div>
-                    <div className="property-text">34155 Jardines, Dgo.</div>
+                    <div className="fw-semibold">{prop.address}</div>
                   </td>
                   <td>
                     <div className="d-flex align-items-center gap-2">
-                      <img src="https://randomuser.me/api/portraits/men/32.jpg" className="avatar" />
-                      <span>José Amaya</span>
+                      <span>{prop.name}</span>
                     </div>
                   </td>
                   <td>
@@ -120,12 +118,12 @@ const Viviendas = () => {
                       {formatDate(prop.enddate)}
                     </p>
                   </td>
-                  <td className="price-text">$6,900 MXN</td>
+                  <td className="price-text">${prop.depositamount} MXN</td>
                   <td className="text-center">
-                    <button className="btn btn-outline-secondary btn-sm action-btn">
-                      <i className="bi bi-pencil"></i> Editar
-                    </button><br />
-                    <button className="btn btn-outline-secondary btn-sm action-btn">
+                    <button className="btn btn-outline-secondary action-btn2 btn-sm ">
+                      <i className="bi bi-pencil"></i>  Editar
+                    </button> <br />
+                    <button className="btn btn-outline-secondary action-btn2 btn-sm ">
                       <i className="bi bi-eye"></i> Ver detalles
                     </button>
                   </td>

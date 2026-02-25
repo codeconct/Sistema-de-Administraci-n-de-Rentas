@@ -13,6 +13,7 @@ import Viviendas from './Components/AparmentList/AparmentList';
 import Incidencias from './Components/Incidencias/Incidencias';
 import Contratos from './Components/Contratos/ContractsList'
 import ProtectedRoute from "./Components/ProtectedRoute";
+import ContratoDetalle from "./Components/ContratoDetalle/ContractDetail";
 
 function App() {
   const [showConfig, setShowConfig] = useState(false);
@@ -35,6 +36,7 @@ function App() {
                   <Route path="viviendas" element={<Viviendas />} />
                   <Route path="incidencias" element={<Incidencias />} />
                   <Route path="contratos" element={<Contratos/>} />
+                  <Route path="contratos/:id" element={<ContratoDetalle/>} />
                   {/* Redirección por defecto si no encuentra la ruta */}
                   <Route path="*" element={<Navigate to="/dashboard" />} />
                 </Routes>
