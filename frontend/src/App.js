@@ -4,17 +4,17 @@ import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-
-// Componentes
 import LoginForm from './Components/LoginForm/LoginForm';
 import Navbar from './Components/Navbar/Navbar';
 import Dashboard from './Components/Dashboard/Dashboard';
 import Viviendas from './Components/AparmentList/AparmentList';
 import Incidencias from './Components/Incidencias/Incidencias';
 import ProtectedRoute from "./Components/ProtectedRoute";
+import Home from "./Components/Home/Home";
+import Configuracion from "./Components/Forms/Configuracion";
 
 function App() {
-  const [showConfig, setShowConfig] = useState(false);
+
 
   return (
     <Router>
@@ -26,15 +26,18 @@ function App() {
         <Route path="/*" element={
           <ProtectedRoute>
             <div className="min-vh-100 bg-light">
-              <Navbar onOpenConfig={() => setShowConfig(true)} />
+              <Navbar />
               
               <div className="container-fluid py-4">
                 <Routes>
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="viviendas" element={<Viviendas />} />
                   <Route path="incidencias" element={<Incidencias />} />
+                  <Route path="home" element={<Home />} />
                   {/* Redirección por defecto si no encuentra la ruta */}
-                  <Route path="*" element={<Navigate to="/dashboard" />} />
+                  <Route path="*" element={<Navigate to="/viviendas" />} />
+                  {/*ruta de configuracion*/}
+                  <Route path="configuracion/*" element={<Configuracion />} />
                 </Routes>
               </div>
             </div>
