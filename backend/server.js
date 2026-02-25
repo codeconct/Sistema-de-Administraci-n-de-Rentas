@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import pool from './db.js';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 const app = express();
 const PORT = 5000;
@@ -11,16 +13,10 @@ app.use(cors());
 // 2. Allow Backend to read JSON data (CRITICAL for receiving Surcharge Config)
 app.use(express.json());
 
-const ensureMoraSettingsTable = async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS morasettings (
-      id INT PRIMARY KEY DEFAULT 1,
-      tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('PORCENTAJE', 'FIJO')),
-      valor NUMERIC(10,2) NOT NULL DEFAULT 0,
-      updatedat TIMESTAMP NOT NULL DEFAULT NOW()
-    )
-  `);
-};
+const pool = new Pool({
+  connectionString: "postgresql://postgres:orozco24@localhost:5432/postgres",
+  ssl: false 
+});
 
 // --- API ROUTES ---
 
