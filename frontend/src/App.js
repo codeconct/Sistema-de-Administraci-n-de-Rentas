@@ -9,6 +9,7 @@ import Navbar from './Components/Navbar/Navbar';
 import Dashboard from './Components/Dashboard/Dashboard';
 import Viviendas from './Components/AparmentList/AparmentList';
 import Incidencias from './Components/Incidencias/Incidencias';
+import Contratos from './Components/Contratos/ContractsList'
 import ProtectedRoute from "./Components/ProtectedRoute";
 import Home from "./Components/Home/Home";
 import Configuracion from "./Components/Forms/Configuracion";
@@ -33,7 +34,7 @@ function App() {
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="viviendas" element={<Viviendas />} />
                   <Route path="incidencias" element={<Incidencias />} />
-                  <Route path="home" element={<Home />} />
+                  <Route path="contratos" element={<Contratos/>} />
                   {/* Redirección por defecto si no encuentra la ruta */}
                   <Route path="*" element={<Navigate to="/viviendas" />} />
                   {/*ruta de configuracion*/}
