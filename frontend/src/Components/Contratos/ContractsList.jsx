@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { Link, useLocation } from 'react-router-dom';
 import "./ContractsList.css";
 import ContratoForm from "../Forms/Contratoform";
 import { REACT_APP_API_URL } from '../../config'
 
-const token = localStorage.getItem("token");
+export const token = localStorage.getItem("token");
 
 const Viviendas = () => {
   const [contratos, setContratos] = useState([]);
@@ -123,9 +124,9 @@ const Viviendas = () => {
                     <button className="btn btn-outline-secondary action-btn2 btn-sm ">
                       <i className="bi bi-pencil"></i>  Editar
                     </button> <br />
-                    <button className="btn btn-outline-secondary action-btn2 btn-sm ">
+                    <Link to={"/contratos/" + prop.id} className="btn btn-outline-secondary action-btn2 btn-sm ">
                       <i className="bi bi-eye"></i> Ver detalles
-                    </button>
+                    </Link>
                   </td>
                 </tr>))}
 
