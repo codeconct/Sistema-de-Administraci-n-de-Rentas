@@ -11,6 +11,7 @@ import invoicesRouter from './routes/invoices.routes.js';
 import paymentsRouter from './routes/payments.routes.js';
 //import documentsRouter from './routes/documents.routes.js';
 import maintenanceRequestsRouter from './routes/maintenanceRequests.routes.js';
+import moraSettingsRouter from './routes/moraSettings.routes.js';
 
 import Pagosrouter from './routes/PagoNotif.js';
 
@@ -29,6 +30,7 @@ app.use('/api', invoicesRouter);
 app.use('/api', paymentsRouter);
 //app.use('/api', documentsRouter);
 app.use('/api', maintenanceRequestsRouter);
+app.use('/api', moraSettingsRouter);
 
 app.use('/api', Pagosrouter);
 

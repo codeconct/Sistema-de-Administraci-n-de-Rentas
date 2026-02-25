@@ -1,0 +1,45 @@
+.incidencias-filter-btns .incidencia-filter-btn {
+  border-radius: 20px;
+  padding: 6px 18px;
+  margin-right: 12px;
+  font-weight: 500;
+  background-color: #dee4e9;
+  border: 1px solid #edf2f7;
+  color: #000;
+}
+
+.incidencias-filter-btns .incidencia-filter-btn:last-child {
+  margin-right: 0;
+}
+
+.incidencias-filter-btns .incidencia-filter-btn.is-active {
+  background-color: #d2d9e0;
+  border-color: #c7d0db;
+  color: #000;
+  font-weight: 600;
+}
+
+.incidencias-filter-btns .incidencia-filter-btn:hover {
+  background-color: #d7dee5;
+  border-color: #c7d0db;
+  color: #000;
+}
+
+.custom-pagination .page-item {
+  margin: 0 6px;
+}
+
+.custom-pagination .page-link {
+  border: none;
+  background: transparent;
+  color: #000;
+  font-size: 0.8rem;
+  padding: 6px 13px;
+  font-weight: 500;
+}
+
+.custom-pagination .page-item.active .page-link {
+  background: #1f1f1f;
+  color: #fff;
+  border-radius: 8px;
+}

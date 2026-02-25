@@ -1,6 +1,6 @@
 # Ignore environment variable files
 backend/.ENV
-frontend/.env
+frontend/.ENV
 
 # React 
 .DS_*

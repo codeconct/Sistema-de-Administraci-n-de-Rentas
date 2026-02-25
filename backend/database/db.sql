@@ -121,3 +121,13 @@ CREATE TABLE maintenancerequests (
     FOREIGN KEY (apartmentid) REFERENCES apartments(apartmentid),
     FOREIGN KEY (tenantid) REFERENCES tenants(tenantid)
 );
+
+-- ===============================
+-- Mora Settings
+-- ===============================
+CREATE TABLE morasettings (
+    id INT PRIMARY KEY DEFAULT 1,
+    tipo VARCHAR(20) CHECK (tipo IN ('PORCENTAJE','FIJO')) NOT NULL DEFAULT 'PORCENTAJE',
+    valor NUMERIC(10,2) NOT NULL DEFAULT 10,
+    updatedat TIMESTAMP NOT NULL DEFAULT NOW()
+);
