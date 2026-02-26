@@ -1,7 +1,8 @@
 import express from 'express';
+import cors from 'cors';
+import pool from './db.js';
 import pkg from 'pg';
 const { Pool } = pkg;
-import cors from 'cors';
 
 const app = express();
 const PORT = 5000;
@@ -12,13 +13,61 @@ app.use(cors());
 // 2. Allow Backend to read JSON data (CRITICAL for receiving Surcharge Config)
 app.use(express.json());
 
-// --- DATABASE CONNECTION ---
 const pool = new Pool({
   connectionString: "postgresql://postgres:orozco24@localhost:5432/postgres",
   ssl: false 
 });
 
 // --- API ROUTES ---
+
+app.get('/api/mora-settings', async (req, res) => {
+  try {
+    await ensureMoraSettingsTable();
+    const result = await pool.query('SELECT tipo, valor FROM morasettings WHERE id = 1');
+
+    if (result.rows.length === 0) {
+      const defaults = { tipo: 'PORCENTAJE', valor: 10 };
+      await pool.query(
+        'INSERT INTO morasettings (id, tipo, valor) VALUES (1, $1, $2)',
+        [defaults.tipo, defaults.valor]
+      );
+      return res.json(defaults);
+    }
+
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error("❌ Mora settings read error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/mora-settings', async (req, res) => {
+  try {
+    const { tipo, valor } = req.body;
+    const tipoNormalizado = tipo === 'FIJO' ? 'FIJO' : 'PORCENTAJE';
+    const valorNormalizado = Number(valor) || 0;
+
+    await ensureMoraSettingsTable();
+    const result = await pool.query(
+      `
+        INSERT INTO morasettings (id, tipo, valor, updatedat)
+        VALUES (1, $1, $2, NOW())
+        ON CONFLICT (id)
+        DO UPDATE SET
+          tipo = EXCLUDED.tipo,
+          valor = EXCLUDED.valor,
+          updatedat = NOW()
+        RETURNING tipo, valor
+      `,
+      [tipoNormalizado, valorNormalizado]
+    );
+
+    return res.json(result.rows[0]);
+  } catch (err) {
+    console.error("❌ Mora settings save error:", err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
 
 // 1. Get Invoices (For Dashboard Table)
 app.get('/api/facturas', async (req, res) => {
@@ -45,7 +94,23 @@ app.get('/api/facturas', async (req, res) => {
 app.post('/api/generar-facturas', async (req, res) => {
   try {
     // A. Receive Configuration from Frontend
-    const { moraType, moraValue } = req.body;
+    let { moraType, moraValue } = req.body;
+
+    if (!moraType || moraValue === undefined || moraValue === null) {
+      try {
+        await ensureMoraSettingsTable();
+        const settingsResult = await pool.query(
+          'SELECT tipo, valor FROM morasettings WHERE id = 1'
+        );
+
+        if (settingsResult.rows.length > 0) {
+          moraType = settingsResult.rows[0].tipo;
+          moraValue = settingsResult.rows[0].valor;
+        }
+      } catch (settingsError) {
+        console.error("❌ Mora fallback error:", settingsError.message);
+      }
+    }
     
     // Parse value to number (safety check)
     const valorMora = parseFloat(moraValue) || 0;
