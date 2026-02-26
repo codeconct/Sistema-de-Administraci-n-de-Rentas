@@ -104,7 +104,13 @@ export default function ContractDetails() {
         };
 
         fetchData();
-    }, []);
+    }, [id]);
+
+    if (loading) return <div className="text-center py-5">Cargando datos...</div>;
+    if (error) return <div className="text-center py-5 text-danger">{error}</div>;
+
+    const contractId = contrato?.id ? String(contrato.id).padStart(4, "0") : "----";
+
     return (
         <div className="container-fluid px-5 py-4 bg-light min-vh-100">
 
@@ -120,7 +126,7 @@ export default function ContractDetails() {
                         <span className="text-muted">Todos los Contratos</span>
                         <span className="mx-2">{">"}</span>
                         <span className="text-primary fw-semibold">
-                            Detalles del Contrato-{String(contrato).padStart(4, '0')}
+                            Detalles del Contrato-{contractId}
                         </span>
                     </div>
                 </div>
