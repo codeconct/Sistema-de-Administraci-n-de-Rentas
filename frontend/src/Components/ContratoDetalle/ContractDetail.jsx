@@ -1,5 +1,9 @@
 import React from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { REACT_APP_API_URL } from "../../config";
+
+export const token = localStorage.getItem("token");
 
 
 const payments = [
@@ -40,16 +44,9 @@ const payments = [
     },
 ];
 
+
+
 const StatusBadge = ({ status }) => {
-
-    const { id } = useParams();
-    const [contract, setContract] = useState(null);
-
-    useEffect(() => {
-        fetch(`/api/contracts.php?id=${id}`)
-            .then(res => res.json())
-            .then(data => setContract(data));
-    }, [id]);
 
 
     let color = "secondary";
@@ -78,6 +75,42 @@ const StatusBadge = ({ status }) => {
 };
 
 export default function ContractDetails() {
+
+    const { id } = useParams();
+    const [contrato, setContrato] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // ⬇ Fetch data from backend on page load
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await fetch(`${REACT_APP_API_URL}/rentalcontracts/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error("Error loading data");
+
+                const data = await res.json();
+                setContrato(data);
+                console.log(data);
+
+            } catch (err) {
+                console.error(err);
+                setError("Error loading viviendas");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [id]);
+
+    if (loading) return <div className="text-center py-5">Cargando datos...</div>;
+    if (error) return <div className="text-center py-5 text-danger">{error}</div>;
+
+    const contractId = contrato?.id ? String(contrato.id).padStart(4, "0") : "----";
+
     return (
         <div className="container-fluid px-5 py-4 bg-light min-vh-100">
 
@@ -93,7 +126,7 @@ export default function ContractDetails() {
                         <span className="text-muted">Todos los Contratos</span>
                         <span className="mx-2">{">"}</span>
                         <span className="text-primary fw-semibold">
-                            Detalles del Contrato-000N
+                            Detalles del Contrato-{contractId}
                         </span>
                     </div>
                 </div>

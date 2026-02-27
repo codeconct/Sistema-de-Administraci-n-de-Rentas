@@ -36,6 +36,7 @@ function App() {
                   <Route path="viviendas" element={<Viviendas />} />
                   <Route path="incidencias" element={<Incidencias />} />
                   <Route path="contratos" element={<Contratos/>} />
+                  <Route path="home" element={<Home />} />
                   <Route path="contratos/:id" element={<ContratoDetalle/>} />
                   {/* Redirección por defecto si no encuentra la ruta */}
                   <Route path="*" element={<Navigate to="/viviendas" />} />

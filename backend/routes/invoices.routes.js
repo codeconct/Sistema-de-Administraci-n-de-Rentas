@@ -6,8 +6,9 @@ const router = Router();
 
 // GET all invoices
 router.get('/invoices', async (req, res) => {
+  const {contract_id} = req.body;
   try {
-    const result = await pool.query('SELECT * FROM invoices');
+    const result = await pool.query('SELECT * FROM invoices WHERE contractid = $1', [contract_id]);
     res.json(result.rows);
   } catch (err) {
     console.error(err);
