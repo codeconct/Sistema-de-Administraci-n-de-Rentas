@@ -13,6 +13,8 @@ import paymentsRouter from './routes/payments.routes.js';
 import maintenanceRequestsRouter from './routes/maintenanceRequests.routes.js';
 import moraSettingsRouter from './routes/moraSettings.routes.js';
 
+import Pagosrouter from './routes/PagoNotif.js';
+
 const app = express();
 
 app.use(cors());
@@ -29,6 +31,8 @@ app.use('/api', paymentsRouter);
 //app.use('/api', documentsRouter);
 app.use('/api', maintenanceRequestsRouter);
 app.use('/api', moraSettingsRouter);
+
+app.use('/api', Pagosrouter);
 
 // ❗ Export the app as the default handler
 export default app;
