@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -13,11 +13,9 @@ import Contratos from './Components/Contratos/ContractsList'
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ContratoDetalle from "./Components/ContratoDetalle/ContractDetail";
 import Home from "./Components/Home/Home";
-import Configuracion from "./Components/Forms/Configuracion";
+// REMOVED: import Configuracion from "./Components/Forms/Configuracion";
 
 function App() {
-
-
   return (
     <Router>
       <Routes>
@@ -38,17 +36,18 @@ function App() {
                   <Route path="contratos" element={<Contratos/>} />
                   <Route path="home" element={<Home />} />
                   <Route path="contratos/:id" element={<ContratoDetalle/>} />
-                  {/* Redirección por defecto si no encuentra la ruta */}
+                  
+                  {/* REMOVED: <Route path="configuracion/*" element={<Configuracion />} /> */}
+
+                  {/* Redirección por defecto si no encuentra la ruta (SIEMPRE AL FINAL) */}
                   <Route path="*" element={<Navigate to="/viviendas" />} />
-                  {/*ruta de configuracion*/}
-                  <Route path="configuracion/*" element={<Configuracion />} />
                 </Routes>
               </div>
             </div>
           </ProtectedRoute>
         } />
       </Routes>
-    </Router>
+    </Router> 
   );
 }
 
