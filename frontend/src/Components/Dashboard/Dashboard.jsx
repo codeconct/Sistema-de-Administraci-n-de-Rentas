@@ -61,7 +61,7 @@ const Dashboard = () => {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
-  // --- 3. LOGIC & FILTERING (As described in Report 3.6) ---
+  // --- 3. LOGIC & FILTERING ---
   const datosProcesados = useMemo(() => {
     // 1. Calculate Mora (Late Fees)
     let procesados = dataBaseInquilinos.map(item => {
@@ -149,7 +149,6 @@ const Dashboard = () => {
 
         {/* --- CHARTS SECTION --- */}
         <div className="row g-3 mb-4">
-          {/* Spline Chart */}
           <div className="col-lg-8">
             <div className="p-4 rounded-4 h-100" style={{ backgroundColor: THEME.bgCard }}>
               <div className="mb-4">
@@ -170,7 +169,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Donut Chart */}
           <div className="col-lg-4">
             <div className="p-4 rounded-4 h-100 d-flex flex-column" style={{ backgroundColor: THEME.bgCard }}>
               <div className="mb-2">
@@ -203,7 +201,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* --- DATA TABLE SECTION (Report 3.6) --- */}
+        {/* --- DATA TABLE SECTION --- */}
         <div className="card border-0 rounded-4 overflow-hidden" style={{ backgroundColor: THEME.bgCard }}>
             <div className="card-header bg-transparent p-4 border-bottom-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
@@ -211,7 +209,6 @@ const Dashboard = () => {
                     <span style={{ color: THEME.textLight, fontSize: '14px' }}>Gestión y estado de pagos</span>
                 </div>
                 
-                {/* Search Engine Input */}
                 <div className="input-group w-auto bg-white rounded-pill px-3 py-2 shadow-sm border border-light">
                     <Search size={18} style={{ color: THEME.textLight }} className="align-self-center"/>
                     <input 
@@ -243,7 +240,6 @@ const Dashboard = () => {
                                 <td className="py-3 fw-medium" style={{ color: THEME.textDark }}>{item.inquilino}</td>
                                 <td className="py-3">
                                     <span className="fw-bold" style={{ color: THEME.textDark }}>{formatCurrency(item.montoFinal)}</span>
-                                    {/* Calculated Penalty Badge */}
                                     {item.tieneMora && (
                                         <span className="ms-2 badge bg-danger text-white rounded-pill shadow-sm" style={{ fontSize: '10px', padding: '4px 8px' }}>
                                             + MORA
@@ -251,7 +247,6 @@ const Dashboard = () => {
                                     )}
                                 </td>
                                 <td className="py-3 text-center">
-                                    {/* Status Driven UI Feedback */}
                                     <span className={`badge rounded-pill px-3 py-2 fw-bold ${
                                         item.estatus === 'Pagado' ? 'bg-success bg-opacity-10 text-success' :
                                         item.estatus === 'Vencido' ? 'bg-danger bg-opacity-10 text-danger' :

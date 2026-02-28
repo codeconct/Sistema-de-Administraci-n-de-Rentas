@@ -6,9 +6,25 @@ const router = Router();
 
 // GET all invoices
 router.get('/invoices', async (req, res) => {
-  const {contract_id} = req.body;
+  const { contract_id } = req.query;
+
+  if (!contract_id) {
+    return res.status(400).json({ error: "contract_id is required" });
+  }
+
   try {
-    const result = await pool.query('SELECT * FROM invoices WHERE contractid = $1', [contract_id]);
+    const result = await pool.query(
+      `SELECT 
+         i.*, 
+         COALESCE(SUM(p.amount), 0) AS total_paid
+       FROM invoices i
+       LEFT JOIN payments p 
+         ON p.invoiceid = i.id
+       WHERE i.contractid = $1
+       GROUP BY i.id`,
+      [contract_id]
+    );
+
     res.json(result.rows);
   } catch (err) {
     console.error(err);

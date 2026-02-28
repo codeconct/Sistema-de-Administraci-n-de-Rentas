@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import "./Home.css";
-import { FileText, CreditCard, AlertCircle, FileDown } from "lucide-react";
+import { FileText, CreditCard, AlertCircle, FileDown, Loader } from "lucide-react";
 
 const Home = () => {
+  // 1. Estado para saber si el pago se está procesando y evitar dobles clics
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const recibos = [
     "Enero 2026",
     "Febrero 2026",
@@ -12,10 +15,50 @@ const Home = () => {
     "Junio 2026"
   ];
 
+  // 2. Función que se dispara al hacer clic en "Pagar"
+const handlePagar = async () => {
+    if (isProcessing) return; 
+    setIsProcessing(true);
+
+    try {
+      // 👇 AQUÍ ESTÁ LA MAGIA: Apuntamos al puerto 5000 donde corre tu server.js 👇
+      const response = await fetch('http://localhost:5000/api/pagos/openpay', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          monto: 4500, 
+          descripcion: "Mensualidad de Enero - C. Cipreces 109",
+          cliente: {
+            nombre: "Inquilino",
+            apellidos: "Ejemplo",
+            correo: "inquilino@ejemplo.com",
+            telefono: "6181234567"
+          }
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.payment_url) {
+        // 4. Si el backend responde bien, redirigimos a la pasarela de pago
+        window.location.href = data.payment_url;
+      } else {
+        alert("Error al generar el pago. Intenta más tarde.");
+      }
+    } catch (error) {
+      console.error("Error conectando con el servidor:", error);
+      alert("No se pudo conectar con el servidor. ¿El backend está encendido?");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="home-container">
       <h4 className="title">¡Bienvenido de vuelta!</h4>
-      <p className="subtitle" >¿Qué deseas hacer hoy?</p>
+      <p className="subtitle">¿Qué deseas hacer hoy?</p>
 
       <div className="cards-container">
         
@@ -24,9 +67,20 @@ const Home = () => {
           <h3>Acciones rápidas</h3>
           <div className="actions">
             
-            <div className="action-item green">
-              <CreditCard size={28} />
-              <span>Pagar</span>
+            {/* AQUÍ ESTÁ EL CAMBIO PRINCIPAL */}
+            <div 
+              className="action-item green" 
+              onClick={handlePagar}
+              style={{ cursor: isProcessing ? 'not-allowed' : 'pointer', opacity: isProcessing ? 0.7 : 1 }}
+            >
+              {isProcessing ? (
+                // Si está cargando, mostramos el loader girando
+                <Loader size={28} className="animate-spin" /> 
+              ) : (
+                // Si no, mostramos la tarjeta
+                <CreditCard size={28} />
+              )}
+              <span>{isProcessing ? 'Cargando...' : 'Pagar'}</span>
             </div>
 
             <div className="action-item blue">
