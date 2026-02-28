@@ -8,7 +8,7 @@ const router = Router();
 router.get('/invoices', async (req, res) => {
   const {contract_id} = req.body;
   try {
-    const result = await pool.query('SELECT * FROM invoices WHERE contractid = $1', [contract_id]);
+    const result = await pool.query('SELECT i.*, COALESCE(SUM(p.amount), 0) AS total_paid FROM invoices iLEFT JOIN payments p ON p.invoiceid = i.id WHERE i.contractid = $1 GROUP BY i.id;', [contract_id]);
     res.json(result.rows);
   } catch (err) {
     console.error(err);
