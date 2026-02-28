@@ -106,6 +106,30 @@ export default function ContractDetails() {
         fetchData();
     }, [id]);
 
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await fetch(`${REACT_APP_API_URL}/rentalcontracts/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error("Error loading data");
+
+                const data = await res.json();
+                setContrato(data);
+                console.log(data);
+
+            } catch (err) {
+                console.error(err);
+                setError("Error loading viviendas");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [id]);
+
     if (loading) return <div className="text-center py-5">Cargando datos...</div>;
     if (error) return <div className="text-center py-5 text-danger">{error}</div>;
 
