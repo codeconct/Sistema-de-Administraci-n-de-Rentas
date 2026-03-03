@@ -32,7 +32,7 @@ app.use('/api', paymentsRouter);
 app.use('/api', maintenanceRequestsRouter);
 app.use('/api', moraSettingsRouter);
 
-app.use('/api', Pagosrouter);
+//app.use('/api', Pagosrouter);
 
 // ❗ Export the app as the default handler
 export default app;
