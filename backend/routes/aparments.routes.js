@@ -12,15 +12,23 @@ router.get("/apartments", authMiddleware, async (req, res) => {
 
     const result = await pool.query(
       `
-      SELECT 
-        a.*,
-        rc.amount,
-        t.name AS tenant_name
+      SELECT
+          a.*,
+          rc.amount,
+          t.name AS tenant_name,
+          i.duedate AS latest_due_date
       FROM apartments a
-      LEFT JOIN rentalcontracts rc 
-        ON rc.apartmentid = a.id
-      LEFT JOIN tenants t 
-        ON rc.tenantid = t.id
+      LEFT JOIN rentalcontracts rc
+          ON rc.apartment_id = a.id
+      LEFT JOIN tenants t
+          ON rc.tenant_id = t.id
+      LEFT JOIN LATERAL (
+          SELECT duedate
+          FROM invoices
+          WHERE contractid = rc.id
+          ORDER BY duedate DESC
+          LIMIT 1
+      ) i ON true
       WHERE a.ownerid = $1;
       `,
       [ownerId]
@@ -50,7 +58,7 @@ router.get('/apartments/:id', async (req, res) => {
 
 // POST (create) a new apartment
 router.post('/apartments', async (req, res) => {
-  const { ownerid, address, monthlyrent, status} = req.body; // adapt fields to your table
+  const { ownerid, address, monthlyrent, status } = req.body; // adapt fields to your table
   try {
     const result = await pool.query(
       'INSERT INTO apartments (ownerid, address, monthlyrent, status) VALUES ($1, $2, $3, $4) RETURNING *',
