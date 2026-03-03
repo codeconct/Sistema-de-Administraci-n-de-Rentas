@@ -25,4 +25,4 @@ router.get("/:nombre", (req, res) => {
     res.json(obtenerPorArrendatario(nombre));
 });
 
-module.exports = Pagosrouter;
+export default Pagosrouter;
