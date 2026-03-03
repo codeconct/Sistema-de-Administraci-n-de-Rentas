@@ -3,7 +3,7 @@ import "./AparmentList.css";
 import ViviendaForm from "../Forms/Viviendaform";
 import EditarForm from "../Forms/Editarform";
 import ContratoForm from "../Forms/Contratoform";
-import {REACT_APP_API_URL} from '../../config'
+import { REACT_APP_API_URL } from '../../config'
 
 const token = localStorage.getItem("token");
 
@@ -15,12 +15,12 @@ const Viviendas = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
-  
+
   useEffect(() => {
     setPaginaActual(1); // Reset to first page on filter change
   }, [filtroStatus, filtroBusqueda]);
-  
-  {/* in this part you can change the number of items that appears in one page */}
+
+  {/* in this part you can change the number of items that appears in one page */ }
   const [paginaActual, setPaginaActual] = useState(1);
   const itemsPorPagina = 5; //only you need to change this number for change the items per page
 
@@ -35,6 +35,7 @@ const Viviendas = () => {
         if (!res.ok) throw new Error("Error loading data");
 
         const data = await res.json();
+        console.log(data)
         setPropiedades(data);
       } catch (err) {
         console.error(err);
@@ -50,9 +51,9 @@ const Viviendas = () => {
 
 
   const formatDate = (date) => {
-  if (!date) return ""; // ← If null, return nothing
-  return new Date(date).toLocaleDateString("es-MX");
-};
+    if (!date) return ""; // ← If null, return nothing
+    return new Date(date).toLocaleDateString("es-MX");
+  };
   // ------------------------------
   //  Helpers to modify UI locally
   // ------------------------------
@@ -115,10 +116,10 @@ const Viviendas = () => {
     });
 
 
-    const indexInicio = (paginaActual - 1) * itemsPorPagina;
-    const indexFin = indexInicio + itemsPorPagina;
-    const propiedadesPaginadas = propiedadesFiltradas.slice(indexInicio, indexFin);
-    const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
+  const indexInicio = (paginaActual - 1) * itemsPorPagina;
+  const indexFin = indexInicio + itemsPorPagina;
+  const propiedadesPaginadas = propiedadesFiltradas.slice(indexInicio, indexFin);
+  const totalPaginas = Math.ceil(propiedadesFiltradas.length / itemsPorPagina);
   // ------------------------------
   //  UI States: Loading and Error
   // ------------------------------
@@ -171,31 +172,31 @@ const Viviendas = () => {
           <span className="status-dot status-ocupado ms-3"></span>Ocupado
         </div>
 
-        
+
 
         {/* Filter buttons */}
         <div className="filter-btns mb-4">
-          <button 
+          <button
             className={'btn btn-outline-dark ${filtroStatus === "todos" ? " active" : ""}'}
             onClick={() => setFiltroStatus("todos")}>
             Total de Viviendas
           </button>
 
-          <button 
+          <button
             className={'btn btn-outline-dark ${filtroStatus === "OCCUPIED" ? " active" : ""}'}
             onClick={() => setFiltroStatus("OCCUPIED")}>
             Viviendas Ocupadas
-            </button>
-          
+          </button>
+
           <button className={'btn btn-outline-dark ${filtroStatus === "AVAILABLE" ? " active" : ""}'}
             onClick={() => setFiltroStatus("AVAILABLE")}>
             Disponibles
-            </button>
-          
+          </button>
+
           <button className={'btn btn-outline-dark ${filtroStatus === "ARCHIVED" ? " active" : ""}'}
             onClick={() => setFiltroStatus("ARCHIVED")}>
             Archivadas
-            </button>
+          </button>
         </div>
 
         {/* Table header */}
@@ -222,8 +223,8 @@ const Viviendas = () => {
             </div>
 
             <div className="col-2 d-flex align-items-center justify-content-center flex-column">
-                <i className="bi bi-person-circle fs-3  text-secondary"></i>
-                <span>{prop.tenant_name}</span>
+              <i className="bi bi-person-circle fs-3  text-secondary"></i>
+              <span>{prop.tenant_name}</span>
             </div>
 
             <div className="col-1 d-flex align-items-center">
@@ -277,17 +278,17 @@ const Viviendas = () => {
         <nav className="mt-4">
           <ul className="pagination justify-content-center custom-pagination">
             {Array.from(
-              {length: Math.ceil(propiedadesFiltradas.length / itemsPorPagina)},
+              { length: Math.ceil(propiedadesFiltradas.length / itemsPorPagina) },
               (_, idx) => (
                 <li
                   key={idx + 1}
-                    className={`page-item ${paginaActual === idx + 1 ? "active" : ""}`}>
+                  className={`page-item ${paginaActual === idx + 1 ? "active" : ""}`}>
                   <button
                     className="page-link"
                     onClick={() => setPaginaActual(idx + 1)}>
-                      {idx + 1}
+                    {idx + 1}
                   </button>
-                </li> 
+                </li>
               ))}
           </ul>
         </nav>

@@ -11,7 +11,16 @@ router.get("/apartments", authMiddleware, async (req, res) => {
     const ownerId = req.user.id; // <-- from the JWT
 
     const result = await pool.query(
-      "SELECT * FROM apartments WHERE ownerid = $1",
+      `SELECT 
+    a.*,
+    rc.amount,
+    t.name AS tenant_name
+FROM apartments a
+LEFT JOIN rentalcontracts rc 
+    ON rc.apartment_id = a.id
+LEFT JOIN tenants t 
+    ON rc.tenant_id = t.id
+WHERE a.ownerid = $1;`,
       [ownerId]
     );
 

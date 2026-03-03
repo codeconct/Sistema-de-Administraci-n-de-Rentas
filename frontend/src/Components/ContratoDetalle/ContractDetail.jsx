@@ -6,44 +6,6 @@ import { REACT_APP_API_URL } from "../../config";
 export const token = localStorage.getItem("token");
 
 
-const payments = [
-    {
-        date: "28-ene-2026",
-        concept: "Pago de renta",
-        pending: "$6,900 MXN",
-        paid: "$6,900 MXN",
-        status: "Atrasado",
-    },
-    {
-        date: "13-feb-2026",
-        concept: "Pago de renta",
-        pending: "$6,900 MXN",
-        paid: "$6,900 MXN",
-        status: "A tiempo",
-    },
-    {
-        date: "28-feb-2026",
-        concept: "Pago de renta",
-        pending: "$6,900 MXN",
-        paid: "$6,900 MXN",
-        status: "A tiempo",
-    },
-    {
-        date: "14-mar-2026",
-        concept: "Pago de renta",
-        pending: "$6,900 MXN",
-        paid: "$6,900 MXN",
-        status: "A tiempo",
-    },
-    {
-        date: "30-mar-2026",
-        concept: "Pago de renta",
-        pending: "$6,900 MXN",
-        paid: "$6,900 MXN",
-        status: "Pendiente",
-    },
-];
-
 
 
 const StatusBadge = ({ status }) => {
@@ -52,13 +14,13 @@ const StatusBadge = ({ status }) => {
     let color = "secondary";
     let dotColor = "secondary";
 
-    if (status === "Atrasado") {
+    if (status === "PENDING") {
         color = "danger";
         dotColor = "danger";
-    } else if (status === "A tiempo") {
+    } else if (status === "PAID") {
         color = "success";
         dotColor = "success";
-    } else if (status === "Pendiente") {
+    } else if (status === "PENDING") {
         color = "warning";
         dotColor = "warning";
     }
@@ -80,55 +42,54 @@ export default function ContractDetails() {
     const [contrato, setContrato] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [invoices, setInvoices] = useState([]);
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+
+        return new Intl.DateTimeFormat('es-MX', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        }).format(date);
+    }
 
     // ⬇ Fetch data from backend on page load
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const res = await fetch(`${REACT_APP_API_URL}/rentalcontracts/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                setLoading(true);
 
-                if (!res.ok) throw new Error("Error loading data");
+                const [contractRes, invoicesRes] = await Promise.all([
+                    fetch(`${REACT_APP_API_URL}/rentalcontracts/${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    }),
+                    fetch(`${REACT_APP_API_URL}/invoices?contract_id=${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    })
+                ]);
 
-                const data = await res.json();
-                setContrato(data);
-                console.log(data);
+                if (!contractRes.ok || !invoicesRes.ok) {
+                    throw new Error("Error loading data");
+                }
+
+                const contractData = await contractRes.json();
+                const invoicesData = await invoicesRes.json();
+
+                setContrato(contractData);
+                setInvoices(invoicesData);
 
             } catch (err) {
                 console.error(err);
-                setError("Error loading viviendas");
+                setError("Error loading data");
             } finally {
                 setLoading(false);
             }
         };
 
         fetchData();
-    }, [id]);
+    }, [id, token]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch(`${REACT_APP_API_URL}/rentalcontracts/${id}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                if (!res.ok) throw new Error("Error loading data");
-
-                const data = await res.json();
-                setContrato(data);
-                console.log(data);
-
-            } catch (err) {
-                console.error(err);
-                setError("Error loading viviendas");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [id]);
 
     if (loading) return <div className="text-center py-5">Cargando datos...</div>;
     if (error) return <div className="text-center py-5 text-danger">{error}</div>;
@@ -165,7 +126,7 @@ export default function ContractDetails() {
 
                 {/* LEFT SIDE - PAYMENT TABLE */}
                 <div className="col-lg-8">
-                    <div className="card shadow-sm border-0 rounded-4">
+                    <div className="card w-100 shadow-sm border-0 rounded-4">
                         <div className="card-body">
 
                             <h6 className="fw-bold mb-3">
@@ -186,28 +147,28 @@ export default function ContractDetails() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {payments.map((p, index) => (
-                                            <tr key={index}>
-                                                <td>{p.date}</td>
-                                                <td>{p.concept}</td>
+                                        {invoices.map((p, index) => (
+                                            <tr key={p.id}>
+                                                <td>{formatDate(p.created_at)}</td>
+                                                <td>Pago de renta</td>
                                                 <td className="text-warning fw-semibold">
-                                                    {p.pending}
+                                                    ${p.amount - p.total_paid}
                                                 </td>
                                                 <td className="text-success fw-semibold">
-                                                    {p.paid}
+                                                    ${p.total_paid}
                                                 </td>
                                                 <td>
                                                     <StatusBadge status={p.status} />
                                                 </td>
                                                 <td>
                                                     <div className="d-flex gap-2">
-                                                        <button className="btn btn-sm btn-outline-secondary">
+                                                        <button title="Ver recivo" className="btn btn-sm btn-outline-secondary">
                                                             <i className="bi bi-receipt"></i>
                                                         </button>
-                                                        <button className="btn btn-sm btn-outline-secondary">
+                                                        <button title="Editar pago" className="btn btn-sm btn-outline-secondary">
                                                             <i className="bi bi-pencil"></i>
                                                         </button>
-                                                        <button className="btn btn-sm btn-outline-secondary">
+                                                        <button title="Enviar recordatorio" className="btn btn-sm btn-outline-secondary">
                                                             <i className="bi bi-envelope"></i>
                                                         </button>
                                                     </div>
@@ -219,7 +180,7 @@ export default function ContractDetails() {
                             </div>
 
                             <div className="d-flex justify-content-between mt-3">
-                                <small className="text-muted">Mostrando 4 pagos</small>
+                                <small className="text-muted">Mostrando {invoices.length} pagos</small>
                                 <small className="text-muted">
                                     Página 1 de 5
                                 </small>
@@ -252,9 +213,9 @@ export default function ContractDetails() {
                             <div>
                                 <small className="text-muted">Duración del contrato</small>
                                 <div>
-                                    19 de diciembre, 2025 al
+                                    {formatDate(contrato.startdate)} al
                                     <br />
-                                    19 de diciembre, 2026
+                                    {formatDate(contrato.enddate)}, 2026
                                 </div>
                             </div>
 
