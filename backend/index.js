@@ -13,7 +13,7 @@ import paymentsRouter from './routes/payments.routes.js';
 import maintenanceRequestsRouter from './routes/maintenanceRequests.routes.js';
 import moraSettingsRouter from './routes/moraSettings.routes.js';
 
-import Pagosrouter from './routes/PagoNotif.js';
+//import Pagosrouter from './routes/PagoNotif.js';
 
 const app = express();
 
