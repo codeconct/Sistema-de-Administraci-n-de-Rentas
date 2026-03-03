@@ -218,7 +218,7 @@ const Viviendas = () => {
               />
               <div>
                 <p className="mb-1 fw-semibold">{prop.address}</p>
-                <small>{prop.monthlyrent.toLocaleString('en-US')}$</small>
+                <small>{prop.amount.toLocaleString('en-US')}$</small>
               </div>
             </div>
 
@@ -228,7 +228,7 @@ const Viviendas = () => {
             </div>
 
             <div className="col-1 d-flex align-items-center">
-              <span>{formatDate(prop.payDate)}</span>
+              <span>{/*formatDate(prop.payDate)*/}</span>
             </div>
 
             {/* Butons */}
