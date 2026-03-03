@@ -29,7 +29,7 @@ router.get("/apartments", authMiddleware, async (req, res) => {
           ORDER BY duedate DESC
           LIMIT 1
       ) i ON true
-      WHERE a.ownerid = 1;
+      WHERE a.ownerid = $1;
       `,
       [ownerId]
     );
