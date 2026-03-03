@@ -19,9 +19,9 @@ router.get("/apartments", authMiddleware, async (req, res) => {
           i.duedate AS latest_due_date
       FROM apartments a
       LEFT JOIN rentalcontracts rc
-          ON rc.apartment_id = a.id
+          ON rc.apartmentid = a.id
       LEFT JOIN tenants t
-          ON rc.tenant_id = t.id
+          ON rc.tenantid = t.id
       LEFT JOIN LATERAL (
           SELECT duedate
           FROM invoices
@@ -29,7 +29,7 @@ router.get("/apartments", authMiddleware, async (req, res) => {
           ORDER BY duedate DESC
           LIMIT 1
       ) i ON true
-      WHERE a.ownerid = $1;
+      WHERE a.ownerid = 1;
       `,
       [ownerId]
     );
