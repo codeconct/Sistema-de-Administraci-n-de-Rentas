@@ -228,7 +228,7 @@ const Viviendas = () => {
             </div>
 
             <div className="col-1 d-flex align-items-center">
-              <span>{prop.paydate ? formatDate(prop.payDate) : ''}</span>
+              <span>{prop.latest_due_date ? formatDate(prop.latest_due_date) : ''}</span>
             </div>
 
             {/* Butons */}
