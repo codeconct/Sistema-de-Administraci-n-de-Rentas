@@ -18,7 +18,7 @@ router.get("/apartments", authMiddleware, async (req, res) => {
         t.name AS tenant_name
       FROM apartments a
       LEFT JOIN rentalcontracts rc 
-        ON rc.apartment_id = a.id
+        ON rc.apartmentid = a.id
       LEFT JOIN tenants t 
         ON rc.tenant_id = t.id
       WHERE a.ownerid = $1;
