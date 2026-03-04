@@ -9,6 +9,7 @@ export const authMiddleware = (req, res, next) => {
     req.user = decoded; // <-- the user ID is here
     next();
   } catch (err) {
+    console.error(err);
     return res.status(403).json({ message: "Invalid token" });
   }
 };
