@@ -13,6 +13,7 @@ import Contratos from './Components/Contratos/ContractsList'
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ContratoDetalle from "./Components/ContratoDetalle/ContractDetail";
 import Home from "./Components/Home/Home";
+import ViviendaDetalle from "./Components/ViviendaDetalle/ViviendaDetalle";
 // REMOVED: import Configuracion from "./Components/Forms/Configuracion";
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
                   <Route path="contratos" element={<Contratos/>} />
                   <Route path="home" element={<Home />} />
                   <Route path="contratos/:id" element={<ContratoDetalle/>} />
+                  <Route path="viviendas/:id/detalles" element={<ViviendaDetalle />} />
                   
                   {/* REMOVED: <Route path="configuracion/*" element={<Configuracion />} /> */}
 
