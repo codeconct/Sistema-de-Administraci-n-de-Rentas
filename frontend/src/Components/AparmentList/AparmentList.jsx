@@ -150,14 +150,14 @@ const Viviendas = () => {
 
           <button
             type="button"
-            className="btn btn-link text-dark contrato-btn fw-semibold"
+            className="btn btn-dark"
             data-bs-toggle="modal"
-            data-bs-target="#viviendaModal"
+            data-bs-target="#nuevaViviendaModal"
           >
-            Añadir Vivienda
+            + Nueva vivienda
           </button>
 
-          <ViviendaForm agregarPropiedad={agregarPropiedad} />
+          <ViviendaForm />
           <EditarForm
             propiedad={propiedadSeleccionada}
             actualizarPropiedad={actualizarPropiedad}
@@ -235,7 +235,7 @@ const Viviendas = () => {
             <div className="col-6 text-end">
               <button className="action-btn" data-bs-toggle="modal" data-bs-target="#editModal"
                 onClick={() => setPropiedadSeleccionada(prop)}>
-                <i class="bi bi-pencil-square"></i>
+                <i className="bi bi-pencil-square"></i>
                 Editar
               </button>
 
