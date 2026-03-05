@@ -57,16 +57,17 @@ router.get('/apartments/:id', async (req, res) => {
 });
 
 // POST (create) a new apartment
-router.post('/apartments', async (req, res) => {
-  const { ownerid, address, monthlyrent, status } = req.body; // adapt fields to your table
+router.post('/apartments', authMiddleware, async (req, res) => {
+  const ownerId = req.user.id;
+  const { address, name, city, state } = req.body; // adapt fields to your table
   try {
     const result = await pool.query(
-      'INSERT INTO apartments (ownerid, address, monthlyrent, status) VALUES ($1, $2, $3, $4) RETURNING *',
-      [ownerid, address, monthlyrent, status]
+      'INSERT INTO apartments (ownerid, address, name, city, state) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [ownerId, address, name, city, state]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
-    console.error(err);
+    console.error(err), $;
     res.status(500).json({ error: 'Database error' });
   }
 });

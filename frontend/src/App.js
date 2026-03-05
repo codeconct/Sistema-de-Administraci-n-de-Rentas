@@ -28,13 +28,13 @@ function App() {
           <ProtectedRoute>
             <div className="min-vh-100 bg-light">
               <Navbar />
-              
+
               <div className="container-fluid py-4">
                 <Routes>
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="viviendas" element={<Viviendas />} />
                   <Route path="incidencias" element={<Incidencias />} />
-                  <Route path="contratos" element={<Contratos/>} />
+                  <Route path="contratos" element={<Contratos />} />
                   <Route path="home" element={<Home />} />
                   <Route path="contratos/:id" element={<ContratoDetalle/>} />
                   <Route path="viviendas/:id/detalles" element={<ViviendaDetalle />} />
@@ -49,7 +49,7 @@ function App() {
           </ProtectedRoute>
         } />
       </Routes>
-    </Router> 
+    </Router>
   );
 }
 
