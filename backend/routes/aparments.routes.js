@@ -57,7 +57,7 @@ router.get('/apartments/:id', async (req, res) => {
 });
 
 // POST (create) a new apartment
-router.post('/apartments', async (req, res) => {
+router.post('/apartments', authMiddleware, async (req, res) => {
   const ownerId = req.user.id;
   const { address, name, city, state } = req.body; // adapt fields to your table
   try {

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import { REACT_APP_API_URL } from '../../config'
+
 const ViviendaForm = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -19,7 +21,7 @@ const ViviendaForm = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3001/apartments", {
+      const response = await fetch(`${REACT_APP_API_URL}/apartments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
