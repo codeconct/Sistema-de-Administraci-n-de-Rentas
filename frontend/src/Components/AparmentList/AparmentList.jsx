@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { TbContract } from "react-icons/tb";
+import { LuHouse } from "react-icons/lu";
 import "./AparmentList.css";
 import ViviendaForm from "../Forms/Viviendaform";
 import EditarForm from "../Forms/Editarform";
@@ -157,7 +160,7 @@ const Viviendas = () => {
             + Nueva vivienda
           </button>
 
-          <ViviendaForm />
+          <ViviendaForm/>
           <EditarForm
             propiedad={propiedadSeleccionada}
             actualizarPropiedad={actualizarPropiedad}
@@ -232,44 +235,63 @@ const Viviendas = () => {
             </div>
 
             {/* Butons */}
-            <div className="col-6 text-end">
-              <button className="action-btn" data-bs-toggle="modal" data-bs-target="#editModal"
-                onClick={() => setPropiedadSeleccionada(prop)}>
-                <i className="bi bi-pencil-square"></i>
-                Editar
-              </button>
+            <div className="col-6 d-flex justify-content-end align-items-center gap-3">
+              <div className="actions-stack-box">
+                <button
+                  className="box-action-btn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#editModal"
+                  onClick={() => setPropiedadSeleccionada(prop)}
+                >
+                  <i className="bi bi-pencil-square"></i>
+                  Editar
+                </button>
 
-              {prop.status === "archivado" ? (
-                <button className="btn-status archivado" onClick={() => archivarVivienda(prop.id)}>
-                  <i className="bi bi bi-eye"></i>
-                  Archivado
-                </button>
-              ) : (
-                <button className="btn-status desarchivar" onClick={() => archivarVivienda(prop.id)}>
-                  <i className="bi bi-eye-slash"></i>
-                  Desarchivado
-                </button>
-              )}
+                {prop.status === "ARCHIVED" ? (
+                  <button className="box-action-btn" onClick={() => archivarVivienda(prop.id)}>
+                    <i className="bi bi-eye"></i>
+                    Archivado
+                  </button>
+                ) : (
+                  <button className="box-action-btn" onClick={() => archivarVivienda(prop.id)}>
+                    <i className="bi bi-eye-slash"></i>
+                    Desarchivar
+                  </button>
+                )}
 
-              {prop.status === "ocupado" ? (
-                <button className="btn-status ocupado" onClick={() => cambiarEstado(prop.id)}>
-                  <i className="bi bi-x-circle"></i>
-                  Ocupado
-                </button>
-              ) : (
-                <button className="btn-status disponible" onClick={() => cambiarEstado(prop.id)}>
-                  <i className="bi bi-check-circle"></i>
-                  Disponible
-                </button>
-              )}
+                {prop.status === "OCCUPIED" ? (
+                  <button className="box-action-btn" onClick={() => cambiarEstado(prop.id)}>
+                    <i className="bi bi-x-circle"></i>
+                    Ocupado
+                  </button>
+                ) : (
+                  <button className="box-action-btn" onClick={() => cambiarEstado(prop.id)}>
+                    <i className="bi bi-check-circle"></i>
+                    Disponible
+                  </button>
+                )}
+              </div>
 
-              <a
-                href="#"
-                className="action-btn ms-3 fw-semibold text-dark"
-                data-bs-toggle="modal" data-bs-target="#contratosModal"
-              >
-                Contrato
-              </a>
+              <div className="contract-links-stack">
+                <button
+                  type="button"
+                  className="contract-link-text-btn"
+                  data-bs-toggle="modal"
+                  data-bs-target="#contratosModal"
+                >
+                  <TbContract size={16} />
+                  Datos del contrato
+                </button>
+
+                <Link
+                  to={`/viviendas/${prop.id}/detalles`}
+                  state={{ propiedad: prop }}
+                  className="contract-link-text"
+                >
+                  <LuHouse size={16} />
+                  Datos de la vivienda
+                </Link>
+              </div>
             </div>
           </div>
         ))}
