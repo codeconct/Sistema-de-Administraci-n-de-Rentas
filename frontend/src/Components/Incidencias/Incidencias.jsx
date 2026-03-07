@@ -15,7 +15,7 @@ const Incidencias = () => {
       ubicacion: "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
       precio: 6000,
       arrendatario: "Jose Eduardo Amaya",
-      fechaPago: "2025-11-15",
+      descripcion: "Fuga de agua en el lavabo del baño principal.",
     },
     {
       id: 2,
@@ -24,7 +24,7 @@ const Incidencias = () => {
       ubicacion: "21 de Marzo 456, Col. Centro, 34000 Durango, Dgo.",
       precio: 6000,
       arrendatario: null,
-      fechaPago: null,
+      descripcion: "No enciende la luz del pasillo exterior.",
     },
     {
       id: 3,
@@ -33,7 +33,7 @@ const Incidencias = () => {
       ubicacion: "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
       precio: 6000,
       arrendatario: "Jose Eduardo Amaya",
-      fechaPago: "2025-12-01",
+      descripcion: "El boiler no calienta correctamente.",
     },
     {
       id: 4,
@@ -42,7 +42,7 @@ const Incidencias = () => {
       ubicacion: "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
       precio: 6000,
       arrendatario: "Jose Eduardo Amaya",
-      fechaPago: "2025-12-01",
+      descripcion: "Humedad visible en una pared de la recamara.",
     },
     {
       id: 5,
@@ -51,7 +51,7 @@ const Incidencias = () => {
       ubicacion: "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
       precio: 6000,
       arrendatario: "Jose Eduardo Amaya",
-      fechaPago: "2025-12-01",
+      descripcion: "La cerradura de la puerta principal se atora.",
     },
   ]);
 
@@ -77,6 +77,7 @@ const Incidencias = () => {
       return (
         p.ubicacion.toLowerCase().includes(texto) ||
         (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
+        (p.descripcion && p.descripcion.toLowerCase().includes(texto)) ||
         p.id.toString().includes(texto)
       );
     });
@@ -162,7 +163,7 @@ const Incidencias = () => {
         <div className="row table-header mb-2">
           <div className="col-4">Ubicacion</div>
           <div className="col-3">Arrendatario</div>
-          <div className="col-2">Fecha</div>
+          <div className="col-3">Descripcion de incidencia</div>
         </div>
 
         {incidenciasPaginadas.map((prop) => (
@@ -181,11 +182,11 @@ const Incidencias = () => {
               <span>{prop.arrendatario || "Sin asignar"}</span>
             </div>
 
-            <div className="col-2 d-flex align-items-center">
-              <span>{prop.fechaPago || "-"}</span>
+            <div className="col-3 d-flex align-items-center">
+              <span>{prop.descripcion || "-"}</span>
             </div>
 
-            <div className="col-3 text-start">
+            <div className="col-2 text-start">
               {prop.status === "resuelto" ? (
                 <button className="btn-status ocupado" onClick={() => cambiarEstado(prop.id)}>
                   <i className="bi bi-x-circle" />
