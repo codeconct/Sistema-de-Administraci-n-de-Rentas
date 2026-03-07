@@ -27,15 +27,26 @@ const statusClass = (status) => {
 };
 
 export default function ViviendaDetalle() {
+  const emptyTenantForm = {
+    name: "",
+    phone: "",
+    email: "",
+    governmentid: "",
+    password: ""
+  };
+
   const { id } = useParams();
   const { state } = useLocation();
   const [vivienda, setVivienda] = useState(state?.propiedad || null);
   const [loading, setLoading] = useState(!state?.propiedad);
   const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+  const [tenantForm, setTenantForm] = useState(emptyTenantForm);
+  const [tenantSaving, setTenantSaving] = useState(false);
+  const [tenantMsg, setTenantMsg] = useState("");
 
   useEffect(() => {
-    if (vivienda && String(vivienda.id) === String(id)) return;
-
     const fetchVivienda = async () => {
       try {
         setLoading(true);
@@ -58,7 +69,7 @@ export default function ViviendaDetalle() {
     };
 
     fetchVivienda();
-  }, [id, vivienda]);
+  }, [id]);
 
   if (loading) return <div className="text-center py-5">Cargando detalles...</div>;
   if (error) return <div className="text-center py-5 text-danger">{error}</div>;
@@ -75,6 +86,157 @@ export default function ViviendaDetalle() {
       ...prev,
       status: prev.status === "ARCHIVED" ? "AVAILABLE" : "ARCHIVED"
     }));
+  };
+
+  const guardarStatus = async () => {
+    if (!vivienda?.id || saving) return;
+
+    setSaving(true);
+    setSaveMsg("");
+
+    try {
+      const res = await fetch(`${REACT_APP_API_URL}/apartments/${vivienda.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: vivienda.status })
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || data?.message || "No se pudo guardar");
+      }
+
+      const updated = await res.json();
+      setVivienda((prev) => ({ ...prev, ...updated }));
+      setSaveMsg("Estatus guardado correctamente.");
+    } catch (err) {
+      console.error(err);
+      setSaveMsg(err.message || "Error al guardar el estatus.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const abrirGestionArrendatario = async () => {
+    if (!vivienda) return;
+
+    setTenantMsg("");
+    setTenantForm({
+      ...emptyTenantForm,
+      name: vivienda.tenant_name || "",
+      phone: vivienda.tenant_phone || "",
+      email: vivienda.tenant_email || ""
+    });
+
+    if (!vivienda.tenant_id) return;
+
+    try {
+      const res = await fetch(`${REACT_APP_API_URL}/tenants/${vivienda.tenant_id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) return;
+
+      const data = await res.json();
+      setTenantForm((prev) => ({
+        ...prev,
+        name: data?.name || prev.name,
+        phone: data?.phone || prev.phone,
+        email: data?.email || prev.email,
+        governmentid: data?.governmentid || ""
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const guardarArrendatario = async (e) => {
+    e.preventDefault();
+    if (tenantSaving || !vivienda?.id) return;
+
+    if (!tenantForm.name.trim() || !tenantForm.governmentid.trim()) {
+      setTenantMsg("Nombre e identificacion oficial son obligatorios.");
+      return;
+    }
+
+    const isEditingTenant = Boolean(vivienda?.tenant_id);
+    if (!isEditingTenant && !tenantForm.password.trim()) {
+      setTenantMsg("Para crear una cuenta debes capturar una contraseña.");
+      return;
+    }
+
+    setTenantSaving(true);
+    setTenantMsg("");
+
+    try {
+      const payload = {
+        name: tenantForm.name.trim(),
+        phone: tenantForm.phone.trim(),
+        email: tenantForm.email.trim(),
+        governmentid: tenantForm.governmentid.trim()
+      };
+
+      if (tenantForm.password.trim()) {
+        payload.password = tenantForm.password.trim();
+      }
+
+      const tenantRes = await fetch(
+        isEditingTenant
+          ? `${REACT_APP_API_URL}/tenants/${vivienda.tenant_id}`
+          : `${REACT_APP_API_URL}/tenants`,
+        {
+          method: isEditingTenant ? "PUT" : "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+
+      const tenantData = await tenantRes.json().catch(() => ({}));
+      if (!tenantRes.ok) {
+        throw new Error(tenantData?.error || tenantData?.message || "No se pudo guardar el arrendatario");
+      }
+
+      const tenantId = tenantData?.id || tenantData?.tenantid;
+      if (!tenantId) {
+        throw new Error("No se encontro ID del arrendatario para asignar a la vivienda");
+      }
+
+      const assignRes = await fetch(`${REACT_APP_API_URL}/apartments/${vivienda.id}/tenant`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ tenantid: tenantId })
+      });
+
+      const assignData = await assignRes.json().catch(() => ({}));
+      if (!assignRes.ok) {
+        throw new Error(assignData?.error || assignData?.message || "No se pudo asignar a la vivienda");
+      }
+
+      setVivienda((prev) => ({
+        ...prev,
+        tenant_id: assignData?.tenantid || tenantId,
+        tenant_name: assignData?.tenant_name || payload.name,
+        tenant_phone: assignData?.tenant_phone || payload.phone,
+        tenant_email: assignData?.tenant_email || payload.email
+      }));
+
+      setTenantForm((prev) => ({ ...prev, password: "" }));
+      setTenantMsg("Cuenta de arrendatario guardada y vinculada correctamente.");
+    } catch (err) {
+      console.error(err);
+      setTenantMsg(err.message || "Error al gestionar la cuenta.");
+    } finally {
+      setTenantSaving(false);
+    }
   };
 
   const mainImage =
@@ -94,7 +256,13 @@ export default function ViviendaDetalle() {
               Visualiza las viviendas registradas en el sistema facil y rapidamente.
             </p>
           </div>
-          <button type="button" className="manage-landlord-btn">
+          <button
+            type="button"
+            className="manage-landlord-btn"
+            data-bs-toggle="modal"
+            data-bs-target="#tenantAccountModal"
+            onClick={abrirGestionArrendatario}
+          >
             <LuSettings size={15} />
             Gestionar cuenta de arrendatario
           </button>
@@ -202,6 +370,21 @@ export default function ViviendaDetalle() {
                   {isArchived ? "Archivada" : isOccupied ? "Ocupada" : "Disponible"}
                 </button>
               </div>
+              <div className="mt-3 d-flex align-items-center gap-2">
+                <button
+                  type="button"
+                  className="btn btn-dark btn-sm"
+                  onClick={guardarStatus}
+                  disabled={saving}
+                >
+                  {saving ? "Guardando..." : "Guardar"}
+                </button>
+                {saveMsg && (
+                  <small className={saveMsg.includes("correctamente") ? "text-success" : "text-danger"}>
+                    {saveMsg}
+                  </small>
+                )}
+              </div>
             </section>
           </div>
         </div>
@@ -213,6 +396,96 @@ export default function ViviendaDetalle() {
           propiedad={vivienda}
           actualizarPropiedad={setVivienda}
         />
+        <div
+          className="modal fade"
+          id="tenantAccountModal"
+          tabIndex="-1"
+          aria-labelledby="tenantAccountModalLabel"
+          aria-hidden="true"
+        >
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="tenantAccountModalLabel">
+                  {vivienda?.tenant_id ? "Editar arrendatario" : "Crear arrendatario"}
+                </h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+
+              <form onSubmit={guardarArrendatario}>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label">Nombre completo</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={tenantForm.name}
+                      onChange={(e) => setTenantForm((prev) => ({ ...prev, name: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Telefono</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={tenantForm.phone}
+                      onChange={(e) => setTenantForm((prev) => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Correo</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      value={tenantForm.email}
+                      onChange={(e) => setTenantForm((prev) => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Identificacion oficial</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={tenantForm.governmentid}
+                      onChange={(e) => setTenantForm((prev) => ({ ...prev, governmentid: e.target.value }))}
+                      required
+                    />
+                  </div>
+                  <div className="mb-0">
+                    <label className="form-label">
+                      {vivienda?.tenant_id ? "Nueva contraseña (opcional)" : "Contraseña"}
+                    </label>
+                    <input
+                      type="password"
+                      className="form-control"
+                      value={tenantForm.password}
+                      onChange={(e) => setTenantForm((prev) => ({ ...prev, password: e.target.value }))}
+                      required={!vivienda?.tenant_id}
+                    />
+                  </div>
+                  {tenantMsg && (
+                    <small
+                      className={`d-block mt-2 ${
+                        tenantMsg.includes("correctamente") ? "text-success" : "text-danger"
+                      }`}
+                    >
+                      {tenantMsg}
+                    </small>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    Cerrar
+                  </button>
+                  <button type="submit" className="btn btn-dark" disabled={tenantSaving}>
+                    {tenantSaving ? "Guardando..." : "Guardar arrendatario"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -38,10 +38,19 @@ const LoginForm = () => {
       return;
     }
 
-    // Save token in localStorage
+    // Save auth context in localStorage
     localStorage.setItem("token", data.token);
+    if (data?.user?.role) {
+      localStorage.setItem("role", data.user.role);
+    } else {
+      localStorage.removeItem("role");
+    }
 
-    navigate("/viviendas");
+    if (data?.user?.role === "tenant") {
+      navigate("/home");
+    } else {
+      navigate("/viviendas");
+    }
 
   } catch (error) {
     console.error(error);
