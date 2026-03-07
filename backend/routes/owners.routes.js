@@ -106,42 +106,84 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: "Name and password are required" });
     }
 
-    const result = await pool.query(
+    const ownerResult = await pool.query(
       `SELECT * FROM owners WHERE name = $1`,
       [name]
     );
 
-    if (result.rows.length === 0) {
+    let ownerFound = false;
+    if (ownerResult.rows.length > 0) {
+      ownerFound = true;
+      const owner = ownerResult.rows[0];
+      const validPassword = await compare(password, owner.passwordhash);
+
+      if (validPassword) {
+        const ownerId = owner.id ?? owner.ownerid;
+
+        const token = jwt.sign(
+          {
+            id: ownerId,
+            name: owner.name,
+            role: 'owner'
+          },
+          JWT_SECRET,
+          {
+            expiresIn: JWT_EXPIRES_IN || "1d"
+          }
+        );
+
+        return res.status(200).json({
+          message: "Login successful",
+          token,
+          user: {
+            id: ownerId,
+            name: owner.name,
+            role: 'owner'
+          }
+        });
+      }
+    }
+
+    const tenantResult = await pool.query(
+      `SELECT * FROM tenants WHERE name = $1`,
+      [name]
+    );
+
+    if (tenantResult.rows.length === 0) {
+      if (ownerFound) {
+        return res.status(401).json({ message: "Wrong password" });
+      }
       return res.status(404).json({ message: "Name not found" });
     }
 
-    const user = result.rows[0];
-
-    const validPassword = await compare(password, user.passwordhash);
+    const tenant = tenantResult.rows[0];
+    const validPassword = await compare(password, tenant.passwordhash);
 
     if (!validPassword) {
       return res.status(401).json({ message: "Wrong password" });
     }
 
-    // ---------- GENERATE TOKEN ----------
+    const tenantId = tenant.id ?? tenant.tenantid;
+
     const token = jwt.sign(
       {
-        id: user.id,
-        name: user.name
+        id: tenantId,
+        name: tenant.name,
+        role: 'tenant'
       },
       JWT_SECRET,
       {
         expiresIn: JWT_EXPIRES_IN || "1d"
       }
     );
-    // ------------------------------------
 
     res.status(200).json({
       message: "Login successful",
       token,
       user: {
-        id: user.id,
-        name: user.name
+        id: tenantId,
+        name: tenant.name,
+        role: 'tenant'
       }
     });
 
