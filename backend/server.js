@@ -3,10 +3,15 @@ import cors from 'cors';
 import poolOriginal from './db.js'; // Lo renombro para evitar choque con el pool de abajo
 import pkg from 'pg';
 
-// --- NUEVAS IMPORTACIONES PARA OPENPAY ---
+// 1. PRIMERO IMPORTAMOS OPENPAY Y DOTENV
 import dotenv from 'dotenv';
 import Openpay from 'openpay';
-dotenv.config(); 
+
+// 2. LUEGO ARRANCAMOS DOTENV
+dotenv.config();
+
+// 3. ÚNICA DECLARACIÓN DE OPENPAY (¡Sin duplicados!)
+const openpay = new Openpay(process.env.OPENPAY_MERCHANT_ID, process.env.OPENPAY_PRIVATE_KEY, false);
 
 const { Pool } = pkg;
 const app = express();
@@ -16,26 +21,37 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
+// 👉 RADAR DE PETICIONES:
+app.use((req, res, next) => {
+  console.log(`📡 Petición entrante: ${req.method} ${req.url}`);
+  next();
+});
+
 // --- BASE DE DATOS ---
 const pool = new Pool({
   connectionString: "postgresql://postgres:orozco24@localhost:5432/postgres",
   ssl: false 
 });
 
-// --- CONFIGURACIÓN DE OPENPAY ---
-const isProduction = false; 
-const openpay = new Openpay(
-  process.env.OPENPAY_MERCHANT_ID, 
-  process.env.OPENPAY_PRIVATE_KEY, 
-  isProduction
-);
+// 👉 ¡AQUÍ ESTÁ LA RUTA QUE FALTABA PARA DEJARTE ENTRAR! (Bypass temporal)
+app.post('/api/login', async (req, res) => {
+  console.log("✅ Dejando entrar al usuario al sistema...");
+  return res.status(200).json({
+    success: true,
+    message: "Login exitoso",
+    token: "token-maestro-123",
+    user: {
+      id: 1,
+      nombre: "Administrador",
+      rol: "admin"
+    }
+  });
+});
 
 // --- API ROUTES ORIGINALES (Intactas) ---
 
 app.get('/api/mora-settings', async (req, res) => {
   try {
-    // Nota: Asumo que ensureMoraSettingsTable() está en tu db.js, si te da error coméntalo
-    // await ensureMoraSettingsTable(); 
     const result = await pool.query('SELECT tipo, valor FROM morasettings WHERE id = 1');
 
     if (result.rows.length === 0) {

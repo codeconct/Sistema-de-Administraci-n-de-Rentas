@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./Home.css";
 import { FileText, CreditCard, AlertCircle, FileDown, Loader } from "lucide-react";
+import { REACT_APP_API_URL } from "../../config";
 
 const Home = () => {
   // 1. Estado para saber si el pago se está procesando y evitar dobles clics
@@ -22,7 +23,7 @@ const handlePagar = async () => {
 
     try {
       // 👇 AQUÍ ESTÁ LA MAGIA: Apuntamos al puerto 5000 donde corre tu server.js 👇
-      const response = await fetch('http://localhost:5000/api/pagos/openpay', {
+      const response = await fetch(`${REACT_APP_API_URL}/pagos/openpay`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,6 +46,7 @@ const handlePagar = async () => {
         // 4. Si el backend responde bien, redirigimos a la pasarela de pago
         window.location.href = data.payment_url;
       } else {
+        console.error("Error al generar pago:", data);
         alert("Error al generar el pago. Intenta más tarde.");
       }
     } catch (error) {

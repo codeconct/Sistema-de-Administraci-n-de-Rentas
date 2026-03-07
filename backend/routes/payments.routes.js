@@ -1,8 +1,16 @@
 // routes/payments.routes.js
 import { Router } from 'express';
 import pool from '../db.js';  // adjust path if needed
+import Openpay from 'openpay';
 
 const router = Router();
+const isProduction = false;
+
+const openpay = new Openpay(
+  process.env.OPENPAY_MERCHANT_ID,
+  process.env.OPENPAY_PRIVATE_KEY,
+  isProduction
+);
 
 // GET all payments
 router.get('/payments', async (req, res) => {
@@ -83,6 +91,46 @@ router.delete('/payments/:id', async (req, res) => {
     console.error(err);
     res.status(500).json({ error: err.message });
   }
+});
+
+// CREATE Openpay checkout URL
+router.post('/pagos/openpay', (req, res) => {
+  const { monto, descripcion, cliente } = req.body;
+
+  const frontendBase = (process.env.FRONTEND_URL || req.headers.origin || 'http://localhost:3000')
+    .replace(/\/$/, '');
+
+  const chargeRequest = {
+    method: 'card',
+    amount: Number(monto),
+    description: descripcion,
+    order_id: `REC-${Date.now()}`,
+    customer: {
+      name: cliente?.nombre || 'Inquilino',
+      last_name: cliente?.apellidos || 'Ejemplo',
+      phone_number: cliente?.telefono || '',
+      email: cliente?.correo || ''
+    },
+    send_email: true,
+    confirm: false,
+    redirect_url: `${frontendBase}/home?pago=exitoso`
+  };
+
+  openpay.charges.create(chargeRequest, (error, charge) => {
+    if (error) {
+      console.error('Openpay error:', error);
+      return res.status(400).json({
+        success: false,
+        message: 'No se pudo generar el cobro',
+        details: error?.description || error?.message || 'Unknown Openpay error'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      payment_url: charge?.payment_method?.url
+    });
+  });
 });
 
 export default router;
