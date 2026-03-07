@@ -12,6 +12,7 @@ const token = localStorage.getItem("token");
 
 const Viviendas = () => {
   const [propiedades, setPropiedades] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -97,6 +98,10 @@ const Viviendas = () => {
   const agregarPropiedad = (nueva) => {
     setPropiedades(prev => [...prev, nueva]);
   };
+  const handleApartmentCreated = (newApartment) => {
+    agregarPropiedad(newApartment);
+    setShowModal(false);
+  };
 
   const actualizarPropiedad = (propActualizada) => {
     setPropiedades(prev =>
@@ -152,15 +157,17 @@ const Viviendas = () => {
           </div>
 
           <button
-            type="button"
             className="btn btn-dark"
-            data-bs-toggle="modal"
-            data-bs-target="#nuevaViviendaModal"
+            onClick={() => setShowModal(true)}
           >
             + Nueva vivienda
           </button>
 
-          <ViviendaForm/>
+          <ViviendaForm
+            show={showModal}
+            onClose={() => setShowModal(false)}
+            onCreated={handleApartmentCreated}
+          />
           <EditarForm
             propiedad={propiedadSeleccionada}
             actualizarPropiedad={actualizarPropiedad}

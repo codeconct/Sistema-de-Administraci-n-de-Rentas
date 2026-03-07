@@ -42,13 +42,19 @@ router.get("/apartments", authMiddleware, async (req, res) => {
 });
 
 // GET apartment by ID
-router.get('/apartments/:id', async (req, res) => {
+router.get('/apartments/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
+
   try {
-    const result = await pool.query('SELECT * FROM apartments WHERE id = $1', [id]);
+    const result = await pool.query(
+      'SELECT * FROM apartments WHERE id = $1 AND ownerid = $2',
+      [id, req.user.id]
+    );
+
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Apartment not found' });
+      return res.status(404).json({ error: 'Not found' });
     }
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -73,21 +79,23 @@ router.post('/apartments', authMiddleware, async (req, res) => {
 });
 
 // PUT (update) an apartment
-router.put('/apartments/:id', async (req, res) => {
+router.get('/apartments/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
-  const { ownerid, address, monthlyrent, status } = req.body;
+
   try {
     const result = await pool.query(
-      'UPDATE apartments SET ownerid = $1, address = $2, monthlyrent = $3, status =$4  WHERE id = $5 RETURNING *',
-      [ownerid, address, monthlyrent, status, id]
+      'SELECT * FROM apartments WHERE id = $1 AND ownerid = $2',
+      [id, req.user.id]
     );
+
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Apartment not found' });
+      return res.status(404).json({ error: 'Not found' });
     }
+
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.message || 'Database error' });
+    res.status(500).json({ error: 'Database error' });
   }
 });
 

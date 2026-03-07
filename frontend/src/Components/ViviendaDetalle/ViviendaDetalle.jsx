@@ -5,6 +5,7 @@ import EditarForm from "../Forms/Editarform";
 import { REACT_APP_API_URL } from "../../config";
 import "./ViviendaDetalle.css";
 
+
 const token = localStorage.getItem("token");
 
 const formatDate = (date) => {
@@ -185,9 +186,8 @@ export default function ViviendaDetalle() {
                 </button>
                 <button
                   type="button"
-                  className={`small-action-btn status-action-btn ${
-                    isArchived ? "is-active archived" : isOccupied ? "is-active occupied" : "is-active available"
-                  }`}
+                  className={`small-action-btn status-action-btn ${isArchived ? "is-active archived" : isOccupied ? "is-active occupied" : "is-active available"
+                    }`}
                   onClick={() => {
                     if (isArchived) return;
                     cambiarEstado();
@@ -195,9 +195,8 @@ export default function ViviendaDetalle() {
                   disabled={isArchived}
                 >
                   <i
-                    className={`bi ${
-                      isArchived ? "bi-eye-slash" : isOccupied ? "bi-x-circle" : "bi-check-circle"
-                    }`}
+                    className={`bi ${isArchived ? "bi-eye-slash" : isOccupied ? "bi-x-circle" : "bi-check-circle"
+                      }`}
                   ></i>
                   {isArchived ? "Archivada" : isOccupied ? "Ocupada" : "Disponible"}
                 </button>
