@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import pool from '../db.js'; // adjust path if needed
 
+import { authMiddleware } from '../middlewares/auth.js'
+
 const router = Router();
 
 // --- NUEVA RUTA: INICIAR PAGO CON OPENPAY ---
