@@ -54,7 +54,7 @@ router.post('/rentalcontracts', async (req, res) => {
     const tenantResult = await client.query(
       `
       INSERT INTO tenants (name, email, phone)
-      VALUES ($1, $2, $3, $4)
+      VALUES ($1, $2, $3)
       ON CONFLICT (name)
       DO UPDATE SET
         email = EXCLUDED.email,
