@@ -4,7 +4,7 @@ import pool from '../db.js'; // adjust path if needed
 const router = Router();
 
 // --- NUEVA RUTA: INICIAR PAGO CON OPENPAY ---
-app.post('/api/pagos/openpay', (req, res) => {
+router.post('/api/pagos/openpay', (req, res) => {
     const { monto, descripcion, cliente } = req.body;
     const openpay = new Openpay(process.env.OPENPAY_MERCHANT_ID, process.env.OPENPAY_PRIVATE_KEY, false);
 
