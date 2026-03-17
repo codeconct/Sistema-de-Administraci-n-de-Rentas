@@ -16,7 +16,7 @@ router.get("/apartments", authMiddleware, async (req, res) => {
       SELECT
           a.*,
           rc.depositamount,
-          rc.rc_id,
+          rc.id as rc_id,
           t.name AS tenant_name,
           i.duedate AS latest_due_date
       FROM apartments a
