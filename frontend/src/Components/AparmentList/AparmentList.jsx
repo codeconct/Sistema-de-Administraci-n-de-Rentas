@@ -21,10 +21,9 @@ const Viviendas = () => {
 
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
-  const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
   const [selectedApartment, setSelectedApartment] = useState(null);
 
-  const handleEditClick = (apartment) => {
+  const handleSelect = (apartment) => {
     setSelectedApartment(apartment);
   };
 
@@ -189,6 +188,8 @@ const Viviendas = () => {
           <ContractWizardModal
             show={showContractModal}
             onClose={() => setShowContractModal(false)}
+            selectedApartmentId={selectedApartment ? selectedApartment.id : null}
+
           />
         </div>
 
@@ -265,7 +266,7 @@ const Viviendas = () => {
                   className="box-action-btn"
                   data-bs-toggle="modal"
                   data-bs-target="#editModal"
-                  onClick={() => handleEditClick(prop)}
+                  onClick={() => handleSelect(prop)}
                 >
                   <i className="bi bi-pencil-square"></i>
                   Editar
@@ -298,7 +299,7 @@ const Viviendas = () => {
 
               <div className="contract-links-stack">
                 {prop.tenant_name ?
-                  <Link to={"/contratos/" + prop.id} className="contract-link-text-btn ">
+                  <Link to={"/contratos/" + prop.rc_id} className="contract-link-text-btn ">
                     <TbContract size={16} />
                     Datos del contrato
                   </Link>
@@ -306,7 +307,7 @@ const Viviendas = () => {
                   <button
                     type="button"
                     className="contract-link-text-btn"
-                    onClick={() => setShowContractModal(true)}
+                    onClick={() => { handleSelect(prop); setShowContractModal(true); }}
                   >
                     <TbContract size={16} />
                     Agregar Contrato

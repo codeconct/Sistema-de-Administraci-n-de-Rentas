@@ -2,10 +2,34 @@ import React, { useState } from "react";
 import ArrendatarioForm from "./ArrendatarioForm";
 import AvalForm from "./AvalForm";
 import ContratoForm from "./ContratoForm";
+
+import { REACT_APP_API_URL } from '../../config'
+
 import "./ContratoWizardForm.css"
 
-export default function ContractWizardModal({ show, onClose }) {
+async function createContract(data) {
+  const response = await fetch(`${REACT_APP_API_URL}/rentalcontracts`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // Authorization: `Bearer ${token}` // if you use auth
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || "Error creating contract");
+  }
+
+  return response.json();
+}
+
+
+
+export default function ContractWizardModal({ show, onClose, selectedApartmentId }) {
   const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     tenant: {
@@ -26,6 +50,35 @@ export default function ContractWizardModal({ show, onClose }) {
       endDate: ""
     }
   });
+
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        apartmentid: selectedApartmentId, // you must have this
+        tenant: formData.tenant,
+        guarantor: formData.guarantor,
+        startdate: formData.contract.startDate,
+        enddate: formData.contract.endDate,
+        depositamount: formData.contract.deposit,
+        status: "ACTIVE"
+      };
+
+      const result = await createContract(payload);
+
+      console.log("Contract created:", result);
+
+      // Close modal
+      onClose();
+
+    } catch (err) {
+      console.error(err);
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!show) return null;
 
@@ -151,9 +204,13 @@ export default function ContractWizardModal({ show, onClose }) {
                     )}
 
                     {step === 3 && (
-                      <button className="btn btn-success">
-                        Guardar contrato
+                      <button
+                        className="btn btn-success"
+                        onClick={handleSubmit}
+                      >
+                        {loading ? "Guardando..." : "Guardar contrato"}
                       </button>
+
                     )}
 
                   </div>
