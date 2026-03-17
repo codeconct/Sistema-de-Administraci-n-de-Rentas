@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from 'react-router-dom';
 import "./ContractsList.css";
-import ContratoForm from "../Forms/Contratoform";
+//import ContratoForm from "../Forms/Contratoform";
 import { REACT_APP_API_URL } from '../../config'
 
 export const token = localStorage.getItem("token");

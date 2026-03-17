@@ -4,21 +4,29 @@ import { TbContract } from "react-icons/tb";
 import { LuHouse } from "react-icons/lu";
 import "./AparmentList.css";
 import ViviendaForm from "../Forms/Viviendaform";
-import EditarForm from "../Forms/Editarform";
-import ContratoForm from "../Forms/Contratoform";
-import { REACT_APP_API_URL } from '../../config'
+import EditApartmentModal from "../Forms/Editarform";
+import ContractWizardModal from "../Forms/ContratoWizardform";
+import { REACT_APP_API_URL } from '../../config';
+
 
 const token = localStorage.getItem("token");
 
 const Viviendas = () => {
   const [propiedades, setPropiedades] = useState([]);
-  const [showModal, setShowModal] = useState(false);
+  const [showPropiertiesModal, setShowPropiertiesModal] = useState(false);
+  const [showContractModal, setShowContractModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
+  const [selectedApartment, setSelectedApartment] = useState(null);
+
+  const handleEditClick = (apartment) => {
+    setSelectedApartment(apartment);
+  };
 
   useEffect(() => {
     setPaginaActual(1); // Reset to first page on filter change
@@ -100,7 +108,7 @@ const Viviendas = () => {
   };
   const handleApartmentCreated = (newApartment) => {
     agregarPropiedad(newApartment);
-    setShowModal(false);
+    setShowPropiertiesModal(false);
   };
 
   const actualizarPropiedad = (propActualizada) => {
@@ -158,21 +166,30 @@ const Viviendas = () => {
 
           <button
             className="btn btn-dark"
-            onClick={() => setShowModal(true)}
+            onClick={() => setShowPropiertiesModal(true)}
           >
             + Nueva vivienda
           </button>
 
           <ViviendaForm
-            show={showModal}
-            onClose={() => setShowModal(false)}
+            show={showPropiertiesModal}
+            onClose={() => setShowPropiertiesModal(false)}
             onCreated={handleApartmentCreated}
           />
-          <EditarForm
-            propiedad={propiedadSeleccionada}
-            actualizarPropiedad={actualizarPropiedad}
+          <EditApartmentModal
+            apartment={selectedApartment}
+            onClose={() => setSelectedApartment(null)}
+            onUpdated={(updated) => {
+              setPropiedades(prev =>
+                prev.map(a => a.id === updated.id ? updated : a)
+              );
+              setSelectedApartment(null);
+            }}
           />
-          <ContratoForm />
+          <ContractWizardModal
+            show={showContractModal}
+            onClose={() => setShowContractModal(false)}
+          />
         </div>
 
         {/* STATUS INDICATORS */}
@@ -248,7 +265,7 @@ const Viviendas = () => {
                   className="box-action-btn"
                   data-bs-toggle="modal"
                   data-bs-target="#editModal"
-                  onClick={() => setPropiedadSeleccionada(prop)}
+                  onClick={() => handleEditClick(prop)}
                 >
                   <i className="bi bi-pencil-square"></i>
                   Editar
@@ -280,15 +297,21 @@ const Viviendas = () => {
               </div>
 
               <div className="contract-links-stack">
-                <button
-                  type="button"
-                  className="contract-link-text-btn"
-                  data-bs-toggle="modal"
-                  data-bs-target="#contratosModal"
-                >
-                  <TbContract size={16} />
-                  Datos del contrato
-                </button>
+                {prop.tenant_name ?
+                  <Link to={"/contratos/" + prop.id} className="contract-link-text-btn ">
+                    <TbContract size={16} />
+                    Datos del contrato
+                  </Link>
+                  :
+                  <button
+                    type="button"
+                    className="contract-link-text-btn"
+                    onClick={() => setShowContractModal(true)}
+                  >
+                    <TbContract size={16} />
+                    Agregar Contrato
+                  </button>}
+
 
                 <Link
                   to={`/viviendas/${prop.id}/detalles`}
