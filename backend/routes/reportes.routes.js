@@ -27,7 +27,7 @@ router.get('/reportes/ocupacion', async (req, res) => {
     } catch (err) {
       if (err?.code !== UNDEFINED_COLUMN) throw err;
       result = await pool.query(
-        'SELECT apartmentid AS id, address, status FROM apartments ORDER BY apartmentid'
+        'SELECT id, address, status FROM apartments ORDER BY apartmentid'
       );
     }
 
