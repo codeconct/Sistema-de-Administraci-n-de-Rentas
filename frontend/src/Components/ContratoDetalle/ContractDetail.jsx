@@ -2,7 +2,6 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { REACT_APP_API_URL } from "../../config";
-9
 export const token = localStorage.getItem("token");
 
 
@@ -182,7 +181,7 @@ export default function ContractDetails() {
                             <div className="d-flex justify-content-between mt-3">
                                 <small className="text-muted">Mostrando {invoices.length} pagos</small>
                                 <small className="text-muted">
-                                    Página 1 de 5
+                                    Página 1 de 1
                                 </small>
                             </div>
 
@@ -202,12 +201,12 @@ export default function ContractDetails() {
 
                             <div className="mb-3">
                                 <small className="text-muted">Costo de Renta</small>
-                                <div className="text-success fw-bold">$5,000</div>
+                                <div className="text-success fw-bold">${contrato.depositamount}</div>
                             </div>
 
                             <div className="mb-3">
                                 <small className="text-muted">Arrendatario</small>
-                                <div>José Eduardo Amaya</div>
+                                <div>{contrato.tenantname}</div>
                             </div>
 
                             <div>
@@ -215,7 +214,7 @@ export default function ContractDetails() {
                                 <div>
                                     {formatDate(contrato.startdate)} al
                                     <br />
-                                    {formatDate(contrato.enddate)}, 2026
+                                    {formatDate(contrato.enddate)}
                                 </div>
                             </div>
 
