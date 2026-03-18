@@ -7,7 +7,7 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
     name: "",
     postal_code: "",
     street: "",
-    divison: "",
+    division: "",
     int_num: "",
     city: "",
     state: ""
@@ -47,7 +47,7 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
         name: "",
         postal_code: "",
         street: "",
-        divison: "",
+        division: "",
         int_num: "",
         city: "",
         state: ""
@@ -120,8 +120,8 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
                     <input
                       type="text"
                       className="form-control"
-                      name="divison"
-                      value={formData.divison}
+                      name="division"
+                      value={formData.division}
                       onChange={handleChange}
                       required
                     />

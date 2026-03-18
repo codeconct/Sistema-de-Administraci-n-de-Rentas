@@ -158,7 +158,7 @@ export default function ViviendaDetalle() {
     e.preventDefault();
     if (tenantSaving || !vivienda?.id) return;
 
-      if (!tenantForm.name.trim() || !tenantForm.governmentid.trim()) {
+    if (!tenantForm.name.trim() || !tenantForm.governmentid.trim()) {
       setTenantMsg("Nombre e identificación oficial son obligatorios.");
       return;
     }
@@ -286,7 +286,7 @@ export default function ViviendaDetalle() {
               </h4>
 
               <p className="detail-label">Dirección:</p>
-              <p className="detail-value">{vivienda ? `${vivienda.street || ''} ${vivienda.int_num || ''}, ${vivienda.divison || ''} C.P. ${vivienda.postal_code || ''}`.trim() : "-"}</p>
+              <p className="detail-value">{vivienda ? `${vivienda.street || ''} ${vivienda.int_num || ''}, ${vivienda.division || ''} C.P. ${vivienda.postal_code || ''}`.trim() : "-"}</p>
 
               <p className="detail-label mt-4">Imagen principal:</p>
               <div className="main-image-wrap">
@@ -465,9 +465,8 @@ export default function ViviendaDetalle() {
                   </div>
                   {tenantMsg && (
                     <small
-                      className={`d-block mt-2 ${
-                        tenantMsg.includes("correctamente") ? "text-success" : "text-danger"
-                      }`}
+                      className={`d-block mt-2 ${tenantMsg.includes("correctamente") ? "text-success" : "text-danger"
+                        }`}
                     >
                       {tenantMsg}
                     </small>

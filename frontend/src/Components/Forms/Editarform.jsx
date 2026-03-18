@@ -8,7 +8,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
     name: "",
     postal_code: "",
     street: "",
-    divison: "",
+    division: "",
     int_num: "",
     city: "",
     state: ""
@@ -20,7 +20,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
         name: apartment.name || "",
         postal_code: apartment.postal_code || "",
         street: apartment.street || "",
-        divison: apartment.divison || "",
+        division: apartment.division || "",
         int_num: apartment.int_num || "",
         city: apartment.city || "",
         state: apartment.state || ""
@@ -119,8 +119,8 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
                     <input
                       type="text"
                       className="form-control"
-                      name="divison"
-                      value={formData.divison}
+                      name="division"
+                      value={formData.division}
                       onChange={handleChange}
                     />
                   </div>
