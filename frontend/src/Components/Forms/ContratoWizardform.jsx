@@ -61,7 +61,7 @@ export default function ContractWizardModal({ show, onClose, selectedApartmentId
         guarantor: formData.guarantor,
         startdate: formData.contract.startDate,
         enddate: formData.contract.endDate,
-        depositamount: formData.contract.deposit,
+        depositamount: formData.contract.price,
         status: "ACTIVE"
       };
 
