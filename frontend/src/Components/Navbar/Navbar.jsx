@@ -100,6 +100,9 @@ const Navbar = () => {
               <Link to="/dashboard" className={`text-decoration-none small ${isActive("/dashboard")}`}>
                 Dashboard
               </Link>
+              <Link to="/reportes" className={`text-decoration-none small ${isActive("/reportes")}`}>
+                Reportes
+              </Link>
               <Link to="/incidencias" className={`text-decoration-none small ${isActive("/incidencias")}`}>
                 Incidencias
               </Link>
@@ -347,4 +350,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

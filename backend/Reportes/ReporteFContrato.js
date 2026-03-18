@@ -1,4 +1,4 @@
-function reportePorContrato(pagos) {
+export function reportePorContrato(pagos) {
     const reporte = {};
 
     for (const pago of pagos) {
@@ -18,3 +18,5 @@ function reportePorContrato(pagos) {
 
     return reporte;
 }
+
+export default reportePorContrato;
