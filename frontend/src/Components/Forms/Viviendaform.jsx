@@ -5,7 +5,10 @@ import { REACT_APP_API_URL } from '../../config'
 export default function ViviendaForm({ show, onClose, onCreated }) {
   const [formData, setFormData] = useState({
     name: "",
-    address: "",
+    postal_code: "",
+    street: "",
+    division: "",
+    int_num: "",
     city: "",
     state: ""
   });
@@ -42,7 +45,10 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
       // Reset form
       setFormData({
         name: "",
-        address: "",
+        postal_code: "",
+        street: "",
+        division: "",
+        int_num: "",
         city: "",
         state: ""
       });
@@ -84,16 +90,53 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
                   />
                 </div>
 
-                <div className="mb-3">
-                  <label className="form-label fw-semibold">Dirección</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                    required
-                  />
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold">Calle</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="street"
+                      value={formData.street}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold">Núm Int</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="int_num"
+                      value={formData.int_num}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold">Colonia</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="division"
+                      value={formData.division}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label fw-semibold">C.P.</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="postal_code"
+                      value={formData.postal_code}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div className="row">

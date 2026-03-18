@@ -1,11 +1,8 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { REACT_APP_API_URL } from "../../config";
+import { Modal, Button, Form, Spinner } from "react-bootstrap";
 export const token = localStorage.getItem("token");
-
-
-
 
 const StatusBadge = ({ status }) => {
 
@@ -42,6 +39,53 @@ export default function ContractDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [invoices, setInvoices] = useState([]);
+
+    // Modal state
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedInvoice, setSelectedInvoice] = useState(null);
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0]);
+    const [paymentMethod, setPaymentMethod] = useState('CASH');
+    const [paymentLoading, setPaymentLoading] = useState(false);
+    const [paymentError, setPaymentError] = useState('');
+
+    const handlePaymentSubmit = async (e) => {
+        e.preventDefault();
+        setPaymentLoading(true);
+        setPaymentError('');
+        try {
+            const response = await fetch(`${REACT_APP_API_URL}/payments`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    invoiceid: selectedInvoice.id,
+                    paymentdate: paymentDate,
+                    amount: parseFloat(paymentAmount),
+                    method: paymentMethod
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error registrando el pago');
+            }
+
+            // Refresh invoices
+            const invoicesRes = await fetch(`${REACT_APP_API_URL}/invoices?contract_id=${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const invoicesData = await invoicesRes.json();
+            setInvoices(invoicesData);
+            setShowPaymentModal(false);
+        } catch (err) {
+            setPaymentError(err.message);
+        } finally {
+            setPaymentLoading(false);
+        }
+    };
 
     function formatDate(dateString) {
         const date = new Date(dateString);
@@ -161,10 +205,20 @@ export default function ContractDetails() {
                                                 </td>
                                                 <td>
                                                     <div className="d-flex gap-2">
-                                                        <button title="Ver recivo" className="btn btn-sm btn-outline-secondary">
+                                                        <button title="Ver recibo" className="btn btn-sm btn-outline-secondary">
                                                             <i className="bi bi-receipt"></i>
                                                         </button>
-                                                        <button title="Editar pago" className="btn btn-sm btn-outline-secondary">
+                                                        <button 
+                                                            title="Pago manual" 
+                                                            className="btn btn-sm btn-outline-secondary"
+                                                            onClick={() => {
+                                                                setSelectedInvoice(p);
+                                                                setPaymentAmount(p.amount - p.total_paid);
+                                                                setPaymentDate(new Date().toISOString().split('T')[0]);
+                                                                setPaymentMethod('CASH');
+                                                                setShowPaymentModal(true);
+                                                            }}
+                                                        >
                                                             <i className="bi bi-pencil"></i>
                                                         </button>
                                                         <button title="Enviar recordatorio" className="btn btn-sm btn-outline-secondary">
@@ -181,7 +235,7 @@ export default function ContractDetails() {
                             <div className="d-flex justify-content-between mt-3">
                                 <small className="text-muted">Mostrando {invoices.length} pagos</small>
                                 <small className="text-muted">
-                                    Página 1 de 5
+                                    Página 1 de 1
                                 </small>
                             </div>
 
@@ -201,12 +255,12 @@ export default function ContractDetails() {
 
                             <div className="mb-3">
                                 <small className="text-muted">Costo de Renta</small>
-                                <div className="text-success fw-bold">$5,000</div>
+                                <div className="text-success fw-bold">${contrato.depositamount}</div>
                             </div>
 
                             <div className="mb-3">
                                 <small className="text-muted">Arrendatario</small>
-                                <div>José Eduardo Amaya</div>
+                                <div>{contrato.tenantname}</div>
                             </div>
 
                             <div>
@@ -214,7 +268,7 @@ export default function ContractDetails() {
                                 <div>
                                     {formatDate(contrato.startdate)} al
                                     <br />
-                                    {formatDate(contrato.enddate)}, 2026
+                                    {formatDate(contrato.enddate)}
                                 </div>
                             </div>
 
@@ -223,6 +277,40 @@ export default function ContractDetails() {
                 </div>
 
             </div>
+
+            {/* PAYMENT MODAL */}
+            <Modal show={showPaymentModal} onHide={() => setShowPaymentModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Registrar Pago Manual</Modal.Title>
+                </Modal.Header>
+                <Form onSubmit={handlePaymentSubmit}>
+                    <Modal.Body>
+                        {paymentError && <div className="alert alert-danger">{paymentError}</div>}
+                        
+                        <Form.Group className="mb-3">
+                            <Form.Label>Monto a pagar</Form.Label>
+                            <div className="input-group">
+                                <span className="input-group-text">$</span>
+                                <Form.Control 
+                                    type="number" 
+                                    step="0.01" 
+                                    required 
+                                    value={paymentAmount}
+                                    onChange={(e) => setPaymentAmount(e.target.value)}
+                                />
+                            </div>
+                        </Form.Group>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setShowPaymentModal(false)}>
+                            Cancelar
+                        </Button>
+                        <Button variant="dark" type="submit" disabled={paymentLoading}>
+                            {paymentLoading ? <Spinner size="sm" animation="border" /> : "Guardar Pago"}
+                        </Button>
+                    </Modal.Footer>
+                </Form>
+            </Modal>
         </div>
     );
 }

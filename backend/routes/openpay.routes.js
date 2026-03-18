@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import pool from '../db.js'; // adjust path if needed
 
+import { authMiddleware } from '../middlewares/auth.js'
+
 const router = Router();
 
 // --- NUEVA RUTA: INICIAR PAGO CON OPENPAY ---
-router.post('/api/pagos/openpay', (req, res) => {
-    const { monto, descripcion, cliente } = req.body;
+router.post('/api/pagos/openpay', authMiddleware, (req, res) => {
+    const { monto, descripcion } = req.body;
     const openpay = new Openpay(process.env.OPENPAY_MERCHANT_ID, process.env.OPENPAY_PRIVATE_KEY, false);
+    const cliente = req.user.name;
 
     const chargeRequest = {
         method: 'card',

@@ -7,7 +7,7 @@ const router = Router();
 // GET all contracts
 router.get('/rentalcontracts', async (req, res) => {
   try {
-    const result = await pool.query("SELECT  c.id, a.address, t.name, c.startdate, c.enddate, c.depositamount FROM rentalcontracts c INNER JOIN apartments a ON c.apartmentid = a.id INNER JOIN tenants t ON c.tenantid = t.id;");
+    const result = await pool.query("SELECT  c.id, a.name, t.name as tenantname, c.startdate, c.enddate, c.depositamount FROM rentalcontracts c INNER JOIN apartments a ON c.apartmentid = a.id INNER JOIN tenants t ON c.tenantid = t.id;");
     res.json(result.rows);
   } catch (err) {
     console.error(err);
@@ -117,6 +117,16 @@ router.post('/rentalcontracts', async (req, res) => {
         depositamount || null,
         status || "ACTIVE"
       ]
+    );
+
+    /* -------- UPDATE APARTMENT STATUS -------- */
+    await client.query(
+      `
+      UPDATE apartments
+      SET status = 'OCCUPIED'
+      WHERE id = $1
+      `,
+      [apartmentid]
     );
 
     await client.query("COMMIT");

@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/codeconct/Sistema-de-Administraci-n-de-Rentas#readme",
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.2",
     "@vendia/serverless-express": "^4.12.6",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

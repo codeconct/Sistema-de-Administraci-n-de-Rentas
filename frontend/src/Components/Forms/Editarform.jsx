@@ -6,7 +6,10 @@ import React, { useEffect, useState } from "react";
 export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
   const [formData, setFormData] = useState({
     name: "",
-    address: "",
+    postal_code: "",
+    street: "",
+    division: "",
+    int_num: "",
     city: "",
     state: ""
   });
@@ -14,10 +17,13 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
   useEffect(() => {
     if (apartment) {
       setFormData({
-        name: apartment.name,
-        address: apartment.address,
-        city: apartment.city,
-        state: apartment.state
+        name: apartment.name || "",
+        postal_code: apartment.postal_code || "",
+        street: apartment.street || "",
+        division: apartment.division || "",
+        int_num: apartment.int_num || "",
+        city: apartment.city || "",
+        state: apartment.state || ""
       });
     }
   }, [apartment]);
@@ -36,7 +42,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
 
     try {
       const res = await fetch(
-        `${REACT_APP_API_URL}/${apartment.id}`,
+        `${REACT_APP_API_URL}/apartments/${apartment.id}`,
         {
           method: "PUT",
           headers: {
@@ -84,19 +90,55 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
                   />
                 </div>
 
-                <div className="mb-3">
-                  <label className="form-label">Dirección</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleChange}
-                  />
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Calle</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="street"
+                      value={formData.street}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Núm Int</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="int_num"
+                      value={formData.int_num}
+                      onChange={handleChange}
+                    />
+                  </div>
                 </div>
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
+                    <label className="form-label">Colonia</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="division"
+                      value={formData.division}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">C.P.</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="postal_code"
+                      value={formData.postal_code}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Ciudad</label>
                     <input
                       type="text"
                       className="form-control"
@@ -107,6 +149,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
                   </div>
 
                   <div className="col-md-6 mb-3">
+                    <label className="form-label">Estado</label>
                     <input
                       type="text"
                       className="form-control"

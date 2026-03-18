@@ -133,11 +133,11 @@ router.get('/apartments/:id', authMiddleware, async (req, res) => {
 // POST (create) a new apartment
 router.post('/apartments', authMiddleware, async (req, res) => {
   const ownerId = req.user.id;
-  const { address, name, city, state } = req.body; // adapt fields to your table
+  const { postal_code, street, division, int_num, name, city, state } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO apartments (ownerid, address, name, city, state) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [ownerId, address, name, city, state]
+      'INSERT INTO apartments (ownerid, postal_code, street, division, int_num, name, city, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [ownerId, postal_code, street, division, int_num, name, city, state]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -250,6 +250,63 @@ router.patch('/apartments/:id/status', authMiddleware, async (req, res) => {
 });
 
 // PUT (update) an apartment
+router.put('/apartments/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const ownerId = req.user.id;
+
+  const {
+    postal_code,
+    street,
+    division,
+    int_num,
+    name,
+    city,
+    state,
+    status
+  } = req.body;
+
+  try {
+    const result = await pool.query(
+      `
+      UPDATE apartments
+      SET
+        postal_code = $1,
+        street = $2,
+        division = $3,
+        int_num = $4,
+        name = $5,
+        city = $6,
+        state = $7,
+        status = $8
+      WHERE id = $9 AND ownerid = $10
+      RETURNING *
+      `,
+      [
+        postal_code,
+        street,
+        division,
+        int_num,
+        name,
+        city,
+        state,
+        status,
+        id,
+        ownerId
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Apartment not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Database error' });
+  }
+});
+
+
 router.get('/apartments/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
 
