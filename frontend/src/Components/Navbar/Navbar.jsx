@@ -87,7 +87,7 @@ const Navbar = () => {
               style={{ width: "52px", height: "52px", objectFit: "contain", marginRight: "10px" }}
             />
             <div className="d-flex flex-column" style={{ lineHeight: "1.1" }}>
-              <span className="fw-bold fs-6">Administracion</span>
+              <span className="fw-bold fs-6">administración</span>
               <span className="text-secondary small">de Rentas</span>
             </div>
           </div>
@@ -191,11 +191,10 @@ const Navbar = () => {
                 <ul className="list-unstyled p-0 m-0">
                   <li>
                     <button
-                      className={`w-100 text-start px-4 py-3 border-0 ${
-                        activeTab === "pagos"
+                      className={`w-100 text-start px-4 py-3 border-0 ${activeTab === "pagos"
                           ? "bg-white fw-bold border-start border-primary border-4"
                           : "bg-transparent text-muted"
-                      }`}
+                        }`}
                       onClick={() => setActiveTab("pagos")}
                     >
                       Información de Pago
@@ -203,11 +202,10 @@ const Navbar = () => {
                   </li>
                   <li>
                     <button
-                      className={`w-100 text-start px-4 py-3 border-0 ${
-                        activeTab === "mora"
+                      className={`w-100 text-start px-4 py-3 border-0 ${activeTab === "mora"
                           ? "bg-white fw-bold border-start border-primary border-4"
                           : "bg-transparent text-muted"
-                      }`}
+                        }`}
                       onClick={() => setActiveTab("mora")}
                     >
                       Cobros y Mora

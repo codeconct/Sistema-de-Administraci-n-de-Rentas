@@ -42,7 +42,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
 
     try {
       const res = await fetch(
-        `${REACT_APP_API_URL}/${apartment.id}`,
+        `${REACT_APP_API_URL}/apartments/${apartment.id}`,
         {
           method: "PUT",
           headers: {
@@ -138,6 +138,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
+                    <label className="form-label">Ciudad</label>
                     <input
                       type="text"
                       className="form-control"
@@ -148,6 +149,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
                   </div>
 
                   <div className="col-md-6 mb-3">
+                    <label className="form-label">Estado</label>
                     <input
                       type="text"
                       className="form-control"

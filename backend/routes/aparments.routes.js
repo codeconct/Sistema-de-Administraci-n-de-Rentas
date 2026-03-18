@@ -250,6 +250,63 @@ router.patch('/apartments/:id/status', authMiddleware, async (req, res) => {
 });
 
 // PUT (update) an apartment
+router.put('/apartments/:id', authMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const ownerId = req.user.id;
+
+  const {
+    postal_code,
+    street,
+    division,
+    int_num,
+    name,
+    city,
+    state,
+    status
+  } = req.body;
+
+  try {
+    const result = await pool.query(
+      `
+      UPDATE apartments
+      SET
+        postal_code = $1,
+        street = $2,
+        division = $3,
+        int_num = $4,
+        name = $5,
+        city = $6,
+        state = $7,
+        status = $8
+      WHERE id = $9 AND ownerid = $10
+      RETURNING *
+      `,
+      [
+        postal_code,
+        street,
+        division,
+        int_num,
+        name,
+        city,
+        state,
+        status,
+        id,
+        ownerId
+      ]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Apartment not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message || 'Database error' });
+  }
+});
+
+
 router.get('/apartments/:id', authMiddleware, async (req, res) => {
   const { id } = req.params;
 

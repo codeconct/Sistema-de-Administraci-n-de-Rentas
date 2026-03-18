@@ -8,6 +8,9 @@ import EditApartmentModal from "../Forms/Editarform";
 import ContractWizardModal from "../Forms/ContratoWizardform";
 import { REACT_APP_API_URL } from '../../config';
 
+import { Modal } from 'bootstrap';
+
+
 
 const token = localStorage.getItem("token");
 
@@ -26,6 +29,16 @@ const Viviendas = () => {
   const handleSelect = (apartment) => {
     setSelectedApartment(apartment);
   };
+
+  useEffect(() => {
+    if (!selectedApartment) return;
+
+    const modalEl = document.getElementById('editModal');
+    if (!modalEl) return;
+
+    const modal = new Modal(modalEl);
+    modal.show();
+  }, [selectedApartment]);
 
   useEffect(() => {
     setPaginaActual(1); // Reset to first page on filter change
@@ -176,16 +189,18 @@ const Viviendas = () => {
             onClose={() => setShowPropiertiesModal(false)}
             onCreated={handleApartmentCreated}
           />
-          <EditApartmentModal
-            apartment={selectedApartment}
-            onClose={() => setSelectedApartment(null)}
-            onUpdated={(updated) => {
-              setPropiedades(prev =>
-                prev.map(a => a.id === updated.id ? updated : a)
-              );
-              setSelectedApartment(null);
-            }}
-          />
+          {selectedApartment && (
+            <EditApartmentModal
+              apartment={selectedApartment}
+              onClose={() => setSelectedApartment(null)}
+              onUpdated={(updated) => {
+                setPropiedades(prev =>
+                  prev.map(a => a.id === updated.id ? updated : a)
+                );
+                setSelectedApartment(null);
+              }}
+            />
+          )}
           <ContractWizardModal
             show={showContractModal}
             onClose={() => setShowContractModal(false)}
@@ -265,8 +280,6 @@ const Viviendas = () => {
               <div className="actions-stack-box">
                 <button
                   className="box-action-btn"
-                  data-bs-toggle="modal"
-                  data-bs-target="#editModal"
                   onClick={() => handleSelect(prop)}
                 >
                   <i className="bi bi-pencil-square"></i>
