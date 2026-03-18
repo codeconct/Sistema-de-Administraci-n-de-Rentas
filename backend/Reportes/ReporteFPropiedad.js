@@ -1,4 +1,4 @@
-function reportePorPropiedad(pagos) {
+export function reportePorPropiedad(pagos) {
     const reporte = {};
 
     for (const pago of pagos) {
@@ -17,3 +17,5 @@ function reportePorPropiedad(pagos) {
 
     return reporte;
 }
+
+export default reportePorPropiedad;
