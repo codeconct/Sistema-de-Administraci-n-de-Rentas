@@ -105,7 +105,7 @@ const Viviendas = () => {
                 <tr>
                   <td>Contrato-{String(prop.id).padStart(4, '0')}</td>
                   <td>
-                    <div className="fw-semibold">{prop.address}</div>
+                    <div className="fw-semibold">{prop.name}</div>
                   </td>
                   <td>
                     <div className="d-flex align-items-center gap-2">
