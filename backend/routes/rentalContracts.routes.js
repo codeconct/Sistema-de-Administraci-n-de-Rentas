@@ -119,6 +119,16 @@ router.post('/rentalcontracts', async (req, res) => {
       ]
     );
 
+    /* -------- UPDATE APARTMENT STATUS -------- */
+    await client.query(
+      `
+      UPDATE apartments
+      SET status = 'OCCUPIED'
+      WHERE id = $1
+      `,
+      [apartmentid]
+    );
+
     await client.query("COMMIT");
 
     res.status(201).json(contractResult.rows[0]);
