@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import ArrendatarioForm from "./ArrendatarioForm";
 import AvalForm from "./AvalForm";
-import ContratoForm from "./ContratoForm";
+import ContratoForm from "./Contratoform";
 
 import { REACT_APP_API_URL } from '../../config'
 
