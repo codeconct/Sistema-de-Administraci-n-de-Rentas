@@ -31,7 +31,7 @@ router.post("/documents/upload", upload.single("file"), async (req, res) => {
 
     // Upload to Supabase 'contracts' bucket
     const { data, error } = await supabase.storage
-      .from('contracts')
+      .from('documents')
       .upload(uniqueName, file.buffer, {
         contentType: file.mimetype,
         upsert: false
@@ -43,7 +43,7 @@ router.post("/documents/upload", upload.single("file"), async (req, res) => {
 
     // Get the public URL for the file
     const { data: publicUrlData } = supabase.storage
-      .from('contracts')
+      .from('documents')
       .getPublicUrl(uniqueName);
 
     res.json({
