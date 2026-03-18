@@ -67,14 +67,14 @@ router.get('/reportes/arrendatarios', async (req, res) => {
       result = await pool.query(
         `
         SELECT i.amount, i.status,
-               rc.contractid AS contractid,
+               rc.id AS contractid,
                t.name AS tenant_name,
                a.address AS apartment_address
         FROM invoices i
-        JOIN rentalcontracts rc ON i.contractid = rc.contractid
+        JOIN rentalcontracts rc ON i.contractid = rc.id
         JOIN tenants t ON rc.tenantid = t.tenantid
         JOIN apartments a ON rc.apartmentid = a.apartmentid
-        ORDER BY t.name, rc.contractid, i.invoiceid
+        ORDER BY t.name, rc.id, i.invoiceid
         `
       );
     }
@@ -110,14 +110,14 @@ router.get('/reportes/contratos', async (req, res) => {
       result = await pool.query(
         `
         SELECT i.amount, i.status,
-               rc.contractid AS contractid,
+               rc.id AS contractid,
                t.name AS tenant_name,
                a.address AS apartment_address
         FROM invoices i
-        JOIN rentalcontracts rc ON i.contractid = rc.contractid
+        JOIN rentalcontracts rc ON i.contractid = rc.id
         JOIN tenants t ON rc.tenantid = t.tenantid
         JOIN apartments a ON rc.apartmentid = a.apartmentid
-        ORDER BY rc.contractid, i.invoiceid
+        ORDER BY rc.id, i.invoiceid
         `
       );
     }
@@ -153,11 +153,11 @@ router.get('/reportes/propiedades', async (req, res) => {
       result = await pool.query(
         `
         SELECT i.amount, i.status,
-               rc.contractid AS contractid,
+               rc.id AS contractid,
                t.name AS tenant_name,
                a.address AS apartment_address
         FROM invoices i
-        JOIN rentalcontracts rc ON i.contractid = rc.contractid
+        JOIN rentalcontracts rc ON i.contractid = rc.id
         JOIN tenants t ON rc.tenantid = t.tenantid
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         ORDER BY a.address, i.invoiceid
