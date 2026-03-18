@@ -72,7 +72,7 @@ router.get('/reportes/arrendatarios', async (req, res) => {
                a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
-        JOIN tenants t ON rc.tenantid = t.tenantid
+        JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         ORDER BY t.name, rc.id, i.invoiceid
         `
@@ -115,7 +115,7 @@ router.get('/reportes/contratos', async (req, res) => {
                a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
-        JOIN tenants t ON rc.tenantid = t.tenantid
+        JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         ORDER BY rc.id, i.invoiceid
         `
@@ -158,7 +158,7 @@ router.get('/reportes/propiedades', async (req, res) => {
                a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
-        JOIN tenants t ON rc.tenantid = t.tenantid
+        JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         ORDER BY a.street, i.invoiceid
         `
