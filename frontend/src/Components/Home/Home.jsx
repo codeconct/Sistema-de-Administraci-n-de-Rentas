@@ -17,8 +17,8 @@ const Home = () => {
   ];
 
   // 2. Función que se dispara al hacer clic en "Pagar"
-const handlePagar = async () => {
-    if (isProcessing) return; 
+  const handlePagar = async () => {
+    if (isProcessing) return;
     setIsProcessing(true);
 
     try {
@@ -29,8 +29,8 @@ const handlePagar = async () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          monto: 4500, 
-          descripcion: "Mensualidad de Enero - C. Cipreces 109",
+          monto: 4500,
+          descripcion: "Mensualidad de Enero - C. Cipreces 110",
           cliente: {
             nombre: "Inquilino",
             apellidos: "Ejemplo",
@@ -63,21 +63,21 @@ const handlePagar = async () => {
       <p className="subtitle">¿Qué deseas hacer hoy?</p>
 
       <div className="cards-container">
-        
+
         {/* Acciones rápidas */}
         <div className="card">
           <h3>Acciones rápidas</h3>
           <div className="actions">
-            
+
             {/* AQUÍ ESTÁ EL CAMBIO PRINCIPAL */}
-            <div 
-              className="action-item green" 
+            <div
+              className="action-item green"
               onClick={handlePagar}
               style={{ cursor: isProcessing ? 'not-allowed' : 'pointer', opacity: isProcessing ? 0.7 : 1 }}
             >
               {isProcessing ? (
                 // Si está cargando, mostramos el loader girando
-                <Loader size={28} className="animate-spin" /> 
+                <Loader size={28} className="animate-spin" />
               ) : (
                 // Si no, mostramos la tarjeta
                 <CreditCard size={28} />

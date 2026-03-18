@@ -133,11 +133,11 @@ router.get('/apartments/:id', authMiddleware, async (req, res) => {
 // POST (create) a new apartment
 router.post('/apartments', authMiddleware, async (req, res) => {
   const ownerId = req.user.id;
-  const { address, name, city, state } = req.body; // adapt fields to your table
+  const { postal_code, street, divison, int_num, name, city, state } = req.body; 
   try {
     const result = await pool.query(
-      'INSERT INTO apartments (ownerid, address, name, city, state) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [ownerId, address, name, city, state]
+      'INSERT INTO apartments (ownerid, postal_code, street, divison, int_num, name, city, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
+      [ownerId, postal_code, street, divison, int_num, name, city, state]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {

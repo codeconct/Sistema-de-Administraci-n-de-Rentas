@@ -286,7 +286,7 @@ export default function ViviendaDetalle() {
               </h4>
 
               <p className="detail-label">Direccion:</p>
-              <p className="detail-value">{vivienda?.address || "-"}</p>
+              <p className="detail-value">{vivienda ? `${vivienda.street || ''} ${vivienda.int_num || ''}, ${vivienda.divison || ''} C.P. ${vivienda.postal_code || ''}`.trim() : "-"}</p>
 
               <p className="detail-label mt-4">Imagen principal:</p>
               <div className="main-image-wrap">

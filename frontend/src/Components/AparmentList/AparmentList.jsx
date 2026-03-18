@@ -124,8 +124,9 @@ const Viviendas = () => {
     .filter((p) => filtroStatus === "todos" || p.status === filtroStatus)
     .filter((p) => {
       const texto = filtroBusqueda.toLowerCase();
+      const addressString = `${p.street || ''} ${p.int_num || ''} ${p.divison || ''} ${p.postal_code || ''}`.toLowerCase();
       return (
-        p.address.toLowerCase().includes(texto) ||
+        addressString.includes(texto) ||
         p.id.toString().includes(texto)
       );
     });
@@ -245,7 +246,7 @@ const Viviendas = () => {
                 alt="Departamento"
               />
               <div>
-                <p className="mb-1 fw-semibold">{prop.address}</p>
+                <p className="mb-1 fw-semibold">{`${prop.street || ''} ${prop.int_num || ''}, ${prop.divison || ''}`.trim()}</p>
                 <small>{prop.depositamount ? prop.depositamount.toLocaleString('en-US') : ''}$</small>
               </div>
             </div>
