@@ -116,7 +116,7 @@ const Navbar = () => {
                   onClick={() => setShowModal(true)}
                   className="btn btn-light bg-white border rounded-circle p-2 shadow-sm d-flex align-items-center justify-content-center"
                   style={{ width: "40px", height: "40px" }}
-                  title="Configuracion"
+                  title="Configuración"
                 >
                   <Settings size={20} className="text-secondary" />
                 </button>
@@ -179,7 +179,7 @@ const Navbar = () => {
           >
             <div className="d-flex justify-content-between align-items-center p-4 border-bottom">
               <h4 className="fw-bold m-0" style={{ color: "#1B2559" }}>
-                Configuracion
+                Configuración
               </h4>
               <button onClick={() => setShowModal(false)} className="btn btn-sm btn-light rounded-circle p-2">
                 <X size={20} />
@@ -198,7 +198,7 @@ const Navbar = () => {
                       }`}
                       onClick={() => setActiveTab("pagos")}
                     >
-                      Informacion de Pago
+                      Información de Pago
                     </button>
                   </li>
                   <li>

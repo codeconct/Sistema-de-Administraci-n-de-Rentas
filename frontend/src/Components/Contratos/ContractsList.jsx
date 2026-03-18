@@ -147,7 +147,7 @@ const Viviendas = () => {
         </div>
 
         <div className="d-flex justify-content-between align-items-center footer-pagination">
-          <span className="text-muted small">Mostrando {contratos.length} incidencias</span>
+          <span className="text-muted small">Mostrando {contratos.length} contratos</span>
 
           <nav>
             <ul className="pagination pagination-sm mb-0">

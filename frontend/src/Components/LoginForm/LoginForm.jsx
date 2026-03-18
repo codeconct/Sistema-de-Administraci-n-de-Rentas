@@ -63,7 +63,7 @@ const LoginForm = () => {
         <div className={`wrapper${action}`}>
             <div className='form-box login'>
                 <form onSubmit={handleLogin}>
-                    <h1>Administracion de Rentas</h1>
+                    <h1>Administración de Rentas</h1>
                     <div className="input-box">
                         <input type="text" placeholder='Username' required/> <FaUser className='icon'/>
                     </div> 
@@ -83,7 +83,7 @@ const LoginForm = () => {
                        </p>
                     </div>
                     <div className="input-fuaq">
-                        <p>By continuing, you agree to Administracion de Rentas Terms of Service and acknowledge that you have read our Privacy Policy. Information Collection Notice.
+                        <p>By continuing, you agree to Administración de Rentas Terms of Service and acknowledge that you have read our Privacy Policy. Information Collection Notice.
                        </p>
                     </div>
                 </form>

@@ -158,8 +158,8 @@ export default function ViviendaDetalle() {
     e.preventDefault();
     if (tenantSaving || !vivienda?.id) return;
 
-    if (!tenantForm.name.trim() || !tenantForm.governmentid.trim()) {
-      setTenantMsg("Nombre e identificacion oficial son obligatorios.");
+      if (!tenantForm.name.trim() || !tenantForm.governmentid.trim()) {
+      setTenantMsg("Nombre e identificación oficial son obligatorios.");
       return;
     }
 
@@ -205,7 +205,7 @@ export default function ViviendaDetalle() {
 
       const tenantId = tenantData?.id || tenantData?.tenantid;
       if (!tenantId) {
-        throw new Error("No se encontro ID del arrendatario para asignar a la vivienda");
+        throw new Error("No se encontró ID del arrendatario para asignar a la vivienda");
       }
 
       const assignRes = await fetch(`${REACT_APP_API_URL}/apartments/${vivienda.id}/tenant`, {
@@ -254,7 +254,7 @@ export default function ViviendaDetalle() {
           <div>
             <h2 className="vivienda-title">Viviendas</h2>
             <p className="vivienda-subtitle">
-              Visualiza las viviendas registradas en el sistema facil y rapidamente.
+              Visualiza las viviendas registradas en el sistema fácil y rápidamente.
             </p>
           </div>
           <button
@@ -285,7 +285,7 @@ export default function ViviendaDetalle() {
                 Datos Generales
               </h4>
 
-              <p className="detail-label">Direccion:</p>
+              <p className="detail-label">Dirección:</p>
               <p className="detail-value">{vivienda ? `${vivienda.street || ''} ${vivienda.int_num || ''}, ${vivienda.divison || ''} C.P. ${vivienda.postal_code || ''}`.trim() : "-"}</p>
 
               <p className="detail-label mt-4">Imagen principal:</p>
@@ -299,7 +299,7 @@ export default function ViviendaDetalle() {
             <section className="detail-card mb-4">
               <h4 className="detail-card-title">
                 <LuInfo size={20} />
-                Informacion de la Vivienda
+                Información de la Vivienda
               </h4>
 
               <div className="info-row">
@@ -424,7 +424,7 @@ export default function ViviendaDetalle() {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Telefono</label>
+                    <label className="form-label">Teléfono</label>
                     <input
                       type="text"
                       className="form-control"
@@ -442,7 +442,7 @@ export default function ViviendaDetalle() {
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="form-label">Identificacion oficial</label>
+                    <label className="form-label">Identificación oficial</label>
                     <input
                       type="text"
                       className="form-control"
