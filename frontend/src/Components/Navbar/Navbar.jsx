@@ -87,7 +87,7 @@ const Navbar = () => {
               style={{ width: "52px", height: "52px", objectFit: "contain", marginRight: "10px" }}
             />
             <div className="d-flex flex-column" style={{ lineHeight: "1.1" }}>
-              <span className="fw-bold fs-6">administración</span>
+              <span className="fw-bold fs-6">Administración</span>
               <span className="text-secondary small">de Rentas</span>
             </div>
           </div>
@@ -192,8 +192,8 @@ const Navbar = () => {
                   <li>
                     <button
                       className={`w-100 text-start px-4 py-3 border-0 ${activeTab === "pagos"
-                          ? "bg-white fw-bold border-start border-primary border-4"
-                          : "bg-transparent text-muted"
+                        ? "bg-white fw-bold border-start border-primary border-4"
+                        : "bg-transparent text-muted"
                         }`}
                       onClick={() => setActiveTab("pagos")}
                     >
@@ -203,8 +203,8 @@ const Navbar = () => {
                   <li>
                     <button
                       className={`w-100 text-start px-4 py-3 border-0 ${activeTab === "mora"
-                          ? "bg-white fw-bold border-start border-primary border-4"
-                          : "bg-transparent text-muted"
+                        ? "bg-white fw-bold border-start border-primary border-4"
+                        : "bg-transparent text-muted"
                         }`}
                       onClick={() => setActiveTab("mora")}
                     >

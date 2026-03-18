@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { REACT_APP_API_URL } from "../../config";
 import { Modal, Button, Form, Spinner } from "react-bootstrap";
+
+import EditarContratoModal from "../Forms/EditarContratoModal";
+
 export const token = localStorage.getItem("token");
 
 const StatusBadge = ({ status }) => {
@@ -48,6 +51,14 @@ export default function ContractDetails() {
     const [paymentMethod, setPaymentMethod] = useState('CASH');
     const [paymentLoading, setPaymentLoading] = useState(false);
     const [paymentError, setPaymentError] = useState('');
+
+
+    const [editingContractId, setEditingContractId] = useState(null);
+
+    const handleContractUpdated = () => {
+        setEditingContractId(null);
+        fetchData();
+    };
 
     const handlePaymentSubmit = async (e) => {
         e.preventDefault();
@@ -96,40 +107,38 @@ export default function ContractDetails() {
             year: 'numeric'
         }).format(date);
     }
+    const fetchData = async () => {
+        try {
+            setLoading(true);
 
+            const [contractRes, invoicesRes] = await Promise.all([
+                fetch(`${REACT_APP_API_URL}/rentalcontracts/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                }),
+                fetch(`${REACT_APP_API_URL}/invoices?contract_id=${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                })
+            ]);
+
+            if (!contractRes.ok || !invoicesRes.ok) {
+                throw new Error("Error loading data");
+            }
+
+            const contractData = await contractRes.json();
+            const invoicesData = await invoicesRes.json();
+
+            setContrato(contractData);
+            setInvoices(invoicesData);
+
+        } catch (err) {
+            console.error(err);
+            setError("Error loading data");
+        } finally {
+            setLoading(false);
+        }
+    }
     // ⬇ Fetch data from backend on page load
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true);
-
-                const [contractRes, invoicesRes] = await Promise.all([
-                    fetch(`${REACT_APP_API_URL}/rentalcontracts/${id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    }),
-                    fetch(`${REACT_APP_API_URL}/invoices?contract_id=${id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    })
-                ]);
-
-                if (!contractRes.ok || !invoicesRes.ok) {
-                    throw new Error("Error loading data");
-                }
-
-                const contractData = await contractRes.json();
-                const invoicesData = await invoicesRes.json();
-
-                setContrato(contractData);
-                setInvoices(invoicesData);
-
-            } catch (err) {
-                console.error(err);
-                setError("Error loading data");
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, [id, token]);
 
@@ -141,6 +150,14 @@ export default function ContractDetails() {
 
     return (
         <div className="container-fluid px-5 py-4 bg-light min-vh-100">
+
+            {editingContractId && (
+                <EditarContratoModal
+                    contractId={editingContractId}
+                    onClose={() => setEditingContractId(null)}
+                    onUpdated={handleContractUpdated}
+                />
+            )}
 
             {/* HEADER */}
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -159,9 +176,9 @@ export default function ContractDetails() {
                     </div>
                 </div>
 
-                <button className="btn btn-dark">
-                    <i className="bi bi-download me-2"></i>
-                    Descargar contrato en PDF
+                <button className="btn btn-dark" onClick={() => setEditingContractId(contrato.id)}>
+                    <i className="bi bi-pencil me-2"></i>
+                    Editar contrato
                 </button>
             </div>
 
@@ -208,8 +225,8 @@ export default function ContractDetails() {
                                                         <button title="Ver recibo" className="btn btn-sm btn-outline-secondary">
                                                             <i className="bi bi-receipt"></i>
                                                         </button>
-                                                        <button 
-                                                            title="Pago manual" 
+                                                        <button
+                                                            title="Pago manual"
                                                             className="btn btn-sm btn-outline-secondary"
                                                             onClick={() => {
                                                                 setSelectedInvoice(p);
@@ -286,15 +303,15 @@ export default function ContractDetails() {
                 <Form onSubmit={handlePaymentSubmit}>
                     <Modal.Body>
                         {paymentError && <div className="alert alert-danger">{paymentError}</div>}
-                        
+
                         <Form.Group className="mb-3">
                             <Form.Label>Monto a pagar</Form.Label>
                             <div className="input-group">
                                 <span className="input-group-text">$</span>
-                                <Form.Control 
-                                    type="number" 
-                                    step="0.01" 
-                                    required 
+                                <Form.Control
+                                    type="number"
+                                    step="0.01"
+                                    required
                                     value={paymentAmount}
                                     onChange={(e) => setPaymentAmount(e.target.value)}
                                 />
