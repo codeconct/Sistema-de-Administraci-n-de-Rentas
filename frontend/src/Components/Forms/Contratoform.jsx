@@ -1,4 +1,4 @@
-export default function ArrendatarioForm({ data, update }) {
+export default function ContratoForm({ data, update }) {
     return (
         <>
             <h6 className="fw-bold mb-3">Datos del Contrato de Venta</h6>

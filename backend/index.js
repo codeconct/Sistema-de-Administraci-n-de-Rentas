@@ -13,6 +13,7 @@ import paymentsRouter from './routes/payments.routes.js';
 import maintenanceRequestsRouter from './routes/maintenanceRequests.routes.js';
 import moraSettingsRouter from './routes/moraSettings.routes.js';
 import openpayRouter from './routes/openpay.routes.js';
+import reportesRouter from './routes/reportes.routes.js';
 
 //import Pagosrouter from './routes/PagoNotif.js';
 
@@ -33,6 +34,7 @@ app.use('/api', paymentsRouter);
 app.use('/api', maintenanceRequestsRouter);
 app.use('/api', moraSettingsRouter);
 app.use('/api', openpayRouter)
+app.use('/api', reportesRouter);
 //app.use('/api', Pagosrouter);
 
 // ❗ Export the app as the default handler

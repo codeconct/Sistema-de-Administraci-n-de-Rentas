@@ -2,7 +2,6 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { REACT_APP_API_URL } from "../../config";
-9
 export const token = localStorage.getItem("token");
 
 
