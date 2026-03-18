@@ -29,6 +29,20 @@ export default function ArrendatarioForm({ data, update }) {
                     value={data.price}
                     onChange={(e) => update("price", e.target.value)} />
             </div>
+
+            <div className="mb-3">
+                <label className="form-label">Documento del contrato (PDF opcional)</label>
+                <input
+                    type="file"
+                    accept="application/pdf"
+                    className="form-control"
+                    onChange={(e) => update("file", e.target.files[0])} />
+                {data.file && (
+                    <small className="text-success mt-1 d-block">
+                        Archivo seleccionado: {data.file.name}
+                    </small>
+                )}
+            </div>
         </>
     );
 }

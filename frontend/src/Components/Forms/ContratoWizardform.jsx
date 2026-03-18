@@ -25,6 +25,44 @@ async function createContract(data) {
   return response.json();
 }
 
+async function uploadContractDocument(file, contractId) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // 1. Upload to Supabase via our backend
+  const uploadRes = await fetch(`${REACT_APP_API_URL}/documents/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!uploadRes.ok) {
+    const error = await uploadRes.json();
+    throw new Error(error.error || "Error uploading document");
+  }
+
+  const uploadData = await uploadRes.json();
+
+  // 2. Save document record in DB
+  const docRes = await fetch(`${REACT_APP_API_URL}/documents`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      contractid: contractId,
+      type: "CONTRACT",
+      filepath: uploadData.path
+    }),
+  });
+
+  if (!docRes.ok) {
+    const error = await docRes.json();
+    throw new Error(error.error || "Error linking document to contract");
+  }
+
+  return docRes.json();
+}
+
 
 
 export default function ContractWizardModal({ show, onClose, selectedApartmentId }) {
@@ -47,7 +85,8 @@ export default function ContractWizardModal({ show, onClose, selectedApartmentId
     contract: {
       price: "",
       startDate: "",
-      endDate: ""
+      endDate: "",
+      file: null
     }
   });
 
@@ -66,8 +105,13 @@ export default function ContractWizardModal({ show, onClose, selectedApartmentId
       };
 
       const result = await createContract(payload);
-
       console.log("Contract created:", result);
+
+      // If a file was selected, upload it and link to the contract
+      if (formData.contract.file) {
+        await uploadContractDocument(formData.contract.file, result.id);
+        console.log("Document uploaded and linked.");
+      }
 
       // Close modal
       onClose();

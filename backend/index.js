@@ -9,7 +9,7 @@ import apartmentsRouter from './routes/aparments.routes.js';
 import rentalContractsRouter from './routes/rentalContracts.routes.js';
 import invoicesRouter from './routes/invoices.routes.js';
 import paymentsRouter from './routes/payments.routes.js';
-//import documentsRouter from './routes/documents.routes.js';
+import documentsRouter from './routes/documents.routes.js';
 import maintenanceRequestsRouter from './routes/maintenanceRequests.routes.js';
 import moraSettingsRouter from './routes/moraSettings.routes.js';
 import openpayRouter from './routes/openpay.routes.js';
@@ -29,7 +29,7 @@ app.use('/api', apartmentsRouter);
 app.use('/api', rentalContractsRouter);
 app.use('/api', invoicesRouter);
 app.use('/api', paymentsRouter);
-//app.use('/api', documentsRouter);
+app.use('/api', documentsRouter);
 app.use('/api', maintenanceRequestsRouter);
 app.use('/api', moraSettingsRouter);
 app.use('/api', openpayRouter)

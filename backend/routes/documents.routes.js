@@ -4,54 +4,58 @@ import pool from '../db.js';  // adjust path if needed
 
 import express from 'express';
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { createClient } from '@supabase/supabase-js';
 
 const router = Router();
 
-// 📂 Where files will be saved
-const uploadFolder = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadFolder)) {
-  fs.mkdirSync(uploadFolder); // create folder if not exists
-}
+// ⚙️ Initialize Supabase Client
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-// ⚙️ Configure multer storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadFolder);
-  },
-  filename: (req, file, cb) => {
-    // unique filename: timestamp-originalName
-    const uniqueName = Date.now() + "-" + file.originalname;
-    cb(null, uniqueName);
-  }
-});
-
+// ⚙️ Configure multer to use memory storage instead of disk
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// 📤 Upload route (single file)
-router.post("/api/documents/upload", upload.single("file"), (req, res) => {
+// 📤 Upload route (single file) to Supabase
+router.post("/documents/upload", upload.single("file"), async (req, res) => {
   try {
-    // File is saved in /uploads
     const file = req.file;
 
     if (!file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
-    // You can also save file info in DB here
+    // Prepare unique filename
+    const uniqueName = Date.now() + "-" + file.originalname;
+
+    // Upload to Supabase 'contracts' bucket
+    const { data, error } = await supabase.storage
+      .from('contracts')
+      .upload(uniqueName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false
+      });
+
+    if (error) {
+      throw error;
+    }
+
+    // Get the public URL for the file
+    const { data: publicUrlData } = supabase.storage
+      .from('contracts')
+      .getPublicUrl(uniqueName);
+
     res.json({
-      message: "File uploaded successfully",
-      filename: file.filename,
-      path: `/uploads/${file.filename}`
+      message: "File uploaded successfully to Supabase",
+      filename: uniqueName,
+      path: publicUrlData.publicUrl
     });
   } catch (error) {
+    console.error("Supabase upload error:", error);
     res.status(500).json({ error: error.message });
   }
 });
-
-// 📂 Serve files statically
-router.use("/uploads", express.static(uploadFolder));
 
 
 // ✅ GET all documents
