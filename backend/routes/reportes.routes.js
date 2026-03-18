@@ -12,7 +12,7 @@ const mapInvoiceRowsToPagos = (rows) =>
   rows.map((row) => ({
     arrendatario: row.tenant_name,
     contrato: row.contractid,
-    propiedad: row.apartment_address,
+    propiedad: row.apartment_street,
     monto: Number(row.amount) || 0,
     estado: row.status === 'PAID' ? 'Pagado' : 'Pendiente',
   }));
@@ -22,18 +22,18 @@ router.get('/reportes/ocupacion', async (req, res) => {
     let result;
     try {
       result = await pool.query(
-        'SELECT id, address, status FROM apartments ORDER BY id'
+        'SELECT id, street, status FROM apartments ORDER BY id'
       );
     } catch (err) {
       if (err?.code !== UNDEFINED_COLUMN) throw err;
       result = await pool.query(
-        'SELECT id, address, status FROM apartments ORDER BY apartmentid'
+        'SELECT id, street, status FROM apartments ORDER BY apartmentid'
       );
     }
 
     const unidades = result.rows.map((row) => ({
       id: row.id,
-      numero: row.address,
+      numero: row.street,
       estado: row.status === 'OCCUPIED' ? 'ocupado' : 'disponible',
     }));
 
@@ -54,7 +54,7 @@ router.get('/reportes/arrendatarios', async (req, res) => {
         SELECT i.amount, i.status,
                rc.id AS contractid,
                t.name AS tenant_name,
-               a.address AS apartment_address
+               a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
         JOIN tenants t ON rc.tenantid = t.id
@@ -69,10 +69,10 @@ router.get('/reportes/arrendatarios', async (req, res) => {
         SELECT i.amount, i.status,
                rc.id AS contractid,
                t.name AS tenant_name,
-               a.address AS apartment_address
+               a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
-        JOIN tenants t ON rc.tenantid = t.tenantid
+        JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         ORDER BY t.name, rc.id, i.invoiceid
         `
@@ -97,7 +97,7 @@ router.get('/reportes/contratos', async (req, res) => {
         SELECT i.amount, i.status,
                rc.id AS contractid,
                t.name AS tenant_name,
-               a.address AS apartment_address
+               a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
         JOIN tenants t ON rc.tenantid = t.id
@@ -112,10 +112,10 @@ router.get('/reportes/contratos', async (req, res) => {
         SELECT i.amount, i.status,
                rc.id AS contractid,
                t.name AS tenant_name,
-               a.address AS apartment_address
+               a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
-        JOIN tenants t ON rc.tenantid = t.tenantid
+        JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         ORDER BY rc.id, i.invoiceid
         `
@@ -140,12 +140,12 @@ router.get('/reportes/propiedades', async (req, res) => {
         SELECT i.amount, i.status,
                rc.id AS contractid,
                t.name AS tenant_name,
-               a.address AS apartment_address
+               a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
         JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.id
-        ORDER BY a.address, i.id
+        ORDER BY a.street, i.id
         `
       );
     } catch (err) {
@@ -155,12 +155,12 @@ router.get('/reportes/propiedades', async (req, res) => {
         SELECT i.amount, i.status,
                rc.id AS contractid,
                t.name AS tenant_name,
-               a.address AS apartment_address
+               a.street AS apartment_street
         FROM invoices i
         JOIN rentalcontracts rc ON i.contractid = rc.id
-        JOIN tenants t ON rc.tenantid = t.tenantid
+        JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.apartmentid
-        ORDER BY a.address, i.invoiceid
+        ORDER BY a.street, i.invoiceid
         `
       );
     }
