@@ -12,4 +12,5 @@ const plantillas = {
     Se le avisa que su pago de $${monto} MX ha vencido el dia ${fecha}.
     Se le pide regularizar su situacion lo antes posible`
 };
-module.exports = plantillas; 
+
+export default plantillas; 

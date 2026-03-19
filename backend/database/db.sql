@@ -131,3 +131,18 @@ CREATE TABLE morasettings (
     valor NUMERIC(10,2) NOT NULL DEFAULT 10,
     updatedat TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- ===============================
+-- Notifications History
+-- ===============================
+CREATE TABLE notifications_history (
+    id SERIAL PRIMARY KEY,
+    tenant_id INT,
+    tenant_name VARCHAR(100),
+    apartment_id INT,
+    apartment_label TEXT,
+    message_type VARCHAR(30) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'SENT',
+    sent_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
