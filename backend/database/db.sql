@@ -146,3 +146,19 @@ CREATE TABLE notifications_history (
     status VARCHAR(20) NOT NULL DEFAULT 'SENT',
     sent_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- ===============================
+-- Maintenance Tickets
+-- ===============================
+CREATE TABLE maintenance_tickets (
+    id SERIAL PRIMARY KEY,
+    apartment_id INT,
+    apartment_label TEXT,
+    descripcion TEXT NOT NULL,
+    estatus VARCHAR(20) CHECK (estatus IN ('ABIERTO','EN_PROCESO','EN_ESPERA','RESUELTO')) NOT NULL DEFAULT 'ABIERTO',
+    responsable VARCHAR(100),
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    fecha_asignacion TIMESTAMP,
+    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    fecha_resolucion TIMESTAMP
+);
