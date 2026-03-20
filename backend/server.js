@@ -1,16 +1,13 @@
 import express from 'express';
 import cors from 'cors';
-import poolOriginal from './db.js'; // Lo renombro para evitar choque con el pool de abajo
+import poolOriginal from './db.js'; 
 import pkg from 'pg';
 
-// 1. PRIMERO IMPORTAMOS OPENPAY Y DOTENV
 import dotenv from 'dotenv';
 import Openpay from 'openpay';
 
-// 2. LUEGO ARRANCAMOS DOTENV
 dotenv.config();
 
-// 3. ÚNICA DECLARACIÓN DE OPENPAY (¡Sin duplicados!)
 const openpay = new Openpay(process.env.OPENPAY_MERCHANT_ID, process.env.OPENPAY_PRIVATE_KEY, false);
 
 const { Pool } = pkg;
@@ -21,7 +18,6 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-// 👉 RADAR DE PETICIONES:
 app.use((req, res, next) => {
   console.log(`📡 Petición entrante: ${req.method} ${req.url}`);
   next();
@@ -33,7 +29,7 @@ const pool = new Pool({
   ssl: false 
 });
 
-// 👉 ¡AQUÍ ESTÁ LA RUTA QUE FALTABA PARA DEJARTE ENTRAR! (Bypass temporal)
+// 👉 BYPASS DE LOGIN TEMPORAL
 app.post('/api/login', async (req, res) => {
   console.log("✅ Dejando entrar al usuario al sistema...");
   return res.status(200).json({
@@ -48,7 +44,46 @@ app.post('/api/login', async (req, res) => {
   });
 });
 
-// --- API ROUTES ORIGINALES (Intactas) ---
+// ========================================================
+// 👉 DATOS DEL DASHBOARD PARA EL INQUILINO
+// ========================================================
+app.get('/api/dashboard-cliente/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // 👉 MODIFICADO: Agregamos i.id as invoiceid
+    const queryFactura = `
+      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.address
+      FROM invoices i
+      JOIN rentalcontracts rc ON i.contractid = rc.id
+      JOIN tenants t ON rc.tenantid = t.tenantid
+      JOIN apartments a ON rc.apartmentid = a.id
+      WHERE t.tenantid = $1
+      ORDER BY i.duedate DESC LIMIT 1
+    `;
+    const resFactura = await pool.query(queryFactura, [id]);
+
+    const queryRecibos = `
+      SELECT i.id, i.duedate, i.amount 
+      FROM invoices i
+      JOIN rentalcontracts rc ON i.contractid = rc.id
+      WHERE rc.tenantid = $1 AND i.status = 'PAID'
+      ORDER BY i.duedate DESC
+    `;
+    const resRecibos = await pool.query(queryRecibos, [id]);
+
+    res.json({
+      datosVivienda: resFactura.rows[0] || null,
+      historialRecibos: resRecibos.rows || []
+    });
+  } catch (err) {
+    console.error("❌ Error en dashboard:", err.message);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+// ========================================================
+
+// --- API ROUTES ORIGINALES ---
 
 app.get('/api/mora-settings', async (req, res) => {
   try {
@@ -217,15 +252,19 @@ app.post('/api/propiedades', async (req, res) => {
   }
 });
 
-// --- NUEVA RUTA: INICIAR PAGO CON OPENPAY ---
+// ========================================================
+// 👉 INICIAR PAGO CON OPENPAY (MODIFICADO PARA WEBHOOKS)
+// ========================================================
 app.post('/api/pagos/openpay', (req, res) => {
-  const { monto, descripcion, cliente } = req.body;
+  // 👉 Ahora recibimos el invoiceid
+  const { monto, descripcion, cliente, invoiceid } = req.body;
 
   const chargeRequest = {
     method: 'card',
     amount: monto,
     description: descripcion,
-    order_id: `REC-${Date.now()}`,
+    // 👉 VINCULACIÓN: Openpay sabrá a qué factura pertenece este cobro
+    order_id: `REC-${invoiceid}`, 
     customer: {
       name: cliente.nombre,
       last_name: cliente.apellidos,
@@ -247,12 +286,53 @@ app.post('/api/pagos/openpay', (req, res) => {
       });
     }
 
-    console.log("✅ Link de Openpay generado exitosamente");
+    console.log(`✅ Link generado para Recibo ID: ${invoiceid}`);
     res.status(200).json({
       success: true,
       payment_url: charge.payment_method.url
     });
   });
+});
+
+// ========================================================
+// 👉 WEBHOOK DE OPENPAY (ACTUALIZA ESTADO AUTOMÁTICAMENTE)
+// ========================================================
+app.post('/api/webhooks/openpay', async (req, res) => {
+  console.log("🔔 Webhook recibido de Openpay. Evento:", req.body.type);
+
+  try {
+    const evento = req.body;
+
+    if (evento.type === 'charge.succeeded') {
+      const transaccion = evento.transaction;
+      const orderId = transaccion.order_id; // Ejemplo: "REC-5"
+      const monto = transaccion.amount;
+
+      // Verificamos que traiga nuestro identificador
+      if (orderId && orderId.startsWith('REC-')) {
+        const invoiceId = orderId.split('-')[1]; // Extraemos el "5"
+
+        console.log(`✅ Pago detectado. Actualizando Recibo ID: ${invoiceId}...`);
+
+        // Cambiamos el estado en la base de datos a PAGADO
+        await pool.query("UPDATE invoices SET status = 'PAID' WHERE id = $1", [invoiceId]);
+
+        // Guardamos el registro en la tabla de pagos
+        await pool.query(
+          "INSERT INTO payments (invoiceid, paymentdate, amount, method) VALUES ($1, CURRENT_DATE, $2, 'TARJETA_OPENPAY')",
+          [invoiceId, monto]
+        );
+
+        console.log("💾 ¡Recibo procesado y actualizado con éxito!");
+      }
+    }
+
+    // MANDATORIO: Responder 200 OK para que Openpay deje de insistir
+    res.status(200).send('Webhook procesado');
+  } catch (error) {
+    console.error("❌ Error procesando el Webhook:", error.message);
+    res.status(500).send('Error interno');
+  }
 });
 
 // --- START SERVER ---

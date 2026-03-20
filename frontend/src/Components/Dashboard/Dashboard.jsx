@@ -202,7 +202,7 @@ const Dashboard = () => {
         </div>
 
         {/* --- DATA TABLE SECTION --- */}
-        <div className="card border-0 rounded-4 overflow-hidden" style={{ backgroundColor: THEME.bgCard }}>
+        <div className="card w-100 border-0 rounded-4 overflow-hidden" style={{ backgroundColor: THEME.bgCard }}>
             <div className="card-header bg-transparent p-4 border-bottom-0 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
                     <h5 className="fw-bold m-0" style={{ color: THEME.textDark }}>Detalle de Contratos</h5>
@@ -223,7 +223,7 @@ const Dashboard = () => {
             </div>
             
             <div className="table-responsive px-2 pb-3">
-                <table className="table table-borderless align-middle mb-0">
+                <table className="table w-100 table-borderless align-middle mb-0">
                     <thead style={{ borderBottom: '1px solid #E0E5F2' }}>
                         <tr>
                             <th className="ps-4 py-3 fw-medium text-uppercase" style={{ color: THEME.textLight, fontSize: '12px' }}>Depto</th>
@@ -273,6 +273,7 @@ const Dashboard = () => {
             </div>
         </div>
 
+      {/* 👉 ¡Aquí están los divs que se habían borrado! */}
       </div>
     </div>
   );

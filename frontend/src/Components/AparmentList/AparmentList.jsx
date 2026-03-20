@@ -113,7 +113,7 @@ const Viviendas = () => {
     .filter((p) => {
       const texto = filtroBusqueda.toLowerCase();
       return (
-        p.address.toLowerCase().includes(texto) ||
+        p.address?.toLowerCase().includes(texto) ||
         p.id.toString().includes(texto)
       );
     });
