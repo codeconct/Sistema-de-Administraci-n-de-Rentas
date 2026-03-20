@@ -45,7 +45,7 @@ router.post('/pagos/openpay', authMiddleware, (req, res) => {
     });
 });
 
-app.get('/dashboard-cliente/:id', async (req, res) => {
+router.get('/dashboard-cliente/:id', async (req, res) => {
     try {
         const { id } = req.params;
 
