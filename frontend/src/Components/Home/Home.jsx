@@ -16,24 +16,25 @@ const Home = () => {
       try {
         // Pedimos los datos del inquilino 1 (Ajustar si manejan login real después)
         const response = await fetch(`${REACT_APP_API_URL}/dashboard-cliente/1`);
-        
+
         if (!response.ok) throw new Error("Error en la respuesta del servidor");
-        
+
         const data = await response.json();
         setDatos(data);
+        console.log(data);
       } catch (error) {
         console.error("Error cargando dashboard:", error);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchDatos();
   }, []);
 
   // 2. Función de Pago de Openpay con datos reales de la BD
   const handlePagar = async () => {
-    if (isProcessing || !datos?.datosVivienda) return; 
+    if (isProcessing || !datos?.datosVivienda) return;
     setIsProcessing(true);
 
     try {
@@ -45,7 +46,7 @@ const Home = () => {
         },
         body: JSON.stringify({
           invoiceid: datos.datosVivienda.invoiceid,
-          
+
           monto: parseFloat(datos.datosVivienda.amount), // Monto real de la BD
           descripcion: `Mensualidad - ${datos.datosVivienda.address}`,
           cliente: {
@@ -109,20 +110,20 @@ const Home = () => {
         <div className="card">
           <h3>Acciones rápidas</h3>
           <div className="actions">
-            
+
             {/* Botón de pago dinámico: Si ya pagó, se desactiva */}
-            <div 
-              className={`action-item ${estaPagado ? 'gray' : 'green'}`} 
+            <div
+              className={`action-item ${estaPagado ? 'gray' : 'green'}`}
               onClick={estaPagado ? null : handlePagar}
-              style={{ 
-                cursor: (isProcessing || estaPagado) ? 'not-allowed' : 'pointer', 
+              style={{
+                cursor: (isProcessing || estaPagado) ? 'not-allowed' : 'pointer',
                 opacity: (isProcessing || estaPagado) ? 0.6 : 1,
                 backgroundColor: estaPagado ? '#e0e0e0' : undefined,
                 color: estaPagado ? '#666' : undefined
               }}
             >
               {isProcessing ? (
-                <Loader size={28} className="animate-spin" /> 
+                <Loader size={28} className="animate-spin" />
               ) : (
                 <CreditCard size={28} />
               )}

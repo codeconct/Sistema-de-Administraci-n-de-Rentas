@@ -6,7 +6,7 @@ import { authMiddleware } from '../middlewares/auth.js'
 const router = Router();
 
 // --- NUEVA RUTA: INICIAR PAGO CON OPENPAY ---
-router.post('/api/pagos/openpay', authMiddleware, (req, res) => {
+router.post('/pagos/openpay', authMiddleware, (req, res) => {
     const { monto, descripcion } = req.body;
     const openpay = new Openpay(process.env.OPENPAY_MERCHANT_ID, process.env.OPENPAY_PRIVATE_KEY, false);
     const cliente = req.user.name;
@@ -43,6 +43,41 @@ router.post('/api/pagos/openpay', authMiddleware, (req, res) => {
             payment_url: charge.payment_method.url
         });
     });
+});
+
+app.get('/dashboard-cliente/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // 👉 MODIFICADO: Agregamos i.id as invoiceid
+        const queryFactura = `
+      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.address
+      FROM invoices i
+      JOIN rentalcontracts rc ON i.contractid = rc.id
+      JOIN tenants t ON rc.tenantid = t.tenantid
+      JOIN apartments a ON rc.apartmentid = a.id
+      WHERE t.tenantid = $1
+      ORDER BY i.duedate DESC LIMIT 1
+    `;
+        const resFactura = await pool.query(queryFactura, [id]);
+
+        const queryRecibos = `
+      SELECT i.id, i.duedate, i.amount 
+      FROM invoices i
+      JOIN rentalcontracts rc ON i.contractid = rc.id
+      WHERE rc.tenantid = $1 AND i.status = 'PAID'
+      ORDER BY i.duedate DESC
+    `;
+        const resRecibos = await pool.query(queryRecibos, [id]);
+
+        res.json({
+            datosVivienda: resFactura.rows[0] || null,
+            historialRecibos: resRecibos.rows || []
+        });
+    } catch (err) {
+        console.error("❌ Error en dashboard:", err.message);
+        res.status(500).json({ error: "Error interno del servidor" });
+    }
 });
 
 export default router;
