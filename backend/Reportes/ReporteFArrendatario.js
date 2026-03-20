@@ -1,4 +1,4 @@
-function reportePorArrendatario(pagos) {
+export function reportePorArrendatario(pagos) {
     const reporte = {};
 
     for (const pago of pagos) {
@@ -20,3 +20,5 @@ function reportePorArrendatario(pagos) {
 
     return reporte;
 }
+
+export default reportePorArrendatario;

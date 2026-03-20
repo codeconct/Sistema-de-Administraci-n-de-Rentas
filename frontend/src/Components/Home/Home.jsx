@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./Home.css";
 import { FileText, CreditCard, AlertCircle, FileDown, Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { REACT_APP_API_URL } from "../../config";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [datos, setDatos] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -37,9 +39,9 @@ const Home = () => {
     try {
       // Usamos REACT_APP_API_URL para que funcione tanto en Vercel como en Local
       const response = await fetch(`${REACT_APP_API_URL}/pagos/openpay`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           invoiceid: datos.datosVivienda.invoiceid,
@@ -104,8 +106,6 @@ const Home = () => {
       <p className="subtitle">¿Qué deseas hacer hoy?</p>
 
       <div className="cards-container">
-        
-        {/* Acciones rápidas */}
         <div className="card">
           <h3>Acciones rápidas</h3>
           <div className="actions">
@@ -134,15 +134,17 @@ const Home = () => {
               <span>Ver Contrato</span>
             </div>
 
-            <div className="action-item orange">
+            <div
+              className="action-item orange"
+              onClick={() => navigate("/home/incidencias")}
+              style={{ cursor: "pointer" }}
+            >
               <AlertCircle size={28} />
               <span>Incidencias</span>
             </div>
-
           </div>
         </div>
 
-        {/* Información del cliente */}
         <div className="card">
           <h4>Información del cliente</h4>
           <p className="address">
@@ -169,7 +171,6 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Recibos */}
         <div className="card">
           <h3>Recibos Anteriores</h3>
           <div className={`receipts-scroll ${historialRecibos.length > 5 ? "limit-5" : ""}`}>

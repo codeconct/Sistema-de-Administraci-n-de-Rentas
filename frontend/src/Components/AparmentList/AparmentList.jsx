@@ -4,20 +4,41 @@ import { TbContract } from "react-icons/tb";
 import { LuHouse } from "react-icons/lu";
 import "./AparmentList.css";
 import ViviendaForm from "../Forms/Viviendaform";
-import EditarForm from "../Forms/Editarform";
-import ContratoForm from "../Forms/Contratoform";
-import { REACT_APP_API_URL } from '../../config'
+import EditApartmentModal from "../Forms/Editarform";
+import ContractWizardModal from "../Forms/ContratoWizardform";
+import { REACT_APP_API_URL } from '../../config';
+
+import { Modal } from 'bootstrap';
+
+
 
 const token = localStorage.getItem("token");
 
 const Viviendas = () => {
   const [propiedades, setPropiedades] = useState([]);
+  const [showPropiertiesModal, setShowPropiertiesModal] = useState(false);
+  const [showContractModal, setShowContractModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
-  const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
+  const [selectedApartment, setSelectedApartment] = useState(null);
+
+  const handleSelect = (apartment) => {
+    setSelectedApartment(apartment);
+  };
+
+  useEffect(() => {
+    if (!selectedApartment) return;
+
+    const modalEl = document.getElementById('editModal');
+    if (!modalEl) return;
+
+    const modal = new Modal(modalEl);
+    modal.show();
+  }, [selectedApartment]);
 
   useEffect(() => {
     setPaginaActual(1); // Reset to first page on filter change
@@ -97,6 +118,10 @@ const Viviendas = () => {
   const agregarPropiedad = (nueva) => {
     setPropiedades(prev => [...prev, nueva]);
   };
+  const handleApartmentCreated = (newApartment) => {
+    agregarPropiedad(newApartment);
+    setShowPropiertiesModal(false);
+  };
 
   const actualizarPropiedad = (propActualizada) => {
     setPropiedades(prev =>
@@ -112,8 +137,9 @@ const Viviendas = () => {
     .filter((p) => filtroStatus === "todos" || p.status === filtroStatus)
     .filter((p) => {
       const texto = filtroBusqueda.toLowerCase();
+      const addressString = `${p.street || ''} ${p.int_num || ''} ${p.division || ''} ${p.postal_code || ''}`.toLowerCase();
       return (
-        p.address?.toLowerCase().includes(texto) ||
+        addressString.includes(texto) ||
         p.id.toString().includes(texto)
       );
     });
@@ -152,20 +178,35 @@ const Viviendas = () => {
           </div>
 
           <button
-            type="button"
             className="btn btn-dark"
-            data-bs-toggle="modal"
-            data-bs-target="#nuevaViviendaModal"
+            onClick={() => setShowPropiertiesModal(true)}
           >
             + Nueva vivienda
           </button>
 
-          <ViviendaForm/>
-          <EditarForm
-            propiedad={propiedadSeleccionada}
-            actualizarPropiedad={actualizarPropiedad}
+          <ViviendaForm
+            show={showPropiertiesModal}
+            onClose={() => setShowPropiertiesModal(false)}
+            onCreated={handleApartmentCreated}
           />
-          <ContratoForm />
+          {selectedApartment && (
+            <EditApartmentModal
+              apartment={selectedApartment}
+              onClose={() => setSelectedApartment(null)}
+              onUpdated={(updated) => {
+                setPropiedades(prev =>
+                  prev.map(a => a.id === updated.id ? updated : a)
+                );
+                setSelectedApartment(null);
+              }}
+            />
+          )}
+          <ContractWizardModal
+            show={showContractModal}
+            onClose={() => setShowContractModal(false)}
+            selectedApartmentId={selectedApartment ? selectedApartment.id : null}
+
+          />
         </div>
 
         {/* STATUS INDICATORS */}
@@ -220,7 +261,7 @@ const Viviendas = () => {
                 alt="Departamento"
               />
               <div>
-                <p className="mb-1 fw-semibold">{prop.address}</p>
+                <p className="mb-1 fw-semibold">{`${prop.street || ''} ${prop.int_num || ''}, ${prop.division || ''}`.trim()}</p>
                 <small>{prop.depositamount ? prop.depositamount.toLocaleString('en-US') : ''}$</small>
               </div>
             </div>
@@ -239,9 +280,7 @@ const Viviendas = () => {
               <div className="actions-stack-box">
                 <button
                   className="box-action-btn"
-                  data-bs-toggle="modal"
-                  data-bs-target="#editModal"
-                  onClick={() => setPropiedadSeleccionada(prop)}
+                  onClick={() => handleSelect(prop)}
                 >
                   <i className="bi bi-pencil-square"></i>
                   Editar
@@ -273,15 +312,21 @@ const Viviendas = () => {
               </div>
 
               <div className="contract-links-stack">
-                <button
-                  type="button"
-                  className="contract-link-text-btn"
-                  data-bs-toggle="modal"
-                  data-bs-target="#contratosModal"
-                >
-                  <TbContract size={16} />
-                  Datos del contrato
-                </button>
+                {prop.tenant_name ?
+                  <Link to={"/contratos/" + prop.rc_id} className="contract-link-text-btn ">
+                    <TbContract size={16} />
+                    Datos del contrato
+                  </Link>
+                  :
+                  <button
+                    type="button"
+                    className="contract-link-text-btn"
+                    onClick={() => { handleSelect(prop); setShowContractModal(true); }}
+                  >
+                    <TbContract size={16} />
+                    Agregar Contrato
+                  </button>}
+
 
                 <Link
                   to={`/viviendas/${prop.id}/detalles`}

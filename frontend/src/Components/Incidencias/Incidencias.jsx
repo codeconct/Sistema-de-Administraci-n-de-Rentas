@@ -161,7 +161,7 @@ const Incidencias = () => {
         </div>
 
         <div className="row table-header mb-2">
-          <div className="col-4">Ubicacion</div>
+          <div className="col-4">Ubicación</div>
           <div className="col-3">Arrendatario</div>
           <div className="col-3">Descripcion de incidencia</div>
         </div>

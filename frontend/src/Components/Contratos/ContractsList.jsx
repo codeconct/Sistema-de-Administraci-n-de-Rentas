@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from 'react-router-dom';
 import "./ContractsList.css";
-import ContratoForm from "../Forms/Contratoform";
+//import ContratoForm from "../Forms/Contratoform";
+import EditarContratoModal from "../Forms/EditarContratoModal";
 import { REACT_APP_API_URL } from '../../config'
 
 export const token = localStorage.getItem("token");
@@ -14,6 +15,7 @@ const Viviendas = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [propiedadSeleccionada, setPropiedadSeleccionada] = useState(null);
+  const [editingContractId, setEditingContractId] = useState(null);
 
   useEffect(() => {
     setPaginaActual(1); // Reset to first page on filter change
@@ -24,29 +26,35 @@ const Viviendas = () => {
   const itemsPorPagina = 5; //only you need to change this number for change the items per page
 
   // ⬇ Fetch data from backend on page load
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${REACT_APP_API_URL}/rentalcontracts`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (!res.ok) throw new Error("Error loading data");
+
+      const data = await res.json();
+      setContratos(data);
+      console.log(data);
+
+    } catch (err) {
+      console.error(err);
+      setError("Error loading contratos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch(`${REACT_APP_API_URL}/rentalcontracts`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (!res.ok) throw new Error("Error loading data");
-
-        const data = await res.json();
-        setContratos(data);
-        console.log(data);
-
-      } catch (err) {
-        console.error(err);
-        setError("Error loading viviendas");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
+
+  const handleContractUpdated = (updatedContract) => {
+    setEditingContractId(null);
+    fetchData();
+  };
 
 
 
@@ -105,7 +113,7 @@ const Viviendas = () => {
                 <tr>
                   <td>Contrato-{String(prop.id).padStart(4, '0')}</td>
                   <td>
-                    <div className="fw-semibold">{prop.address}</div>
+                    <div className="fw-semibold">{prop.name}</div>
                   </td>
                   <td>
                     <div className="d-flex align-items-center gap-2">
@@ -121,7 +129,10 @@ const Viviendas = () => {
                   </td>
                   <td className="price-text">${prop.depositamount} MXN</td>
                   <td className="text-center">
-                    <button className="btn btn-outline-secondary action-btn2 btn-sm ">
+                    <button 
+                      className="btn btn-outline-secondary action-btn2 btn-sm "
+                      onClick={() => setEditingContractId(prop.id)}
+                    >
                       <i className="bi bi-pencil"></i>  Editar
                     </button> <br />
                     <Link to={"/contratos/" + prop.id} className="btn btn-outline-secondary action-btn2 btn-sm ">
@@ -136,7 +147,7 @@ const Viviendas = () => {
         </div>
 
         <div className="d-flex justify-content-between align-items-center footer-pagination">
-          <span className="text-muted small">Mostrando {contratos.length} incidencias</span>
+          <span className="text-muted small">Mostrando {contratos.length} contratos</span>
 
           <nav>
             <ul className="pagination pagination-sm mb-0">
@@ -153,6 +164,14 @@ const Viviendas = () => {
           </nav>
         </div>
       </div>
+
+      {editingContractId && (
+        <EditarContratoModal
+          contractId={editingContractId}
+          onClose={() => setEditingContractId(null)}
+          onUpdated={handleContractUpdated}
+        />
+      )}
     </div>
   );
 };

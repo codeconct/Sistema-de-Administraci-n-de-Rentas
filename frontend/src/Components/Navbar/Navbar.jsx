@@ -87,7 +87,7 @@ const Navbar = () => {
               style={{ width: "52px", height: "52px", objectFit: "contain", marginRight: "10px" }}
             />
             <div className="d-flex flex-column" style={{ lineHeight: "1.1" }}>
-              <span className="fw-bold fs-6">Administracion</span>
+              <span className="fw-bold fs-6">Administración</span>
               <span className="text-secondary small">de Rentas</span>
             </div>
           </div>
@@ -99,6 +99,9 @@ const Navbar = () => {
               </Link>
               <Link to="/dashboard" className={`text-decoration-none small ${isActive("/dashboard")}`}>
                 Dashboard
+              </Link>
+              <Link to="/reportes" className={`text-decoration-none small ${isActive("/reportes")}`}>
+                Reportes
               </Link>
               <Link to="/incidencias" className={`text-decoration-none small ${isActive("/incidencias")}`}>
                 Incidencias
@@ -116,7 +119,7 @@ const Navbar = () => {
                   onClick={() => setShowModal(true)}
                   className="btn btn-light bg-white border rounded-circle p-2 shadow-sm d-flex align-items-center justify-content-center"
                   style={{ width: "40px", height: "40px" }}
-                  title="Configuracion"
+                  title="Configuración"
                 >
                   <Settings size={20} className="text-secondary" />
                 </button>
@@ -179,7 +182,7 @@ const Navbar = () => {
           >
             <div className="d-flex justify-content-between align-items-center p-4 border-bottom">
               <h4 className="fw-bold m-0" style={{ color: "#1B2559" }}>
-                Configuracion
+                Configuración
               </h4>
               <button onClick={() => setShowModal(false)} className="btn btn-sm btn-light rounded-circle p-2">
                 <X size={20} />
@@ -191,23 +194,21 @@ const Navbar = () => {
                 <ul className="list-unstyled p-0 m-0">
                   <li>
                     <button
-                      className={`w-100 text-start px-4 py-3 border-0 ${
-                        activeTab === "pagos"
-                          ? "bg-white fw-bold border-start border-primary border-4"
-                          : "bg-transparent text-muted"
-                      }`}
+                      className={`w-100 text-start px-4 py-3 border-0 ${activeTab === "pagos"
+                        ? "bg-white fw-bold border-start border-primary border-4"
+                        : "bg-transparent text-muted"
+                        }`}
                       onClick={() => setActiveTab("pagos")}
                     >
-                      Informacion de Pago
+                      Información de Pago
                     </button>
                   </li>
                   <li>
                     <button
-                      className={`w-100 text-start px-4 py-3 border-0 ${
-                        activeTab === "mora"
-                          ? "bg-white fw-bold border-start border-primary border-4"
-                          : "bg-transparent text-muted"
-                      }`}
+                      className={`w-100 text-start px-4 py-3 border-0 ${activeTab === "mora"
+                        ? "bg-white fw-bold border-start border-primary border-4"
+                        : "bg-transparent text-muted"
+                        }`}
                       onClick={() => setActiveTab("mora")}
                     >
                       Cobros y Mora
@@ -349,4 +350,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

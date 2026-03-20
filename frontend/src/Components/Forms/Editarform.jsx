@@ -1,172 +1,177 @@
-import React, { useState } from "react";
 
-import {REACT_APP_API_URL} from '../../config'
+import { REACT_APP_API_URL } from '../../config'
 
-const EditarForm = () => {
+import React, { useEffect, useState } from "react";
+
+export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
   const [formData, setFormData] = useState({
-    zipcode: "",
-    estado: "",
-    municipio: "",
-    domicilio: "",
-    precio_renta: "",
-    tenant_name: "",
-    tenant_phone: "",
-    tenant_email: "",
-    tenant_address: "",
-    aval_name: "",
-    aval_phone: "",
-    aval_email: "",
-    aval_address: "",
-    fecha_firma: "",
-    fecha_pago: "",
+    name: "",
+    postal_code: "",
+    street: "",
+    division: "",
+    int_num: "",
+    city: "",
+    state: ""
   });
+
+  useEffect(() => {
+    if (apartment) {
+      setFormData({
+        name: apartment.name || "",
+        postal_code: apartment.postal_code || "",
+        street: apartment.street || "",
+        division: apartment.division || "",
+        int_num: apartment.int_num || "",
+        city: apartment.city || "",
+        state: apartment.state || ""
+      });
+    }
+  }, [apartment]);
+
+  if (!apartment) return null;
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(
+        `${REACT_APP_API_URL}/apartments/${apartment.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`
+          },
+          body: JSON.stringify(formData)
+        }
+      );
 
-    const response = await fetch(`${REACT_APP_API_URL}/viviendas`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(formData),
-    });
+      if (!res.ok) throw new Error("Update failed");
 
-    if (response.ok) alert("Guardado!");
-    else alert("Error al guardar");
+      const updated = await res.json();
+      onUpdated(updated);
+
+    } catch (err) {
+      console.error(err);
+      alert("Error updating apartment");
+    }
   };
 
   return (
-    
-    <div
-      className="modal fade"
-      id="editModal"
-      tabIndex="-1"
-      aria-labelledby="editModalLabel"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content contratos-modal">
-          <div className="modal-header border-0">
-            <h5 className="modal-title fw-bold fs-5" id="editModalLabel">
-              Editar Viviendas
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
+    <>
+      <div className="modal-backdrop fade show"></div>
+      <div className="modal d-block">
+        <div className="modal-dialog modal-lg modal-dialog-centered">
+          <div className="modal-content rounded-4 shadow border-0">
+
+            <div className="modal-header">
+              <h5 className="fw-bold">Editar Vivienda</h5>
+              <button className="btn-close" onClick={onClose}></button>
+            </div>
+
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+
+                <div className="mb-3">
+                  <label className="form-label">Nombre</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Calle</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="street"
+                      value={formData.street}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Núm Int</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="int_num"
+                      value={formData.int_num}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Colonia</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="division"
+                      value={formData.division}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">C.P.</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="postal_code"
+                      value={formData.postal_code}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Ciudad</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleChange}
+                    />
+                  </div>
+
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">Estado</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="state"
+                      value={formData.state}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-end">
+                  <button className="btn btn-dark">
+                    Guardar cambios
+                  </button>
+                </div>
+
+              </form>
+            </div>
+
           </div>
-
-          {/* FORMULARIO */}
-          <form className="p-4">
-            <h6 className="fw-bold mt-4 mb-3 fs-3"> Informacion General de la Vivienda</h6>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Código Postal</label>
-              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. 34000" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Estado</label>
-              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Durango" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Municipio</label>
-              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Durango" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Domicilio</label>
-              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Calle, fracc, num 123" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Precio de Renta</label>
-              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. $3500" />
-            </div>
-
-            <h6 className="fw-bold mt-4 mb-3">Datos del Arrendatario</h6>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Nombre Completo</label>
-              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Joseph Joestar" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Numero de Teléfono</label>
-              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. 618-123-4567" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Correo Electrónico</label>
-              <input type="email" className="form-control form-control-sm custom-input" placeholder="Ejem. jorge@gmail.com" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Domicilio (Opcional)</label>
-              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Calle, fracc, num 123" />
-            </div>
-
-            <h6 className="fw-bold mt-4 mb-3">Datos del Aval</h6>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Nombre Completo</label>
-              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Joseph Joestar" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Número de Teléfono</label>
-              <input type="tel" className="form-control form-control-sm custom-input" placeholder="Ejem. 618-123-4567" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Correo Electrónico</label>
-              <input type="email" className="form-control form-control-sm custom-input" placeholder="Ejem. jorge@gmail.com" />
-            </div>
-
-            <div className="mb-3">
-              <label className="form-label fw-semibold">Domicilio</label>
-              <input type="text" className="form-control form-control-sm custom-input" placeholder="Ejem. Calle, fracc, num 123" />
-            </div>
-
-            <h6 className="fw-bold mt-4 mb-3">Contrato</h6>
-
-            <div className="mb-4">
-              <label className="form-label fw-semibold">Fecha de Firma</label>
-              <input type="date" className="form-control form-control-sm custom-input" />
-            </div>
-
-            <div className="mb-4">
-              <label className="form-label fw-semibold">Fecha de Pago</label>
-              <input type="date" className="form-control form-control-sm custom-input" />
-            </div>
-
-            <div className="d-flex flex-column align-items-start gap-2">
-              <label className="form-label fw-semibold">Descargar Contrato de la Vivienda</label>
-              <button type="button" className="btn btn-outline-dark btn-sm px-3 py-1 w-auto">
-                Descargar Documento PDF
-              </button>
-
-              <label className="form-label fw-semibold mt-3">Subir Contrato Firmado</label>
-              <button type="button" className="btn btn-outline-dark btn-sm px-3 py-1 w-auto">
-                Subir Documento PDF
-              </button>
-            </div>
-
-            <button type="submit" className="btn btn-primary btn-sm px-4 py-1 mt-3 w-auto">
-              Guardar
-            </button>
-          </form>
         </div>
       </div>
-    </div>
+    </>
   );
-};
-
-export default EditarForm;
+}
