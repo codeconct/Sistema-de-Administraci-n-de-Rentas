@@ -80,7 +80,7 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
     }
 });
 
-app.post('webhooks/openpay', async (req, res) => {
+router.post('webhooks/openpay', async (req, res) => {
     console.log("🔔 Webhook recibido de Openpay. Evento:", req.body.type);
 
     try {
