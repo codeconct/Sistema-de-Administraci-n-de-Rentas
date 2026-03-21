@@ -105,7 +105,7 @@ router.get('/apartments/:id', authMiddleware, async (req, res) => {
         LIMIT 1
       ) rc ON true
       LEFT JOIN tenants t
-        ON rc.tenantid = t.tenantid
+        ON rc.tenantid = t.id
       LEFT JOIN LATERAL (
         SELECT duedate
         FROM invoices
