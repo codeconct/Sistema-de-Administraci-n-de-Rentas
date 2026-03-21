@@ -54,9 +54,9 @@ router.get('/dashboard-cliente/:id', authMiddleware, async (req, res) => {
       SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.address
       FROM invoices i
       JOIN rentalcontracts rc ON i.contractid = rc.id
-      JOIN tenants t ON rc.tenantid = t.tenantid
+      JOIN tenants t ON rc.tenantid = t.id
       JOIN apartments a ON rc.apartmentid = a.id
-      WHERE t.tenantid = $1
+      WHERE t.id = $1
       ORDER BY i.duedate DESC LIMIT 1
     `;
         const resFactura = await pool.query(queryFactura, [id]);
