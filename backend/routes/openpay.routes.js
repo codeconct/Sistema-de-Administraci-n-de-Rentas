@@ -47,7 +47,7 @@ router.post('/pagos/openpay', authMiddleware, (req, res) => {
 
 router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
     try {
-        const { id } = req.user.id;
+        const id = req.user.id;
 
         // 👉 MODIFICADO: Agregamos i.id as invoiceid
         const queryFactura = `
