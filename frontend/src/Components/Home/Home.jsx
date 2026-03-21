@@ -4,6 +4,8 @@ import { FileText, CreditCard, AlertCircle, FileDown, Loader } from "lucide-reac
 import { useNavigate } from "react-router-dom";
 import { REACT_APP_API_URL } from "../../config";
 
+const token = localStorage.getItem("token");
+
 const Home = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -15,7 +17,9 @@ const Home = () => {
     const fetchDatos = async () => {
       try {
         // Pedimos los datos del inquilino 1 (Ajustar si manejan login real después)
-        const response = await fetch(`${REACT_APP_API_URL}/dashboard-cliente/1`);
+        const response = await fetch(`${REACT_APP_API_URL}/dashboard-cliente`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
 
         if (!response.ok) throw new Error("Error en la respuesta del servidor");
 

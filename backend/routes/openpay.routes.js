@@ -51,7 +51,7 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
 
         // 👉 MODIFICADO: Agregamos i.id as invoiceid
         const queryFactura = `
-      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.address
+      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.street as address
       FROM invoices i
       JOIN rentalcontracts rc ON i.contractid = rc.id
       JOIN tenants t ON rc.tenantid = t.id
