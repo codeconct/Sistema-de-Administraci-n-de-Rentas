@@ -119,6 +119,34 @@ router.post('/rentalcontracts', async (req, res) => {
       ]
     );
 
+    /* -------- INVOICE GENERATION -------- */
+
+    const contract = contractResult.rows[0];
+
+    // Base date
+    const start = new Date(startdate);
+
+    // You should replace this with actual monthly rent if you have it
+    const monthlyAmount = depositamount || 0;
+
+    for (let i = 0; i < months_duration; i++) {
+      const dueDate = new Date(start);
+      dueDate.setMonth(dueDate.getMonth() + i);
+
+      await client.query(
+        `
+        INSERT INTO invoices (contractid, amount, duedate, status)
+        VALUES ($1, $2, $3, $4)
+        `,
+        [
+          contract.id,
+          monthlyAmount,
+          dueDate,
+          "PENDING"
+        ]
+      );
+    }
+
     /* -------- UPDATE APARTMENT STATUS -------- */
     await client.query(
       `
