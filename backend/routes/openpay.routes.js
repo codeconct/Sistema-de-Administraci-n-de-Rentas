@@ -51,7 +51,7 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
 
         // 👉 MODIFICADO: Agregamos i.id as invoiceid
         const queryFactura = `
-      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.street as address
+      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.street as address, a.division
       FROM invoices i
       JOIN rentalcontracts rc ON i.contractid = rc.id
       JOIN tenants t ON rc.tenantid = t.id
@@ -77,6 +77,44 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
     } catch (err) {
         console.error("❌ Error en dashboard:", err.message);
         res.status(500).json({ error: "Error interno del servidor" });
+    }
+});
+
+app.post('webhooks/openpay', async (req, res) => {
+    console.log("🔔 Webhook recibido de Openpay. Evento:", req.body.type);
+
+    try {
+        const evento = req.body;
+
+        if (evento.type === 'charge.succeeded') {
+            const transaccion = evento.transaction;
+            const orderId = transaccion.order_id; // Ejemplo: "REC-5"
+            const monto = transaccion.amount;
+
+            // Verificamos que traiga nuestro identificador
+            if (orderId && orderId.startsWith('REC-')) {
+                const invoiceId = orderId.split('-')[1]; // Extraemos el "5"
+
+                console.log(`✅ Pago detectado. Actualizando Recibo ID: ${invoiceId}...`);
+
+                // Cambiamos el estado en la base de datos a PAGADO
+                await pool.query("UPDATE invoices SET status = 'PAID' WHERE id = $1", [invoiceId]);
+
+                // Guardamos el registro en la tabla de pagos
+                await pool.query(
+                    "INSERT INTO payments (invoiceid, paymentdate, amount, method) VALUES ($1, CURRENT_DATE, $2, 'TARJETA_OPENPAY')",
+                    [invoiceId, monto]
+                );
+
+                console.log("💾 ¡Recibo procesado y actualizado con éxito!");
+            }
+        }
+
+        // MANDATORIO: Responder 200 OK para que Openpay deje de insistir
+        res.status(200).send('Webhook procesado');
+    } catch (error) {
+        console.error("❌ Error procesando el Webhook:", error.message);
+        res.status(500).send('Error interno');
     }
 });
 
