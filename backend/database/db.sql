@@ -154,6 +154,8 @@ CREATE TABLE maintenance_tickets (
     id SERIAL PRIMARY KEY,
     apartment_id INT,
     apartment_label TEXT,
+    tenant_id INT,
+    tenant_name VARCHAR(100),
     descripcion TEXT NOT NULL,
     estatus VARCHAR(20) CHECK (estatus IN ('ABIERTO','EN_PROCESO','EN_ESPERA','RESUELTO')) NOT NULL DEFAULT 'ABIERTO',
     responsable VARCHAR(100),
@@ -161,4 +163,19 @@ CREATE TABLE maintenance_tickets (
     fecha_asignacion TIMESTAMP,
     fecha_actualizacion TIMESTAMP NOT NULL DEFAULT NOW(),
     fecha_resolucion TIMESTAMP
+);
+
+-- ===============================
+-- Maintenance Ticket Media
+-- ===============================
+CREATE TABLE maintenance_ticket_media (
+    id SERIAL PRIMARY KEY,
+    ticket_id INT NOT NULL REFERENCES maintenance_tickets(id) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    file_size INT NOT NULL,
+    storage_path TEXT NOT NULL,
+    tipo VARCHAR(10) CHECK (tipo IN ('IMAGEN','VIDEO')) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

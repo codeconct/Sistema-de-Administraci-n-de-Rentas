@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api";
 import "./HomeIncidencias.css";
 
 const incidenciasBase = [
@@ -50,6 +51,16 @@ const incidenciasBase = [
 ];
 
 const LIMITE_DESCRIPCION = 220;
+const LIMITE_ARCHIVO_MB = 10;
+const TIPOS_PERMITIDOS = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+];
 
 const HomeIncidencias = () => {
   const navigate = useNavigate();
@@ -59,6 +70,9 @@ const HomeIncidencias = () => {
   const [orden, setOrden] = useState("recientes");
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevaDescripcion, setNuevaDescripcion] = useState("");
+  const [archivosSeleccionados, setArchivosSeleccionados] = useState([]);
+  const [erroresArchivos, setErroresArchivos] = useState([]);
+  const [subiendo, setSubiendo] = useState(false);
 
   const restablecerFiltros = () => {
     setFiltroBusqueda("");
@@ -77,31 +91,138 @@ const HomeIncidencias = () => {
   const cerrarModal = () => {
     setMostrarModal(false);
     setNuevaDescripcion("");
+    setArchivosSeleccionados((prev) => {
+      prev.forEach((item) => URL.revokeObjectURL(item.url));
+      return [];
+    });
+    setErroresArchivos([]);
+    setSubiendo(false);
   };
 
-  const crearIncidencia = () => {
+  const validarArchivos = (files) => {
+    const errores = [];
+    const aceptados = [];
+
+    for (const file of files) {
+      if (!TIPOS_PERMITIDOS.includes(file.type)) {
+        errores.push(`${file.name}: tipo no permitido`);
+        continue;
+      }
+      if (file.size > LIMITE_ARCHIVO_MB * 1024 * 1024) {
+        errores.push(`${file.name}: excede ${LIMITE_ARCHIVO_MB}MB`);
+        continue;
+      }
+      aceptados.push(file);
+    }
+
+    return { aceptados, errores };
+  };
+
+  const manejarSeleccionArchivos = (event) => {
+    const files = Array.from(event.target.files || []);
+    const { aceptados, errores } = validarArchivos(files);
+
+    setErroresArchivos(errores);
+    const nuevos = aceptados.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+    setArchivosSeleccionados((prev) => [...prev, ...nuevos]);
+    event.target.value = "";
+  };
+
+  const eliminarArchivo = (indice) => {
+    setArchivosSeleccionados((prev) => {
+      const item = prev[indice];
+      if (item?.url) {
+        URL.revokeObjectURL(item.url);
+      }
+      return prev.filter((_, index) => index !== indice);
+    });
+  };
+
+  const subirArchivos = async (ticketId, archivos) => {
+    if (!archivos.length) return [];
+
+    const resultados = [];
+    for (const item of archivos) {
+      const archivo = item.file;
+      const formData = new FormData();
+      formData.append("media", archivo);
+
+      const response = await fetch(api(`/tickets/${ticketId}/media`), {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const mensaje = await response.text();
+        throw new Error(mensaje || "Error subiendo archivo");
+      }
+
+      resultados.push(await response.json());
+    }
+
+    return resultados;
+  };
+
+  const crearIncidencia = async () => {
     const descripcion = nuevaDescripcion.trim();
 
     if (!descripcion) {
       return;
     }
 
-    const nuevaIncidencia = {
-      id: Date.now(),
-      status: "pendiente",
-      fecha: new Date().toISOString(),
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Departamento Corredor Privada, Puerta Norte, Int. 109, 34155, Jardines de Durango.",
-      arrendatario: "Pendiente",
-      avatar: null,
-      descripcion,
-    };
+    const ubicacionBase =
+      "Departamento Corredor Privada, Puerta Norte, Int. 109, 34155, Jardines de Durango.";
 
-    setIncidenciasData((prev) => [nuevaIncidencia, ...prev]);
-    setFiltroEstado("todas");
-    setOrden("recientes");
-    cerrarModal();
+    try {
+      setSubiendo(true);
+      const response = await fetch(api("/tickets"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          descripcion,
+          apartmentLabel: ubicacionBase,
+        }),
+      });
+
+      if (!response.ok) {
+        const mensaje = await response.text();
+        throw new Error(mensaje || "Error creando ticket");
+      }
+
+      const ticket = await response.json();
+      let mediaSubida = [];
+
+      if (archivosSeleccionados.length) {
+        mediaSubida = await subirArchivos(ticket.id, archivosSeleccionados);
+      }
+
+      const nuevaIncidencia = {
+        id: ticket.id,
+        status: "pendiente",
+        fecha: new Date().toISOString(),
+        img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+        ubicacion: ubicacionBase,
+        arrendatario: "Pendiente",
+        avatar: null,
+        descripcion,
+        media: mediaSubida,
+      };
+
+      setIncidenciasData((prev) => [nuevaIncidencia, ...prev]);
+      setFiltroEstado("todas");
+      setOrden("recientes");
+      cerrarModal();
+    } catch (error) {
+      setErroresArchivos((prev) => [
+        ...prev,
+        error.message || "No se pudo guardar la incidencia",
+      ]);
+    } finally {
+      setSubiendo(false);
+    }
   };
 
   const incidencias = useMemo(() => {
@@ -331,6 +452,65 @@ const HomeIncidencias = () => {
               <div className="home-incidencias-modal-counter">
                 {nuevaDescripcion.length}/{LIMITE_DESCRIPCION}
               </div>
+
+              <div className="home-incidencias-upload">
+                <label className="home-incidencias-modal-label">
+                  Adjuntar imagenes o videos
+                </label>
+                <label className="home-incidencias-upload-box">
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={manejarSeleccionArchivos}
+                  />
+                  <div>
+                    <strong>Selecciona archivos</strong>
+                    <p>
+                      Max {LIMITE_ARCHIVO_MB}MB por archivo. JPG, PNG, WEBP, GIF,
+                      MP4, WEBM o MOV.
+                    </p>
+                  </div>
+                </label>
+
+                {erroresArchivos.length > 0 && (
+                  <ul className="home-incidencias-upload-errors">
+                    {erroresArchivos.map((error, index) => (
+                      <li key={`${error}-${index}`}>{error}</li>
+                    ))}
+                  </ul>
+                )}
+
+                {archivosSeleccionados.length > 0 && (
+                  <div className="home-incidencias-upload-list">
+                    {archivosSeleccionados.map((archivo, index) => {
+                      const esVideo = archivo.file.type.startsWith("video/");
+
+                      return (
+                        <div
+                          className="home-incidencias-upload-item"
+                          key={archivo.url}
+                        >
+                          {esVideo ? (
+                            <video src={archivo.url} controls />
+                          ) : (
+                            <img src={archivo.url} alt={archivo.file.name} />
+                          )}
+                          <div>
+                            <p>{archivo.file.name}</p>
+                            <button
+                              type="button"
+                              onClick={() => eliminarArchivo(index)}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="home-incidencias-modal-footer">
@@ -338,10 +518,10 @@ const HomeIncidencias = () => {
                 type="button"
                 className="home-incidencias-modal-submit"
                 onClick={crearIncidencia}
-                disabled={!nuevaDescripcion.trim()}
+                disabled={!nuevaDescripcion.trim() || subiendo}
               >
                 <i className="bi bi-send" />
-                Enviar incidencia
+                {subiendo ? "Subiendo..." : "Enviar incidencia"}
               </button>
             </div>
           </div>
