@@ -123,6 +123,21 @@ CREATE TABLE maintenancerequests (
 );
 
 -- ===============================
+-- Maintenance Request Media
+-- ===============================
+CREATE TABLE maintenancerequest_media (
+    id SERIAL PRIMARY KEY,
+    request_id INT NOT NULL REFERENCES maintenancerequests(requestid) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    file_size INT NOT NULL,
+    storage_path TEXT NOT NULL,
+    tipo VARCHAR(10) CHECK (tipo IN ('IMAGEN','VIDEO')) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- ===============================
 -- Mora Settings
 -- ===============================
 CREATE TABLE morasettings (
@@ -130,4 +145,52 @@ CREATE TABLE morasettings (
     tipo VARCHAR(20) CHECK (tipo IN ('PORCENTAJE','FIJO')) NOT NULL DEFAULT 'PORCENTAJE',
     valor NUMERIC(10,2) NOT NULL DEFAULT 10,
     updatedat TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- ===============================
+-- Notifications History
+-- ===============================
+CREATE TABLE notifications_history (
+    id SERIAL PRIMARY KEY,
+    tenant_id INT,
+    tenant_name VARCHAR(100),
+    apartment_id INT,
+    apartment_label TEXT,
+    message_type VARCHAR(30) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'SENT',
+    sent_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- ===============================
+-- Maintenance Tickets
+-- ===============================
+CREATE TABLE maintenance_tickets (
+    id SERIAL PRIMARY KEY,
+    apartment_id INT,
+    apartment_label TEXT,
+    tenant_id INT,
+    tenant_name VARCHAR(100),
+    descripcion TEXT NOT NULL,
+    estatus VARCHAR(20) CHECK (estatus IN ('ABIERTO','EN_PROCESO','EN_ESPERA','RESUELTO')) NOT NULL DEFAULT 'ABIERTO',
+    responsable VARCHAR(100),
+    fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    fecha_asignacion TIMESTAMP,
+    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT NOW(),
+    fecha_resolucion TIMESTAMP
+);
+
+-- ===============================
+-- Maintenance Ticket Media
+-- ===============================
+CREATE TABLE maintenance_ticket_media (
+    id SERIAL PRIMARY KEY,
+    ticket_id INT NOT NULL REFERENCES maintenance_tickets(id) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    file_size INT NOT NULL,
+    storage_path TEXT NOT NULL,
+    tipo VARCHAR(10) CHECK (tipo IN ('IMAGEN','VIDEO')) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

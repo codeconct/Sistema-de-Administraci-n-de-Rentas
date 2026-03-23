@@ -1,9 +1,27 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { authMiddleware } from '../middlewares/auth.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config.js';
 
 const router = Router();
 const UNDEFINED_COLUMN = '42703';
+const UPLOAD_ROOT = path.resolve('backend', 'uploads', 'maintenancerequests');
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const EXTENSIONS_VALIDAS = new Set([
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.webp',
+  '.gif',
+  '.mp4',
+  '.webm',
+  '.mov',
+]);
 
 let maintenanceRequestsReadyPromise = null;
 
@@ -19,13 +37,74 @@ const ensureMaintenanceRequestsTable = async () => {
         status VARCHAR(20) DEFAULT 'PENDING',
         completiondate DATE
       )
-    `).catch((err) => {
-      maintenanceRequestsReadyPromise = null;
-      throw err;
-    });
+    `)
+      .then(() =>
+        pool.query(`
+          CREATE TABLE IF NOT EXISTS maintenancerequest_media (
+            id SERIAL PRIMARY KEY,
+            request_id INT NOT NULL REFERENCES maintenancerequests(requestid) ON DELETE CASCADE,
+            filename TEXT NOT NULL,
+            original_name TEXT NOT NULL,
+            mime_type TEXT NOT NULL,
+            file_size INT NOT NULL,
+            storage_path TEXT NOT NULL,
+            tipo VARCHAR(10) CHECK (tipo IN ('IMAGEN','VIDEO')) NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT NOW()
+          )
+        `)
+      )
+      .catch((err) => {
+        maintenanceRequestsReadyPromise = null;
+        throw err;
+      });
   }
 
   return maintenanceRequestsReadyPromise;
+};
+
+const ensureUploadDir = () => {
+  if (!fs.existsSync(UPLOAD_ROOT)) {
+    fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
+  }
+};
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    ensureUploadDir();
+    cb(null, UPLOAD_ROOT);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    const random = crypto.randomBytes(8).toString('hex');
+    cb(null, `request_${req.params.id}_${Date.now()}_${random}${ext}`);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: MAX_FILE_SIZE },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (!EXTENSIONS_VALIDAS.has(ext)) {
+      return cb(new Error('Tipo de archivo no permitido. Usa imagen o video.'));
+    }
+    cb(null, true);
+  },
+});
+
+const obtenerUsuarioDesdeToken = (req) => {
+  const header = req.headers.authorization;
+  const token = header?.split(' ')[1] || req.query?.token;
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    return null;
+  }
 };
 
 const normalizeStatus = (status) =>
@@ -96,6 +175,39 @@ const runRequestsQuery = async (role, userId) => {
       throw err;
     }
     return pool.query(queryWithLegacyColumns, [userId]);
+  }
+};
+
+const getRequestAccessInfo = async (requestId) => {
+  const queryCurrent = `
+    SELECT
+      mr.requestid AS request_id,
+      mr.tenantid AS tenant_id,
+      a.ownerid AS owner_id
+    FROM maintenancerequests mr
+    JOIN apartments a ON a.id = mr.apartmentid
+    WHERE mr.requestid = $1
+  `;
+
+  const queryLegacy = `
+    SELECT
+      mr.requestid AS request_id,
+      mr.tenantid AS tenant_id,
+      a.ownerid AS owner_id
+    FROM maintenancerequests mr
+    JOIN apartments a ON a.apartmentid = mr.apartmentid
+    WHERE mr.requestid = $1
+  `;
+
+  try {
+    const result = await pool.query(queryCurrent, [requestId]);
+    return result.rows[0] || null;
+  } catch (err) {
+    if (err?.code !== UNDEFINED_COLUMN) {
+      throw err;
+    }
+    const result = await pool.query(queryLegacy, [requestId]);
+    return result.rows[0] || null;
   }
 };
 
@@ -219,6 +331,154 @@ router.patch('/maintenancerequests/:id/status', authMiddleware, async (req, res)
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+router.post(
+  '/maintenancerequests/:id/media',
+  authMiddleware,
+  upload.array('media', 8),
+  async (req, res) => {
+    if (req.user.role !== 'tenant') {
+      return res.status(403).json({ message: 'Only tenants can upload media' });
+    }
+
+    try {
+      await ensureMaintenanceRequestsTable();
+      const requestId = Number(req.params.id);
+
+      if (!requestId) {
+        return res.status(400).json({ message: 'Invalid request id' });
+      }
+
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ message: 'Archivo requerido' });
+      }
+
+      const access = await getRequestAccessInfo(requestId);
+      if (!access || Number(access.tenant_id) !== Number(req.user.id)) {
+        return res.status(404).json({ message: 'Request not found' });
+      }
+
+      const insertPromises = req.files.map((file) => {
+        const tipoMime = file.mimetype || 'application/octet-stream';
+        const tipo = tipoMime.startsWith('video/') ? 'VIDEO' : 'IMAGEN';
+        return pool.query(
+          `
+            INSERT INTO maintenancerequest_media
+              (request_id, filename, original_name, mime_type, file_size, storage_path, tipo)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *
+          `,
+          [
+            requestId,
+            file.filename,
+            file.originalname,
+            tipoMime,
+            file.size,
+            file.path,
+            tipo,
+          ]
+        );
+      });
+
+      const results = await Promise.all(insertPromises);
+      const created = results.map((result) => result.rows[0]);
+
+      return res.status(201).json(created);
+    } catch (err) {
+      console.error('Error subiendo archivo:', err.message);
+      return res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+router.get('/maintenancerequests/:id/media', authMiddleware, async (req, res) => {
+  try {
+    await ensureMaintenanceRequestsTable();
+    const requestId = Number(req.params.id);
+    const access = await getRequestAccessInfo(requestId);
+
+    if (!access) {
+      return res.status(404).json({ message: 'Request not found' });
+    }
+
+    if (
+      (req.user.role === 'tenant' && Number(access.tenant_id) !== Number(req.user.id)) ||
+      (req.user.role === 'owner' && Number(access.owner_id) !== Number(req.user.id))
+    ) {
+      return res.status(403).json({ message: 'Not authorized to view media' });
+    }
+
+    const result = await pool.query(
+      `
+        SELECT *
+        FROM maintenancerequest_media
+        WHERE request_id = $1
+        ORDER BY created_at DESC
+      `,
+      [requestId]
+    );
+
+    return res.json(result.rows);
+  } catch (err) {
+    console.error('Error consultando media:', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/maintenancerequests/media/:mediaId', async (req, res) => {
+  try {
+    await ensureMaintenanceRequestsTable();
+    const mediaId = Number(req.params.mediaId);
+    const user = obtenerUsuarioDesdeToken(req);
+
+    if (!user) {
+      return res.status(401).json({ message: 'Token missing or invalid' });
+    }
+
+    const queryCurrent = `
+      SELECT m.*, mr.tenantid AS tenant_id, a.ownerid AS owner_id
+      FROM maintenancerequest_media m
+      JOIN maintenancerequests mr ON mr.requestid = m.request_id
+      JOIN apartments a ON a.id = mr.apartmentid
+      WHERE m.id = $1
+    `;
+
+    const queryLegacy = `
+      SELECT m.*, mr.tenantid AS tenant_id, a.ownerid AS owner_id
+      FROM maintenancerequest_media m
+      JOIN maintenancerequests mr ON mr.requestid = m.request_id
+      JOIN apartments a ON a.apartmentid = mr.apartmentid
+      WHERE m.id = $1
+    `;
+
+    let result;
+    try {
+      result = await pool.query(queryCurrent, [mediaId]);
+    } catch (err) {
+      if (err?.code !== UNDEFINED_COLUMN) {
+        throw err;
+      }
+      result = await pool.query(queryLegacy, [mediaId]);
+    }
+
+    if (!result || result.rows.length === 0) {
+      return res.status(404).json({ message: 'Archivo no encontrado' });
+    }
+
+    const media = result.rows[0];
+    if (
+      (user.role === 'tenant' && Number(media.tenant_id) !== Number(user.id)) ||
+      (user.role === 'owner' && Number(media.owner_id) !== Number(user.id))
+    ) {
+      return res.status(403).json({ message: 'Not authorized to view media' });
+    }
+
+    return res.sendFile(path.resolve(media.storage_path));
+  } catch (err) {
+    console.error('Error descargando media:', err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
 
