@@ -1,6 +1,11 @@
 // routes/rentalcontracts.routes.js
 import { Router } from 'express';
 import pool from '../db.js';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const router = Router();
 
@@ -67,10 +72,10 @@ router.post('/rentalcontracts', upload.single("file"), async (req, res) => {
   } = req.body;
 
   if (typeof tenant === 'string') {
-    try { tenant = JSON.parse(tenant); } catch (e) {}
+    try { tenant = JSON.parse(tenant); } catch (e) { }
   }
   if (typeof guarantor === 'string') {
-    try { guarantor = JSON.parse(guarantor); } catch (e) {}
+    try { guarantor = JSON.parse(guarantor); } catch (e) { }
   }
 
   const file = req.file;

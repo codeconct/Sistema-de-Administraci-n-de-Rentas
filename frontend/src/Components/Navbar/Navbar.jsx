@@ -15,6 +15,7 @@ const Navbar = () => {
   const [activeTab, setActiveTab] = useState("pagos");
   const [showUserMenu, setShowUserMenu] = useState(false);
   const userMenuRef = useRef(null);
+  const [isNavOpen, setIsNavOpen] = useState(false);
 
   const [paymentKeys, setPaymentKeys] = useState({
     stripe: "",
@@ -76,15 +77,16 @@ const Navbar = () => {
   return (
     <>
       <nav
-        className="navbar navbar-expand-lg bg-white border-bottom py-3 px-4 sticky-top shadow-sm"
-        style={{ height: "80px", zIndex: 1000 }}
+        className="navbar navbar-expand-lg bg-white border-bottom py-2 px-3 px-md-4 sticky-top shadow-sm flex-wrap"
+        style={{ zIndex: 1000, minHeight: "80px" }}
       >
-        <div className="container-fluid p-0">
-          <div className="d-flex align-items-center">
+        <div className="container-fluid p-0 d-flex flex-wrap align-items-center">
+          {/* Logo */}
+          <div className="d-flex align-items-center order-1">
             <img
               src={casaLogo}
               alt="Logo"
-              style={{ width: "52px", height: "52px", objectFit: "contain", marginRight: "10px" }}
+              style={{ width: "45px", height: "45px", objectFit: "contain", marginRight: "10px" }}
             />
             <div className="d-flex flex-column" style={{ lineHeight: "1.1" }}>
               <span className="fw-bold fs-6">Administración</span>
@@ -92,27 +94,31 @@ const Navbar = () => {
             </div>
           </div>
 
+          {/* Links Collapse */}
           {!isTenant && (
-            <div className="d-none d-md-flex align-items-center gap-4 mx-auto bg-light px-4 py-2 rounded-pill">
-              <Link to="/viviendas" className={`text-decoration-none small ${isActive("/viviendas")}`}>
-                Viviendas
-              </Link>
-              <Link to="/dashboard" className={`text-decoration-none small ${isActive("/dashboard")}`}>
-                Dashboard
-              </Link>
-              <Link to="/reportes" className={`text-decoration-none small ${isActive("/reportes")}`}>
-                Reportes
-              </Link>
-              <Link to="/incidencias" className={`text-decoration-none small ${isActive("/incidencias")}`}>
-                Incidencias
-              </Link>
-              <Link to="/contratos" className={`text-decoration-none small ${isActive("/contratos")}`}>
-                Contratos
-              </Link>
+            <div className={`collapse navbar-collapse justify-content-center order-3 order-lg-2 w-100 w-lg-auto ${isNavOpen ? 'show mt-4 pb-3' : ''}`}>
+              <div className="d-flex flex-column flex-lg-row align-items-center gap-3 gap-lg-4 mx-auto bg-light px-4 py-3 py-lg-2 rounded-4" style={{ borderRadius: isNavOpen ? '1rem' : '50rem' }}>
+                <Link to="/viviendas" onClick={() => setIsNavOpen(false)} className={`text-decoration-none small fw-medium ${isActive("/viviendas")}`}>
+                  Viviendas
+                </Link>
+                <Link to="/dashboard" onClick={() => setIsNavOpen(false)} className={`text-decoration-none small fw-medium ${isActive("/dashboard")}`}>
+                  Dashboard
+                </Link>
+                <Link to="/reportes" onClick={() => setIsNavOpen(false)} className={`text-decoration-none small fw-medium ${isActive("/reportes")}`}>
+                  Reportes
+                </Link>
+                <Link to="/incidencias" onClick={() => setIsNavOpen(false)} className={`text-decoration-none small fw-medium ${isActive("/incidencias")}`}>
+                  Incidencias
+                </Link>
+                <Link to="/contratos" onClick={() => setIsNavOpen(false)} className={`text-decoration-none small fw-medium ${isActive("/contratos")}`}>
+                  Contratos
+                </Link>
+              </div>
             </div>
           )}
 
-          <div className="d-flex align-items-center gap-3">
+          {/* Actions & Toggler */}
+          <div className="d-flex align-items-center gap-2 gap-md-3 order-2 order-lg-3 ms-auto ms-lg-0">
             {!isTenant && (
               <>
                 <button
@@ -167,6 +173,18 @@ const Navbar = () => {
                 </div>
               )}
             </div>
+
+            {/* Mobile Toggler */}
+            {!isTenant && (
+              <button 
+                className="navbar-toggler border-0 px-1 ms-1 d-lg-none" 
+                type="button" 
+                onClick={() => setIsNavOpen(!isNavOpen)}
+                style={{ boxShadow: "none" }}
+              >
+                {isNavOpen ? <X size={28} className="text-dark" /> : <span className="navbar-toggler-icon"></span>}
+              </button>
+            )}
           </div>
         </div>
       </nav>
