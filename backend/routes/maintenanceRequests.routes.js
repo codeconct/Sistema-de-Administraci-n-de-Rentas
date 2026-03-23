@@ -180,7 +180,7 @@ router.post('/maintenancerequests', authMiddleware, async (req, res) => {
 });
 
 router.patch('/maintenancerequests/:id/status', authMiddleware, async (req, res) => {
-  if (!['owner', 'tenant'].includes(req.user.role)) {
+  if (req.user.role !== 'tenant') {
     return res.status(403).json({ message: 'User role not allowed to update request status' });
   }
 
@@ -195,55 +195,22 @@ router.patch('/maintenancerequests/:id/status', authMiddleware, async (req, res)
 
   try {
     await ensureMaintenanceRequestsTable();
-    let result;
-
-    if (req.user.role === 'tenant') {
-      result = await pool.query(
-        `
-        UPDATE maintenancerequests
-        SET status = $1, completiondate = ${completionValue}
-        WHERE requestid = $2
-          AND tenantid = $3
-        RETURNING requestid
-        `,
-        [status, id, req.user.id]
-      );
-    } else {
-      const updateCurrent = `
-        UPDATE maintenancerequests mr
-        SET status = $1, completiondate = ${completionValue}
-        FROM apartments a
-        WHERE mr.requestid = $2
-          AND a.id = mr.apartmentid
-          AND a.ownerid = $3
-        RETURNING mr.requestid
-      `;
-
-      const updateLegacy = `
-        UPDATE maintenancerequests mr
-        SET status = $1, completiondate = ${completionValue}
-        FROM apartments a
-        WHERE mr.requestid = $2
-          AND a.apartmentid = mr.apartmentid
-          AND a.ownerid = $3
-        RETURNING mr.requestid
-      `;
-
-      try {
-        result = await pool.query(updateCurrent, [status, id, req.user.id]);
-      } catch (err) {
-        if (err?.code !== UNDEFINED_COLUMN) {
-          throw err;
-        }
-        result = await pool.query(updateLegacy, [status, id, req.user.id]);
-      }
-    }
+    const result = await pool.query(
+      `
+      UPDATE maintenancerequests
+      SET status = $1, completiondate = ${completionValue}
+      WHERE requestid = $2
+        AND tenantid = $3
+      RETURNING requestid
+      `,
+      [status, id, req.user.id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Request not found' });
     }
 
-    const allRequests = await runRequestsQuery(req.user.role, req.user.id);
+    const allRequests = await runRequestsQuery('tenant', req.user.id);
     const updated = allRequests.rows.find(
       (row) => row.request_id === result.rows[0].requestid
     );

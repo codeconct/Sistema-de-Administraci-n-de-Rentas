@@ -49,7 +49,6 @@ const Incidencias = () => {
   const [orden, setOrden] = useState("recientes");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [updatingId, setUpdatingId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -92,50 +91,6 @@ const Incidencias = () => {
     setFiltroBusqueda("");
     setFiltroEstado("todas");
     setOrden("recientes");
-  };
-
-  const actualizarEstado = async (id, status) => {
-    if (updatingId === id) {
-      return;
-    }
-
-    const token = localStorage.getItem("token");
-
-    try {
-      setUpdatingId(id);
-      setError("");
-
-      const response = await fetch(api(`/maintenancerequests/${id}/status`), {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status }),
-      });
-
-      const data = await leerRespuesta(response);
-
-      if (!response.ok) {
-        throw new Error(
-          data?.message ||
-            data?.error ||
-            (data?.raw?.startsWith("<!DOCTYPE") ? "La ruta para actualizar estado no existe en la API desplegada." : null) ||
-            "No se pudo actualizar la incidencia"
-        );
-      }
-
-      setIncidenciasData((prev) =>
-        prev.map((incidencia) =>
-          incidencia.id === id ? normalizarIncidencia(data) : incidencia
-        )
-      );
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "No se pudo actualizar la incidencia");
-    } finally {
-      setUpdatingId(null);
-    }
   };
 
   const incidencias = useMemo(() => {
@@ -306,28 +261,13 @@ const Incidencias = () => {
 
                   <div className="incidencias-cell">
                     <span className="incidencias-mobile-label">Estado</span>
-                    <div className="incidencias-status-group">
-                      <button
-                        type="button"
-                        className={`incidencias-status-pill ${
-                          incidencia.status === "resuelta" ? "is-success" : "is-muted"
-                        }`}
-                        onClick={() => actualizarEstado(incidencia.id, "resuelta")}
-                        disabled={updatingId === incidencia.id}
-                      >
-                        Resuelta
-                      </button>
-                      <button
-                        type="button"
-                        className={`incidencias-status-pill ${
-                          incidencia.status === "pendiente" ? "is-warning" : "is-muted"
-                        }`}
-                        onClick={() => actualizarEstado(incidencia.id, "pendiente")}
-                        disabled={updatingId === incidencia.id}
-                      >
-                        Pendiente
-                      </button>
-                    </div>
+                    <span
+                      className={`incidencias-status-badge ${
+                        incidencia.status === "resuelta" ? "is-success" : "is-warning"
+                      }`}
+                    >
+                      {incidencia.status === "resuelta" ? "Resuelta" : "Pendiente"}
+                    </span>
                   </div>
                 </article>
               ))}

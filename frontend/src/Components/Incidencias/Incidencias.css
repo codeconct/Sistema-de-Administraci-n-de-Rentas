@@ -226,55 +226,25 @@
   word-break: break-word;
 }
 
-.incidencias-status-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: nowrap;
-}
-
-.incidencias-status-pill {
+.incidencias-status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 8px 14px;
-  border-radius: 8px;
+  min-width: 120px;
+  padding: 9px 14px;
+  border-radius: 999px;
   font-weight: 700;
   font-size: 0.92rem;
-  border: 1px solid #e1e7f0;
-  background: #fff;
-  color: #8a97ab;
-  cursor: pointer;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
-.incidencias-status-pill:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(148, 163, 184, 0.18);
+.incidencias-status-badge.is-success {
+  background: rgba(50, 210, 79, 0.14);
+  color: #22963a;
 }
 
-.incidencias-status-pill:disabled {
-  opacity: 0.7;
-  cursor: wait;
-}
-
-.incidencias-status-pill.is-success {
-  background: #32d24f;
-  border-color: #32d24f;
-  color: #fff;
-}
-
-.incidencias-status-pill.is-warning {
-  background: #f4b616;
-  border-color: #f4b616;
-  color: #fff;
-}
-
-.incidencias-status-pill.is-muted {
-  background: #fff;
-  color: #8a97ab;
+.incidencias-status-badge.is-warning {
+  background: rgba(244, 182, 22, 0.18);
+  color: #b07a00;
 }
 
 .incidencias-empty-state {
@@ -384,12 +354,8 @@
     height: 180px;
   }
 
-  .incidencias-status-group {
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .incidencias-status-pill {
-    flex: 1 1 120px;
+  .incidencias-status-badge {
+    width: 100%;
+    max-width: 180px;
   }
 }
