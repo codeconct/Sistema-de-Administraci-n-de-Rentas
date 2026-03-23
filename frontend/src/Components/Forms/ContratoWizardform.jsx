@@ -85,7 +85,7 @@ export default function ContractWizardModal({ show, onClose, selectedApartmentId
     contract: {
       price: "",
       startDate: "",
-      endDate: "",
+      monthlyAmount: "",
       file: null
     }
   });
@@ -99,7 +99,7 @@ export default function ContractWizardModal({ show, onClose, selectedApartmentId
         tenant: formData.tenant,
         guarantor: formData.guarantor,
         startdate: formData.contract.startDate,
-        enddate: formData.contract.endDate,
+        monthlyAmount: formData.contract.monthlyAmount,
         depositamount: formData.contract.price,
         status: "ACTIVE"
       };
