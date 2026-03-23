@@ -42,6 +42,11 @@ const normalizarIncidencia = (incidencia) => ({
     "Sin descripcion",
 });
 
+const obtenerMarcaTiempo = (fecha) => {
+  const timestamp = new Date(fecha).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
 const Incidencias = () => {
   const [incidenciasData, setIncidenciasData] = useState([]);
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
@@ -113,14 +118,24 @@ const Incidencias = () => {
     });
 
     return [...filtradas].sort((a, b) => {
-      const fechaA = new Date(a.fecha).getTime();
-      const fechaB = new Date(b.fecha).getTime();
+      const fechaA = obtenerMarcaTiempo(a.fecha);
+      const fechaB = obtenerMarcaTiempo(b.fecha);
+      const idA = Number(a.id) || 0;
+      const idB = Number(b.id) || 0;
 
       if (orden === "recientes") {
-        return fechaB - fechaA;
+        if (fechaB !== fechaA) {
+          return fechaB - fechaA;
+        }
+
+        return idB - idA;
       }
 
-      return fechaA - fechaB;
+      if (fechaA !== fechaB) {
+        return fechaA - fechaB;
+      }
+
+      return idA - idB;
     });
   }, [filtroBusqueda, filtroEstado, incidenciasData, orden]);
 
