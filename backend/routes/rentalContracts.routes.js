@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import pool from '../db.js';
 import { createClient } from '@supabase/supabase-js';
+import multer from "multer";
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
