@@ -170,7 +170,7 @@ const Incidencias = () => {
                 onClick={() => setOrden("recientes")}
               >
                 <i className="bi bi-calendar4-week" />
-                Mas recientes primero
+                Más recientes primero
               </button>
               <button
                 type="button"
@@ -178,7 +178,7 @@ const Incidencias = () => {
                 onClick={() => setOrden("antiguas")}
               >
                 <i className="bi bi-calendar4-event" />
-                Mas antiguas primero
+                Más antiguas primero
               </button>
             </div>
           </div>
