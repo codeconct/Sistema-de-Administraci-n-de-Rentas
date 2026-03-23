@@ -4,6 +4,28 @@ import pool from '../db.js';
 
 const router = Router();
 
+const getMonthsDuration = (startdate, enddate) => {
+  if (!startdate) {
+    return 1;
+  }
+
+  if (!enddate) {
+    return 1;
+  }
+
+  const start = new Date(startdate);
+  const end = new Date(enddate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    return 1;
+  }
+
+  const years = end.getFullYear() - start.getFullYear();
+  const months = end.getMonth() - start.getMonth();
+
+  return Math.max(1, years * 12 + months + 1);
+};
+
 // GET all contracts
 router.get('/rentalcontracts', async (req, res) => {
   try {
@@ -129,7 +151,9 @@ router.post('/rentalcontracts', async (req, res) => {
     // You should replace this with actual monthly rent if you have it
     const monthlyAmount = depositamount || 0;
 
-    for (let i = 0; i < months_duration; i++) {
+    const monthsDuration = getMonthsDuration(startdate, enddate);
+
+    for (let i = 0; i < monthsDuration; i++) {
       const dueDate = new Date(start);
       dueDate.setMonth(dueDate.getMonth() + i);
 
