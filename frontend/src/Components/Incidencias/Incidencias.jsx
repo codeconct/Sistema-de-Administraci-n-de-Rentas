@@ -40,6 +40,7 @@ const normalizarIncidencia = (incidencia) => ({
     incidencia?.descripcion ||
     incidencia?.description ||
     "Sin descripcion",
+  media: Array.isArray(incidencia?.media) ? incidencia.media : [],
 });
 
 const obtenerMarcaTiempo = (fecha) => {
@@ -48,6 +49,7 @@ const obtenerMarcaTiempo = (fecha) => {
 };
 
 const Incidencias = () => {
+  const obtenerToken = () => localStorage.getItem("token") || "";
   const [incidenciasData, setIncidenciasData] = useState([]);
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todas");
@@ -55,9 +57,18 @@ const Incidencias = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  const construirMediaUrl = (id) => {
+    const token = obtenerToken();
+    return api(`/maintenancerequests/media/${id}?token=${encodeURIComponent(token)}`);
+  };
+  const abrirEvidencia = (url) => {
+    if (!url) {
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
+  useEffect(() => {
     const cargarIncidencias = async () => {
       try {
         setLoading(true);
@@ -65,7 +76,7 @@ const Incidencias = () => {
 
         const response = await fetch(api("/maintenancerequests"), {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${obtenerToken()}`,
           },
         });
 
@@ -80,7 +91,34 @@ const Incidencias = () => {
           );
         }
 
-        setIncidenciasData(Array.isArray(data) ? data.map(normalizarIncidencia) : []);
+        const base = Array.isArray(data) ? data.map(normalizarIncidencia) : [];
+        const enriquecidas = await Promise.all(
+          base.map(async (incidencia) => {
+            try {
+              const mediaResponse = await fetch(
+                api(`/maintenancerequests/${incidencia.id}/media`),
+                {
+                  headers: {
+                    Authorization: `Bearer ${obtenerToken()}`,
+                  },
+                }
+              );
+              const mediaData = await leerRespuesta(mediaResponse);
+              if (!mediaResponse.ok) {
+                return incidencia;
+              }
+              return {
+                ...incidencia,
+                media: Array.isArray(mediaData) ? mediaData : [],
+              };
+            } catch (mediaErr) {
+              console.error(mediaErr);
+              return incidencia;
+            }
+          })
+        );
+
+        setIncidenciasData(enriquecidas);
       } catch (err) {
         console.error(err);
         setError(err.message || "No se pudieron cargar las incidencias");
@@ -237,11 +275,28 @@ const Incidencias = () => {
                 <article className="incidencias-row" key={incidencia.id}>
                   <div className="incidencias-cell incidencias-image-cell">
                     <span className="incidencias-mobile-label">Imagen</span>
-                    <img
-                      src={incidencia.img}
-                      alt="Vivienda"
-                      className="incidencias-image"
-                    />
+                    {incidencia.media?.[0] ? (
+                      incidencia.media[0].tipo === "VIDEO" ? (
+                        <video
+                          src={construirMediaUrl(incidencia.media[0].id)}
+                          className="incidencias-image"
+                          controls
+                          preload="metadata"
+                        />
+                      ) : (
+                        <img
+                          src={construirMediaUrl(incidencia.media[0].id)}
+                          alt="Evidencia"
+                          className="incidencias-image"
+                        />
+                      )
+                    ) : (
+                      <img
+                        src={incidencia.img}
+                        alt="Vivienda"
+                        className="incidencias-image"
+                      />
+                    )}
                   </div>
 
                   <div className="incidencias-cell">
@@ -272,6 +327,46 @@ const Incidencias = () => {
                     <div className="incidencias-description-box">
                       {incidencia.descripcion}
                     </div>
+                    {incidencia.media?.length ? (
+                      <div className="incidencias-media-grid">
+                        {incidencia.media.map((media) =>
+                          media.tipo === "VIDEO" ? (
+                            <div className="incidencias-media-card" key={media.id}>
+                              <video
+                                src={construirMediaUrl(media.id)}
+                                controls
+                                preload="metadata"
+                              />
+                              <button
+                                type="button"
+                                className="incidencias-media-btn"
+                                onClick={() => abrirEvidencia(construirMediaUrl(media.id))}
+                              >
+                                Ver evidencia
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="incidencias-media-card" key={media.id}>
+                              <img
+                                src={construirMediaUrl(media.id)}
+                                alt="Evidencia"
+                              />
+                              <button
+                                type="button"
+                                className="incidencias-media-btn"
+                                onClick={() => abrirEvidencia(construirMediaUrl(media.id))}
+                              >
+                                Ver evidencia
+                              </button>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <div className="incidencias-media-empty">
+                        Sin evidencias adjuntas.
+                      </div>
+                    )}
                   </div>
 
                   <div className="incidencias-cell">

@@ -123,6 +123,21 @@ CREATE TABLE maintenancerequests (
 );
 
 -- ===============================
+-- Maintenance Request Media
+-- ===============================
+CREATE TABLE maintenancerequest_media (
+    id SERIAL PRIMARY KEY,
+    request_id INT NOT NULL REFERENCES maintenancerequests(requestid) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    file_size INT NOT NULL,
+    storage_path TEXT NOT NULL,
+    tipo VARCHAR(10) CHECK (tipo IN ('IMAGEN','VIDEO')) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- ===============================
 -- Mora Settings
 -- ===============================
 CREATE TABLE morasettings (

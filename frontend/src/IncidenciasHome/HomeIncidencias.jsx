@@ -5,6 +5,17 @@ import { api } from "../api";
 import "./HomeIncidencias.css";
 
 const LIMITE_DESCRIPCION = 220;
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const EXTENSIONES_VALIDAS = new Set([
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".webp",
+  ".gif",
+  ".mp4",
+  ".webm",
+  ".mov",
+]);
 
 const leerRespuesta = async (response) => {
   const text = await response.text();
@@ -44,23 +55,36 @@ const normalizarIncidencia = (incidencia) => ({
     incidencia?.descripcion ||
     incidencia?.description ||
     "Sin descripcion",
+  media: Array.isArray(incidencia?.media) ? incidencia.media : [],
 });
 
 const HomeIncidencias = () => {
   const navigate = useNavigate();
+  const obtenerToken = () => localStorage.getItem("token") || "";
   const [incidenciasData, setIncidenciasData] = useState([]);
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todas");
   const [orden, setOrden] = useState("recientes");
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevaDescripcion, setNuevaDescripcion] = useState("");
+  const [archivos, setArchivos] = useState([]);
+  const [erroresArchivos, setErroresArchivos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
+  const construirMediaUrl = (id) => {
+    const token = obtenerToken();
+    return api(`/maintenancerequests/media/${id}?token=${encodeURIComponent(token)}`);
+  };
+  const abrirEvidencia = (url) => {
+    if (!url) {
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
+  useEffect(() => {
     const cargarIncidencias = async () => {
       try {
         setLoading(true);
@@ -68,7 +92,7 @@ const HomeIncidencias = () => {
 
         const response = await fetch(api("/maintenancerequests"), {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${obtenerToken()}`,
           },
         });
 
@@ -83,7 +107,34 @@ const HomeIncidencias = () => {
           );
         }
 
-        setIncidenciasData(Array.isArray(data) ? data.map(normalizarIncidencia) : []);
+        const base = Array.isArray(data) ? data.map(normalizarIncidencia) : [];
+        const enriquecidas = await Promise.all(
+          base.map(async (incidencia) => {
+            try {
+              const mediaResponse = await fetch(
+                api(`/maintenancerequests/${incidencia.id}/media`),
+                {
+                  headers: {
+                    Authorization: `Bearer ${obtenerToken()}`,
+                  },
+                }
+              );
+              const mediaData = await leerRespuesta(mediaResponse);
+              if (!mediaResponse.ok) {
+                return incidencia;
+              }
+              return {
+                ...incidencia,
+                media: Array.isArray(mediaData) ? mediaData : [],
+              };
+            } catch (mediaErr) {
+              console.error(mediaErr);
+              return incidencia;
+            }
+          })
+        );
+
+        setIncidenciasData(enriquecidas);
       } catch (err) {
         console.error(err);
         setError(err.message || "No se pudieron cargar las incidencias");
@@ -102,8 +153,6 @@ const HomeIncidencias = () => {
   };
 
   const actualizarEstado = async (id, status) => {
-    const token = localStorage.getItem("token");
-
     try {
       setError("");
 
@@ -111,7 +160,7 @@ const HomeIncidencias = () => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${obtenerToken()}`,
         },
         body: JSON.stringify({ status }),
       });
@@ -129,7 +178,12 @@ const HomeIncidencias = () => {
 
       setIncidenciasData((prev) =>
         prev.map((incidencia) =>
-          incidencia.id === id ? normalizarIncidencia(data) : incidencia
+          incidencia.id === id
+            ? {
+                ...normalizarIncidencia(data),
+                media: incidencia.media || [],
+              }
+            : incidencia
         )
       );
     } catch (err) {
@@ -139,9 +193,63 @@ const HomeIncidencias = () => {
   };
 
   const cerrarModal = () => {
+    archivos.forEach((archivo) => {
+      if (archivo.preview) {
+        URL.revokeObjectURL(archivo.preview);
+      }
+    });
     setMostrarModal(false);
     setNuevaDescripcion("");
+    setArchivos([]);
+    setErroresArchivos([]);
     setError("");
+  };
+
+  const agregarArchivos = (event) => {
+    const seleccionados = Array.from(event.target.files || []);
+    if (!seleccionados.length) {
+      return;
+    }
+
+    const nuevos = [];
+    const errores = [];
+
+    seleccionados.forEach((file) => {
+      const index = file.name.lastIndexOf(".");
+      const ext = index >= 0 ? file.name.slice(index).toLowerCase() : "";
+
+      if (!EXTENSIONES_VALIDAS.has(ext)) {
+        errores.push(`${file.name}: formato no permitido.`);
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        errores.push(`${file.name}: excede 10 MB.`);
+        return;
+      }
+
+      nuevos.push({
+        id: `${file.name}-${file.size}-${file.lastModified}`,
+        file,
+        tipo: file.type?.startsWith("video/") ? "VIDEO" : "IMAGEN",
+        preview: URL.createObjectURL(file),
+      });
+    });
+
+    setArchivos((prev) => [...prev, ...nuevos]);
+    setErroresArchivos(errores);
+    event.target.value = "";
+  };
+
+  const quitarArchivo = (id) => {
+    setArchivos((prev) => {
+      const actualizado = prev.filter((archivo) => archivo.id !== id);
+      const eliminado = prev.find((archivo) => archivo.id === id);
+      if (eliminado?.preview) {
+        URL.revokeObjectURL(eliminado.preview);
+      }
+      return actualizado;
+    });
   };
 
   const crearIncidencia = async () => {
@@ -151,9 +259,8 @@ const HomeIncidencias = () => {
       return;
     }
 
-    const token = localStorage.getItem("token");
-
     try {
+      const token = obtenerToken();
       const decoded = token ? jwtDecode(token) : null;
       const tenantid = decoded?.id;
 
@@ -185,7 +292,45 @@ const HomeIncidencias = () => {
         );
       }
 
-      setIncidenciasData((prev) => [normalizarIncidencia(data), ...prev]);
+      let incidenciaCreada = normalizarIncidencia(data);
+
+      if (archivos.length) {
+        try {
+          const formData = new FormData();
+          archivos.forEach((archivo) => {
+            formData.append("media", archivo.file);
+          });
+
+          const mediaResponse = await fetch(
+            api(`/maintenancerequests/${incidenciaCreada.id}/media`),
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              body: formData,
+            }
+          );
+
+          const mediaData = await leerRespuesta(mediaResponse);
+
+          if (!mediaResponse.ok) {
+            throw new Error(
+              mediaData?.message || mediaData?.error || "No se pudieron subir los archivos"
+            );
+          }
+
+          incidenciaCreada = {
+            ...incidenciaCreada,
+            media: Array.isArray(mediaData) ? mediaData : [],
+          };
+        } catch (uploadErr) {
+          console.error(uploadErr);
+          setError(uploadErr.message || "No se pudieron subir los archivos");
+        }
+      }
+
+      setIncidenciasData((prev) => [incidenciaCreada, ...prev]);
       setFiltroEstado("todas");
       setOrden("recientes");
       cerrarModal();
@@ -346,7 +491,24 @@ const HomeIncidencias = () => {
                 <article className="home-incidencias-row" key={incidencia.id}>
                   <div className="home-incidencias-cell home-incidencias-image-cell">
                     <span className="home-incidencias-mobile-label">Imagen</span>
-                    <img src={incidencia.img} alt="Vivienda" className="home-incidencias-image" />
+                    {incidencia.media?.[0] ? (
+                      incidencia.media[0].tipo === "VIDEO" ? (
+                        <video
+                          src={construirMediaUrl(incidencia.media[0].id)}
+                          className="home-incidencias-image"
+                          controls
+                          preload="metadata"
+                        />
+                      ) : (
+                        <img
+                          src={construirMediaUrl(incidencia.media[0].id)}
+                          alt="Evidencia"
+                          className="home-incidencias-image"
+                        />
+                      )
+                    ) : (
+                      <img src={incidencia.img} alt="Vivienda" className="home-incidencias-image" />
+                    )}
                   </div>
 
                   <div className="home-incidencias-cell">
@@ -377,6 +539,46 @@ const HomeIncidencias = () => {
                     <div className="home-incidencias-description-box">
                       {incidencia.descripcion}
                     </div>
+                    {incidencia.media?.length ? (
+                      <div className="home-incidencias-media-grid">
+                        {incidencia.media.map((media) =>
+                          media.tipo === "VIDEO" ? (
+                            <div className="home-incidencias-media-card" key={media.id}>
+                              <video
+                                src={construirMediaUrl(media.id)}
+                                controls
+                                preload="metadata"
+                              />
+                              <button
+                                type="button"
+                                className="home-incidencias-media-btn"
+                                onClick={() => abrirEvidencia(construirMediaUrl(media.id))}
+                              >
+                                Ver evidencia
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="home-incidencias-media-card" key={media.id}>
+                              <img
+                                src={construirMediaUrl(media.id)}
+                                alt="Evidencia"
+                              />
+                              <button
+                                type="button"
+                                className="home-incidencias-media-btn"
+                                onClick={() => abrirEvidencia(construirMediaUrl(media.id))}
+                              >
+                                Ver evidencia
+                              </button>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <div className="home-incidencias-media-empty">
+                        Sin evidencias adjuntas.
+                      </div>
+                    )}
                   </div>
 
                   <div className="home-incidencias-cell">
@@ -449,6 +651,50 @@ const HomeIncidencias = () => {
               />
               <div className="home-incidencias-modal-counter">
                 {nuevaDescripcion.length}/{LIMITE_DESCRIPCION}
+              </div>
+
+              <div className="home-incidencias-upload">
+                <label className="home-incidencias-upload-box">
+                  <input
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    onChange={agregarArchivos}
+                  />
+                  <i className="bi bi-cloud-arrow-up" />
+                  <div>
+                    <strong>Adjunta imagenes o videos</strong>
+                    <p>Formatos permitidos: jpg, png, gif, webp, mp4, webm, mov (max 10 MB)</p>
+                  </div>
+                </label>
+
+                {erroresArchivos.length ? (
+                  <ul className="home-incidencias-upload-errors">
+                    {erroresArchivos.map((mensaje) => (
+                      <li key={mensaje}>{mensaje}</li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                {archivos.length ? (
+                  <div className="home-incidencias-upload-list">
+                    {archivos.map((archivo) => (
+                      <div className="home-incidencias-upload-item" key={archivo.id}>
+                        {archivo.tipo === "VIDEO" ? (
+                          <video src={archivo.preview} muted controls />
+                        ) : (
+                          <img src={archivo.preview} alt={archivo.file.name} />
+                        )}
+                        <div>
+                          <p>{archivo.file.name}</p>
+                          <button type="button" onClick={() => quitarArchivo(archivo.id)}>
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
 

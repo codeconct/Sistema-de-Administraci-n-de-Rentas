@@ -264,6 +264,51 @@
   word-break: break-word;
 }
 
+.home-incidencias-media-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.home-incidencias-media-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-incidencias-media-grid img,
+.home-incidencias-media-grid video {
+  width: 100%;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f2;
+}
+
+.home-incidencias-media-btn {
+  border: 1px solid #dbe2ec;
+  background: #fff;
+  color: #4f5d75;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  transition: all 0.18s ease;
+}
+
+.home-incidencias-media-btn:hover {
+  background: #eef3f9;
+  border-color: #cfd8e5;
+}
+
+.home-incidencias-media-empty {
+  margin-top: 10px;
+  font-size: 0.84rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
 .home-incidencias-status-group {
   display: flex;
   align-items: center;
