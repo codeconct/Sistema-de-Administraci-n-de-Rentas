@@ -13,11 +13,11 @@ export default function ContratoForm({ data, update }) {
                 </div>
 
                 <div className="col-md-6 mb-3">
-                    <label className="form-label">Fecha de fin</label>
+                    <label className="form-label">Duracion (Meses)</label>
                     <input
                         className="form-control"
-                        type="date" value={data.endDate}
-                        onChange={(e) => update("endDate", e.target.value)} />
+                        type="number" value={data.monthlyAmount}
+                        onChange={(e) => update("monthlyAmount", e.target.value)} />
                 </div>
             </div>
 
