@@ -9,6 +9,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 const router = Router();
 
+// ⚙️ Configure multer to use memory storage instead of disk
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
 const getMonthsDuration = (startdate, enddate) => {
   if (!startdate) {
     return 1;
