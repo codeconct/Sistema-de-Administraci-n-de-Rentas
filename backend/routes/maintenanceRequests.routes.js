@@ -53,6 +53,24 @@ const runRequestsQuery = async (role, userId) => {
     ? 'WHERE a.ownerid = $1'
     : 'WHERE mr.tenantid = $1';
 
+  const queryWithCurrentColumns = `
+    SELECT
+      mr.requestid AS request_id,
+      mr.apartmentid AS apartment_id,
+      mr.tenantid AS tenant_id,
+      mr.requestdate AS request_date,
+      mr.description,
+      mr.status,
+      mr.completiondate AS completion_date,
+      CONCAT_WS(', ', a.street, a.division, a.int_num, a.city, a.state, a.postal_code) AS apartment_address,
+      t.name AS tenant_name
+    FROM maintenancerequests mr
+    JOIN apartments a ON a.id = mr.apartmentid
+    LEFT JOIN tenants t ON t.id = mr.tenantid
+    ${whereClause}
+    ORDER BY mr.requestdate DESC, mr.requestid DESC
+  `;
+
   const queryWithLegacyColumns = `
     SELECT
       mr.requestid AS request_id,
@@ -71,43 +89,17 @@ const runRequestsQuery = async (role, userId) => {
     ORDER BY mr.requestdate DESC, mr.requestid DESC
   `;
 
-  const queryWithCurrentColumns = `
-    SELECT
-      mr.requestid AS request_id,
-      mr.apartmentid AS apartment_id,
-      mr.tenantid AS tenant_id,
-      mr.requestdate AS request_date,
-      mr.description,
-      mr.status,
-      mr.completiondate AS completion_date,
-      COALESCE(a.address, CONCAT_WS(', ', a.street, a.division, a.int_num, a.city, a.state)) AS apartment_address,
-      t.name AS tenant_name
-    FROM maintenancerequests mr
-    JOIN apartments a ON a.id = mr.apartmentid
-    LEFT JOIN tenants t ON COALESCE(t.id, t.tenantid) = mr.tenantid
-    ${whereClause}
-    ORDER BY mr.requestdate DESC, mr.requestid DESC
-  `;
-
   try {
-    return await pool.query(queryWithLegacyColumns, [userId]);
+    return await pool.query(queryWithCurrentColumns, [userId]);
   } catch (err) {
     if (err?.code !== UNDEFINED_COLUMN) {
       throw err;
     }
-    return pool.query(queryWithCurrentColumns, [userId]);
+    return pool.query(queryWithLegacyColumns, [userId]);
   }
 };
 
 const findTenantApartmentId = async (tenantId) => {
-  const queryLegacy = `
-    SELECT rc.apartmentid
-    FROM rentalcontracts rc
-    WHERE rc.tenantid = $1
-    ORDER BY rc.startdate DESC NULLS LAST, rc.contractid DESC
-    LIMIT 1
-  `;
-
   const queryCurrent = `
     SELECT rc.apartmentid
     FROM rentalcontracts rc
@@ -116,14 +108,22 @@ const findTenantApartmentId = async (tenantId) => {
     LIMIT 1
   `;
 
+  const queryLegacy = `
+    SELECT rc.apartmentid
+    FROM rentalcontracts rc
+    WHERE rc.tenantid = $1
+    ORDER BY rc.startdate DESC NULLS LAST, rc.contractid DESC
+    LIMIT 1
+  `;
+
   try {
-    const result = await pool.query(queryLegacy, [tenantId]);
+    const result = await pool.query(queryCurrent, [tenantId]);
     return result.rows[0]?.apartmentid ?? null;
   } catch (err) {
     if (err?.code !== UNDEFINED_COLUMN) {
       throw err;
     }
-    const result = await pool.query(queryCurrent, [tenantId]);
+    const result = await pool.query(queryLegacy, [tenantId]);
     return result.rows[0]?.apartmentid ?? null;
   }
 };
@@ -193,16 +193,6 @@ router.patch('/maintenancerequests/:id/status', authMiddleware, async (req, res)
 
   const completionValue = status === 'COMPLETED' ? 'CURRENT_DATE' : 'NULL';
 
-  const updateLegacy = `
-    UPDATE maintenancerequests mr
-    SET status = $1, completiondate = ${completionValue}
-    FROM apartments a
-    WHERE mr.requestid = $2
-      AND a.apartmentid = mr.apartmentid
-      AND a.ownerid = $3
-    RETURNING mr.requestid
-  `;
-
   const updateCurrent = `
     UPDATE maintenancerequests mr
     SET status = $1, completiondate = ${completionValue}
@@ -213,17 +203,27 @@ router.patch('/maintenancerequests/:id/status', authMiddleware, async (req, res)
     RETURNING mr.requestid
   `;
 
+  const updateLegacy = `
+    UPDATE maintenancerequests mr
+    SET status = $1, completiondate = ${completionValue}
+    FROM apartments a
+    WHERE mr.requestid = $2
+      AND a.apartmentid = mr.apartmentid
+      AND a.ownerid = $3
+    RETURNING mr.requestid
+  `;
+
   try {
     await ensureMaintenanceRequestsTable();
     let result;
 
     try {
-      result = await pool.query(updateLegacy, [status, id, req.user.id]);
+      result = await pool.query(updateCurrent, [status, id, req.user.id]);
     } catch (err) {
       if (err?.code !== UNDEFINED_COLUMN) {
         throw err;
       }
-      result = await pool.query(updateCurrent, [status, id, req.user.id]);
+      result = await pool.query(updateLegacy, [status, id, req.user.id]);
     }
 
     if (result.rows.length === 0) {
