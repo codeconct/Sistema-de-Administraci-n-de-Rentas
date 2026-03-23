@@ -85,6 +85,7 @@ router.post('webhooks/openpay', async (req, res) => {
 
     try {
         const evento = req.body;
+        console.log(evento);
 
         if (evento.type === 'charge.succeeded') {
             const transaccion = evento.transaction;
