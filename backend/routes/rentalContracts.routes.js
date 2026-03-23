@@ -55,8 +55,8 @@ router.get('/rentalcontracts/:id', async (req, res) => {
   }
 });
 
-router.post('/rentalcontracts', async (req, res) => {
-  const {
+router.post('/rentalcontracts', upload.single("file"), async (req, res) => {
+  let {
     apartmentid,
     tenant,
     guarantor,
@@ -66,6 +66,14 @@ router.post('/rentalcontracts', async (req, res) => {
     status
   } = req.body;
 
+  if (typeof tenant === 'string') {
+    try { tenant = JSON.parse(tenant); } catch (e) {}
+  }
+  if (typeof guarantor === 'string') {
+    try { guarantor = JSON.parse(guarantor); } catch (e) {}
+  }
+
+  const file = req.file;
   const client = await pool.connect();
 
   try {
@@ -73,12 +81,7 @@ router.post('/rentalcontracts', async (req, res) => {
 
     /* -------- TENANT UPSERT -------- */
     const existingTenant = await client.query(
-      `
-      SELECT id
-      FROM tenants
-      WHERE LOWER(name) = LOWER($1)
-      LIMIT 1
-      `,
+      `SELECT id FROM tenants WHERE LOWER(name) = LOWER($1) LIMIT 1`,
       [tenant.name]
     );
 
@@ -88,22 +91,17 @@ router.post('/rentalcontracts', async (req, res) => {
       tenantId = existingTenant.rows[0].id;
 
       await client.query(
-        `
-        UPDATE tenants
-        SET
-          email = COALESCE($1, email),
-          phone = COALESCE($2, phone)
-        WHERE id = $3
-        `,
+        `UPDATE tenants
+         SET email = COALESCE($1, email),
+             phone = COALESCE($2, phone)
+         WHERE id = $3`,
         [tenant.email || null, tenant.phone || null, tenantId]
       );
     } else {
       const tenantInsert = await client.query(
-        `
-        INSERT INTO tenants (name, email, phone, governmentid, passwordhash)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id
-        `,
+        `INSERT INTO tenants (name, email, phone, governmentid, passwordhash)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
         [
           tenant.name,
           tenant.email || null,
@@ -116,19 +114,12 @@ router.post('/rentalcontracts', async (req, res) => {
       tenantId = tenantInsert.rows[0].id;
     }
 
-
     /* -------- GUARANTOR UPSERT -------- */
-
     let guarantorId = null;
 
     if (guarantor?.name) {
       const existingGuarantor = await client.query(
-        `
-        SELECT id
-        FROM guarantors
-        WHERE LOWER(name) = LOWER($1)
-        LIMIT 1
-        `,
+        `SELECT id FROM guarantors WHERE LOWER(name) = LOWER($1) LIMIT 1`,
         [guarantor.name]
       );
 
@@ -136,14 +127,11 @@ router.post('/rentalcontracts', async (req, res) => {
         guarantorId = existingGuarantor.rows[0].id;
 
         await client.query(
-          `
-          UPDATE guarantors
-          SET
-            address = COALESCE($1, address),
-            email = COALESCE($2, email),
-            phone = COALESCE($3, phone)
-          WHERE id = $4
-          `,
+          `UPDATE guarantors
+           SET address = COALESCE($1, address),
+               email = COALESCE($2, email),
+               phone = COALESCE($3, phone)
+           WHERE id = $4`,
           [
             guarantor.address || null,
             guarantor.email || null,
@@ -153,11 +141,9 @@ router.post('/rentalcontracts', async (req, res) => {
         );
       } else {
         const guarantorInsert = await client.query(
-          `
-          INSERT INTO guarantors (name, address, email, phone, governmentid)
-          VALUES ($1, $2, $3, $4, $5)
-          RETURNING id
-          `,
+          `INSERT INTO guarantors (name, address, email, phone, governmentid)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id`,
           [
             guarantor.name,
             guarantor.address || null,
@@ -171,16 +157,12 @@ router.post('/rentalcontracts', async (req, res) => {
       }
     }
 
-
     /* -------- CONTRACT INSERT -------- */
-
     const contractResult = await client.query(
-      `
-      INSERT INTO rentalcontracts
-      (apartmentid, tenantid, guarantorid, startdate, enddate, depositamount, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *
-      `,
+      `INSERT INTO rentalcontracts
+       (apartmentid, tenantid, guarantorid, startdate, enddate, depositamount, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
       [
         apartmentid,
         tenantId,
@@ -192,16 +174,40 @@ router.post('/rentalcontracts', async (req, res) => {
       ]
     );
 
-    /* -------- INVOICE GENERATION -------- */
-
     const contract = contractResult.rows[0];
 
-    // Base date
+    /* -------- FILE UPLOAD -------- */
+    let fileUrl = null;
+
+    if (file) {
+      const uniqueName = `${Date.now()}-${file.originalname}`;
+
+      const { error } = await supabase.storage
+        .from('Documents')
+        .upload(uniqueName, file.buffer, {
+          contentType: file.mimetype,
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      const { data: publicUrlData } = supabase.storage
+        .from('Documents')
+        .getPublicUrl(uniqueName);
+
+      fileUrl = publicUrlData.publicUrl;
+
+      // OPTIONAL: store file in DB
+      await client.query(
+        `INSERT INTO contract_documents (contractid, fileurl, filename)
+         VALUES ($1, $2, $3)`,
+        [contract.id, fileUrl, uniqueName]
+      );
+    }
+
+    /* -------- INVOICES -------- */
     const start = new Date(startdate);
-
-    // You should replace this with actual monthly rent if you have it
     const monthlyAmount = depositamount || 0;
-
     const monthsDuration = getMonthsDuration(startdate, enddate);
 
     for (let i = 0; i < monthsDuration; i++) {
@@ -209,35 +215,26 @@ router.post('/rentalcontracts', async (req, res) => {
       dueDate.setMonth(dueDate.getMonth() + i);
 
       await client.query(
-        `
-        INSERT INTO invoices (contractid, amount, duedate, status)
-        VALUES ($1, $2, $3, $4)
-        `,
-        [
-          contract.id,
-          monthlyAmount,
-          dueDate,
-          "PENDING"
-        ]
+        `INSERT INTO invoices (contractid, amount, duedate, status)
+         VALUES ($1, $2, $3, $4)`,
+        [contract.id, monthlyAmount, dueDate, "PENDING"]
       );
     }
 
-    /* -------- UPDATE APARTMENT STATUS -------- */
+    /* -------- UPDATE APARTMENT -------- */
     await client.query(
-      `
-      UPDATE apartments
-      SET status = 'OCCUPIED'
-      WHERE id = $1
-      `,
+      `UPDATE apartments SET status = 'OCCUPIED' WHERE id = $1`,
       [apartmentid]
     );
 
     await client.query("COMMIT");
 
-    res.status(201).json(contractResult.rows[0]);
+    res.status(201).json({
+      contract,
+      fileUrl
+    });
 
   } catch (err) {
-
     await client.query("ROLLBACK");
     console.error(err);
     res.status(500).json({ error: err.message });

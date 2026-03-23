@@ -19,13 +19,22 @@ async function readResponse(response) {
 
 async function createContract(data) {
   try {
+    const formData = new FormData();
+    for (const key in data) {
+      if (data[key] !== undefined && data[key] !== null) {
+        if (key === 'tenant' || key === 'guarantor') {
+          formData.append(key, JSON.stringify(data[key]));
+        } else if (key === 'file') {
+          formData.append(key, data[key]);
+        } else {
+          formData.append(key, data[key]);
+        }
+      }
+    }
+
     const response = await fetch(`${REACT_APP_API_URL}/rentalcontracts`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        // Authorization: `Bearer ${token}` // if you use auth
-      },
-      body: JSON.stringify(data),
+      body: formData,
     });
 
     const result = await readResponse(response);
@@ -49,44 +58,6 @@ async function createContract(data) {
 
     throw error;
   }
-}
-
-async function uploadContractDocument(file, contractId) {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  // 1. Upload to Supabase via our backend
-  const uploadRes = await fetch(`${REACT_APP_API_URL}/documents/upload`, {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!uploadRes.ok) {
-    const error = await uploadRes.json();
-    throw new Error(error.error || "Error uploading document");
-  }
-
-  const uploadData = await uploadRes.json();
-
-  // 2. Save document record in DB
-  const docRes = await fetch(`${REACT_APP_API_URL}/documents`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      contractid: contractId,
-      type: "CONTRACT",
-      filepath: uploadData.path
-    }),
-  });
-
-  if (!docRes.ok) {
-    const error = await docRes.json();
-    throw new Error(error.error || "Error linking document to contract");
-  }
-
-  return docRes.json();
 }
 
 
@@ -127,17 +98,12 @@ export default function ContractWizardModal({ show, onClose, selectedApartmentId
         startdate: formData.contract.startDate,
         monthlyAmount: formData.contract.monthlyAmount,
         depositamount: formData.contract.price,
-        status: "ACTIVE"
+        status: "ACTIVE",
+        file: formData.contract.file
       };
 
       const result = await createContract(payload);
       console.log("Contract created:", result);
-
-      // If a file was selected, upload it and link to the contract
-      if (formData.contract.file) {
-        await uploadContractDocument(formData.contract.file, result.id);
-        console.log("Document uploaded and linked.");
-      }
 
       // Close modal
       onClose();
