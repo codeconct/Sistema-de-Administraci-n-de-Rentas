@@ -1,39 +1,81 @@
-function verPagos(pagos, diasAviso =10){
-    const hoy= new Date();
-    hoy.setHours(0,0,0,0);
+import plantillas from "./Plantillas.js";
 
-    const resultados =[];
+const parseFecha = (valor) => {
+  if (!valor) return null;
+  if (valor instanceof Date) return valor;
 
-    for (const pago of pagos){
-        const [mes, dia, año] = pago.vencimiento.split("-");
-        const fechaVen = new Date(año, mes -1, dia);
+  const texto = String(valor);
+  const partes = texto.split("-");
 
-        const diasRes = Math.floor(
-            (fechaVen - hoy) / (1000 * 60 * 60 *24)
-        );
-
-        let estado, mensaje;
-
-        if (diasRes < 0 ){
-            estado = "Vencido";
-            mensaje = "PAGO VENCIDO";
-        }else if (diasRes === 0){
-            estado= "Hoy";
-            mensaje = "Su pago vence hoy";
-        }else if (diasRes <= diasAviso){
-            estado = "Aviso";
-            mensaje = `Su pago vence en ${diasRes} dias`;
-        } else{
-            continue;
-        }
-        resultados.push({
-            apartamento: pago.Apartamento,
-            monto: pago.monto,
-            estado: estado,
-            dias_restantes: diasRes,
-        });
+  if (partes.length === 3) {
+    if (partes[0].length === 4) {
+      const [anio, mes, dia] = partes.map(Number);
+      return new Date(anio, mes - 1, dia);
     }
 
-    return resultados;
-}
-module.exports = verPagos;
+    const [mes, dia, anio] = partes.map(Number);
+    return new Date(anio, mes - 1, dia);
+  }
+
+  const fecha = new Date(texto);
+  return Number.isNaN(fecha.getTime()) ? null : fecha;
+};
+
+export const generarNotificaciones = (pagos, diasAviso = 10) => {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  const resultados = [];
+
+  for (const pago of pagos) {
+    const fechaVen = parseFecha(pago.vencimiento);
+    if (!fechaVen) continue;
+
+    const diasRes = Math.floor(
+      (fechaVen - hoy) / (1000 * 60 * 60 * 24)
+    );
+
+    let estado;
+    let mensaje = "";
+    const nombre = pago.nombre || pago.arrendatario || "Arrendatario";
+    const apartamento = pago.apartamento || pago.Apartamento || "";
+
+    if (diasRes < 0) {
+      estado = "Vencido";
+      mensaje = plantillas.vencido({
+        nombre,
+        monto: pago.monto,
+        fecha: pago.vencimiento,
+      });
+    } else if (diasRes === 0) {
+      estado = "Hoy";
+      mensaje = plantillas.hoy({ nombre, monto: pago.monto });
+    } else if (diasRes <= diasAviso) {
+      estado = "Aviso";
+      mensaje = plantillas.aviso({
+        nombre,
+        monto: pago.monto,
+        fecha: pago.vencimiento,
+        dias: diasRes,
+      });
+    } else {
+      continue;
+    }
+
+    resultados.push({
+      apartamento,
+      monto: pago.monto,
+      estado,
+      dias_restantes: diasRes,
+      vencimiento: pago.vencimiento,
+      nombre,
+      mensaje,
+      tenant_id: pago.tenant_id ?? null,
+      apartment_id: pago.apartment_id ?? null,
+    });
+  }
+
+  return resultados;
+};
+
+export default generarNotificaciones;
