@@ -310,6 +310,16 @@
   color: #8a97ab;
 }
 
+.home-incidencias-empty-state {
+  padding: 28px 12px;
+  color: #6f7c92;
+  font-weight: 600;
+}
+
+.home-incidencias-empty-state--error {
+  color: #c2410c;
+}
+
 .home-incidencias-modal-overlay {
   position: fixed;
   inset: 0;
@@ -369,6 +379,16 @@
   margin-bottom: 8px;
   color: #5b6679;
   font-weight: 500;
+}
+
+.home-incidencias-modal-error {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #be123c;
+  font-weight: 600;
 }
 
 .home-incidencias-modal-textarea {

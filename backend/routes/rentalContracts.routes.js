@@ -4,6 +4,28 @@ import pool from '../db.js';
 
 const router = Router();
 
+const getMonthsDuration = (startdate, enddate) => {
+  if (!startdate) {
+    return 1;
+  }
+
+  if (!enddate) {
+    return 1;
+  }
+
+  const start = new Date(startdate);
+  const end = new Date(enddate);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+    return 1;
+  }
+
+  const years = end.getFullYear() - start.getFullYear();
+  const months = end.getMonth() - start.getMonth();
+
+  return Math.max(1, years * 12 + months + 1);
+};
+
 // GET all contracts
 router.get('/rentalcontracts', async (req, res) => {
   try {
@@ -50,52 +72,103 @@ router.post('/rentalcontracts', async (req, res) => {
     await client.query("BEGIN");
 
     /* -------- TENANT UPSERT -------- */
-
-    const tenantResult = await client.query(
+    const existingTenant = await client.query(
       `
-      INSERT INTO tenants (name, email, phone)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (name)
-      DO UPDATE SET
-        email = EXCLUDED.email,
-        phone = EXCLUDED.phone
-      RETURNING id
+      SELECT id
+      FROM tenants
+      WHERE LOWER(name) = LOWER($1)
+      LIMIT 1
       `,
-      [
-        tenant.name,
-        tenant.email,
-        tenant.phone
-      ]
+      [tenant.name]
     );
 
-    const tenantId = tenantResult.rows[0].id;
+    let tenantId;
+
+    if (existingTenant.rows.length > 0) {
+      tenantId = existingTenant.rows[0].id;
+
+      await client.query(
+        `
+        UPDATE tenants
+        SET
+          email = COALESCE($1, email),
+          phone = COALESCE($2, phone)
+        WHERE id = $3
+        `,
+        [tenant.email || null, tenant.phone || null, tenantId]
+      );
+    } else {
+      const tenantInsert = await client.query(
+        `
+        INSERT INTO tenants (name, email, phone, governmentid, passwordhash)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id
+        `,
+        [
+          tenant.name,
+          tenant.email || null,
+          tenant.phone || null,
+          tenant.governmentid || `TEMP-${Date.now()}`,
+          tenant.passwordhash || 'TEMP_PASSWORDHASH'
+        ]
+      );
+
+      tenantId = tenantInsert.rows[0].id;
+    }
 
 
     /* -------- GUARANTOR UPSERT -------- */
 
     let guarantorId = null;
 
-    if (guarantor) {
-      const guarantorResult = await client.query(
+    if (guarantor?.name) {
+      const existingGuarantor = await client.query(
         `
-        INSERT INTO guarantors (name, address, email, phone)
-        VALUES ($1, $2, $3, $4)
-        ON CONFLICT (name)
-        DO UPDATE SET
-          address = EXCLUDED.address,
-          email = EXCLUDED.email,
-          phone = EXCLUDED.phone
-        RETURNING id
+        SELECT id
+        FROM guarantors
+        WHERE LOWER(name) = LOWER($1)
+        LIMIT 1
         `,
-        [
-          guarantor.name,
-          guarantor.address,
-          guarantor.email,
-          guarantor.phone
-        ]
+        [guarantor.name]
       );
 
-      guarantorId = guarantorResult.rows[0].id;
+      if (existingGuarantor.rows.length > 0) {
+        guarantorId = existingGuarantor.rows[0].id;
+
+        await client.query(
+          `
+          UPDATE guarantors
+          SET
+            address = COALESCE($1, address),
+            email = COALESCE($2, email),
+            phone = COALESCE($3, phone)
+          WHERE id = $4
+          `,
+          [
+            guarantor.address || null,
+            guarantor.email || null,
+            guarantor.phone || null,
+            guarantorId
+          ]
+        );
+      } else {
+        const guarantorInsert = await client.query(
+          `
+          INSERT INTO guarantors (name, address, email, phone, governmentid)
+          VALUES ($1, $2, $3, $4, $5)
+          RETURNING id
+          `,
+          [
+            guarantor.name,
+            guarantor.address || null,
+            guarantor.email || null,
+            guarantor.phone || null,
+            guarantor.governmentid || `TEMP-${Date.now()}`
+          ]
+        );
+
+        guarantorId = guarantorInsert.rows[0].id;
+      }
     }
 
 
@@ -129,7 +202,9 @@ router.post('/rentalcontracts', async (req, res) => {
     // You should replace this with actual monthly rent if you have it
     const monthlyAmount = depositamount || 0;
 
-    for (let i = 0; i < months_duration; i++) {
+    const monthsDuration = getMonthsDuration(startdate, enddate);
+
+    for (let i = 0; i < monthsDuration; i++) {
       const dueDate = new Date(start);
       dueDate.setMonth(dueDate.getMonth() + i);
 

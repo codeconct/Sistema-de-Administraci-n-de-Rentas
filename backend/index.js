@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import pool from './db.js';
 
 // Routers
 import ownersRouter from './routes/owners.routes.js';
@@ -18,6 +19,20 @@ import reportesRouter from './routes/reportes.routes.js';
 //import Pagosrouter from './routes/PagoNotif.js';
 
 const app = express();
+
+const ensureMaintenanceRequestsTable = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS maintenancerequests (
+      requestid SERIAL PRIMARY KEY,
+      apartmentid INT NOT NULL,
+      tenantid INT,
+      requestdate DATE NOT NULL,
+      description TEXT NOT NULL,
+      status VARCHAR(20) DEFAULT 'PENDING',
+      completiondate DATE
+    )
+  `);
+};
 
 app.use(cors());
 app.use(express.json());
@@ -38,4 +53,8 @@ app.use('/api', reportesRouter);
 //app.use('/api', Pagosrouter);
 
 // ❗ Export the app as the default handler
+ensureMaintenanceRequestsTable().catch((error) => {
+  console.error('Error ensuring maintenancerequests table:', error);
+});
+
 export default app;

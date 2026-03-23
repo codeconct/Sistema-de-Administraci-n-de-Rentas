@@ -27,7 +27,7 @@ router.get('/payments', async (req, res) => {
 router.get('/payments/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM payments WHERE paymentid = $1', [id]);
+    const result = await pool.query('SELECT * FROM payments WHERE id = $1', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Payment not found' });
     }
@@ -62,7 +62,7 @@ router.put('/payments/:id', async (req, res) => {
     const result = await pool.query(
       `UPDATE payments
        SET invoiceid = $1, paymentdate = $2, amount = $3, method = $4
-       WHERE paymentid = $5 RETURNING *`,
+       WHERE id = $5 RETURNING *`,
       [invoiceid, paymentdate, amount, method, id]
     );
     if (result.rows.length === 0) {
@@ -80,7 +80,7 @@ router.delete('/payments/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
-      'DELETE FROM payments WHERE paymentid = $1 RETURNING *',
+      'DELETE FROM payments WHERE id = $1 RETURNING *',
       [id]
     );
     if (result.rows.length === 0) {

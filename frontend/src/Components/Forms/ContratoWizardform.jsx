@@ -7,22 +7,48 @@ import { REACT_APP_API_URL } from '../../config'
 
 import "./ContratoWizardForm.css"
 
-async function createContract(data) {
-  const response = await fetch(`${REACT_APP_API_URL}/rentalcontracts`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      // Authorization: `Bearer ${token}` // if you use auth
-    },
-    body: JSON.stringify(data),
-  });
+async function readResponse(response) {
+  const text = await response.text();
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Error creating contract");
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { raw: text };
   }
+}
 
-  return response.json();
+async function createContract(data) {
+  try {
+    const response = await fetch(`${REACT_APP_API_URL}/rentalcontracts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // Authorization: `Bearer ${token}` // if you use auth
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await readResponse(response);
+
+    if (!response.ok) {
+      throw new Error(
+        result?.error ||
+          result?.message ||
+          (result?.raw?.startsWith("<!DOCTYPE") ? "La API devolvio HTML y no JSON." : null) ||
+          "Error creating contract"
+      );
+    }
+
+    return result;
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new Error(
+        `Failed to fetch. Verifica la API en ${REACT_APP_API_URL}/rentalcontracts`
+      );
+    }
+
+    throw error;
+  }
 }
 
 async function uploadContractDocument(file, contractId) {

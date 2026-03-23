@@ -36,7 +36,7 @@ router.get('/invoices', async (req, res) => {
 router.get('/invoices/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const result = await pool.query('SELECT * FROM invoices WHERE invoiceid = $1', [id]);
+    const result = await pool.query('SELECT * FROM invoices WHERE id = $1', [id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Invoice not found' });
     }
@@ -71,7 +71,7 @@ router.put('/invoices/:id', async (req, res) => {
     const result = await pool.query(
       `UPDATE invoices
        SET contractid = $1, amount = $2, duedate = $3, status = $4
-       WHERE invoiceid = $5 RETURNING *`,
+       WHERE id = $5 RETURNING *`,
       [contractid, amount, duedate, status, id]
     );
     if (result.rows.length === 0) {
@@ -89,7 +89,7 @@ router.delete('/invoices/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const result = await pool.query(
-      'DELETE FROM invoices WHERE invoiceid = $1 RETURNING *',
+      'DELETE FROM invoices WHERE id = $1 RETURNING *',
       [id]
     );
     if (result.rows.length === 0) {

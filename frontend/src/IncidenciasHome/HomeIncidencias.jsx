@@ -1,64 +1,99 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
+import { api } from "../api";
 import "./HomeIncidencias.css";
-
-const incidenciasBase = [
-  {
-    id: 1,
-    status: "resuelta",
-    fecha: "2026-01-15T09:30:00",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-    ubicacion: "Departamento Corredor Privada, Puerta Norte, Int. 109, 34155, Jardines de Durango.",
-    arrendatario: "Jose",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces",
-    descripcion:
-      "El inquilino reporta una fuga constante de agua en la llave del lavabo, el goteo es continuo y ha provocado humedad en la parte inferior del mueble.",
-  },
-  {
-    id: 2,
-    status: "pendiente",
-    fecha: "2026-07-10T16:45:00",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-    ubicacion: "Departamento Corredor Privada, Puerta Norte, Int. 109, 34155, Jardines de Durango.",
-    arrendatario: "joaquin",
-    avatar: null,
-    descripcion:
-      "Reporte sin asignar a un responsable. Se requiere revision del area comun lo antes posible.",
-  },
-  {
-    id: 3,
-    status: "pendiente",
-    fecha: "2026-03-06T11:20:00",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-    ubicacion: "Departamento Corredor Privada, Puerta Norte, Int. 109, 34155, Jardines de Durango.",
-    arrendatario: "Pendiente",
-    avatar: null,
-    descripcion:
-      "Se detecto humedad en una pared del dormitorio y se solicita inspeccion tecnica.",
-  },
-  {
-    id: 4,
-    status: "resuelta",
-    fecha: "2026-02-28T08:15:00",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-    ubicacion: "Departamento Corredor Privada, Puerta Norte, Int. 109, 34155, Jardines de Durango.",
-    arrendatario: " Amaya",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop&crop=faces",
-    descripcion:
-      "La cerradura de la puerta principal presentaba fallas y ya fue atendida por mantenimiento.",
-  },
-];
 
 const LIMITE_DESCRIPCION = 220;
 
+const leerRespuesta = async (response) => {
+  const text = await response.text();
+
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { raw: text };
+  }
+};
+
+const normalizarIncidencia = (incidencia) => ({
+  id: incidencia?.id ?? incidencia?.requestid ?? Date.now(),
+  status:
+    incidencia?.status === "resuelta" ||
+    String(incidencia?.status || "").toUpperCase() === "COMPLETED"
+      ? "resuelta"
+      : "pendiente",
+  fecha:
+    incidencia?.fecha ||
+    incidencia?.requestdate ||
+    incidencia?.request_date ||
+    new Date().toISOString(),
+  img:
+    incidencia?.img ||
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+  ubicacion:
+    incidencia?.ubicacion ||
+    incidencia?.apartment_address ||
+    "Sin ubicacion",
+  arrendatario:
+    incidencia?.arrendatario ||
+    incidencia?.tenant_name ||
+    "Sin asignar",
+  avatar: incidencia?.avatar || null,
+  descripcion:
+    incidencia?.descripcion ||
+    incidencia?.description ||
+    "Sin descripcion",
+});
+
 const HomeIncidencias = () => {
   const navigate = useNavigate();
-  const [incidenciasData, setIncidenciasData] = useState(incidenciasBase);
+  const [incidenciasData, setIncidenciasData] = useState([]);
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("todas");
   const [orden, setOrden] = useState("recientes");
   const [mostrarModal, setMostrarModal] = useState(false);
   const [nuevaDescripcion, setNuevaDescripcion] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    const cargarIncidencias = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(api("/maintenancerequests"), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await leerRespuesta(response);
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              data?.error ||
+              (data?.raw?.startsWith("<!DOCTYPE") ? "La API devolvio HTML y no JSON. Revisa la ruta desplegada." : null) ||
+              "No se pudieron cargar las incidencias"
+          );
+        }
+
+        setIncidenciasData(Array.isArray(data) ? data.map(normalizarIncidencia) : []);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "No se pudieron cargar las incidencias");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarIncidencias();
+  }, []);
 
   const restablecerFiltros = () => {
     setFiltroBusqueda("");
@@ -66,52 +101,114 @@ const HomeIncidencias = () => {
     setOrden("recientes");
   };
 
-  const actualizarEstado = (id, status) => {
-    setIncidenciasData((prev) =>
-      prev.map((incidencia) =>
-        incidencia.id === id ? { ...incidencia, status } : incidencia
-      )
-    );
+  const actualizarEstado = async (id, status) => {
+    const token = localStorage.getItem("token");
+
+    try {
+      setError("");
+
+      const response = await fetch(api(`/maintenancerequests/${id}/status`), {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      const data = await leerRespuesta(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            (data?.raw?.startsWith("<!DOCTYPE") ? "La ruta para actualizar estado no existe en la API desplegada." : null) ||
+            "No se pudo actualizar la incidencia"
+        );
+      }
+
+      setIncidenciasData((prev) =>
+        prev.map((incidencia) =>
+          incidencia.id === id ? normalizarIncidencia(data) : incidencia
+        )
+      );
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "No se pudo actualizar la incidencia");
+    }
   };
 
   const cerrarModal = () => {
     setMostrarModal(false);
     setNuevaDescripcion("");
+    setError("");
   };
 
-  const crearIncidencia = () => {
+  const crearIncidencia = async () => {
     const descripcion = nuevaDescripcion.trim();
 
-    if (!descripcion) {
+    if (!descripcion || enviando) {
       return;
     }
 
-    const nuevaIncidencia = {
-      id: Date.now(),
-      status: "pendiente",
-      fecha: new Date().toISOString(),
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion:
-        "Departamento Corredor Privada, Puerta Norte, Int. 109, 34155, Jardines de Durango.",
-      arrendatario: "Pendiente",
-      avatar: null,
-      descripcion,
-    };
+    const token = localStorage.getItem("token");
 
-    setIncidenciasData((prev) => [nuevaIncidencia, ...prev]);
-    setFiltroEstado("todas");
-    setOrden("recientes");
-    cerrarModal();
+    try {
+      const decoded = token ? jwtDecode(token) : null;
+      const tenantid = decoded?.id;
+
+      setEnviando(true);
+      setError("");
+
+      const response = await fetch(api("/maintenancerequests"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          tenantid,
+          requestdate: new Date().toISOString().slice(0, 10),
+          description: descripcion,
+          status: "PENDING",
+        }),
+      });
+
+      const data = await leerRespuesta(response);
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            (data?.raw?.startsWith("<!DOCTYPE") ? "La API devolvio HTML y no JSON. Revisa la ruta desplegada." : null) ||
+            "No se pudo crear la incidencia"
+        );
+      }
+
+      setIncidenciasData((prev) => [normalizarIncidencia(data), ...prev]);
+      setFiltroEstado("todas");
+      setOrden("recientes");
+      cerrarModal();
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "No se pudo crear la incidencia");
+    } finally {
+      setEnviando(false);
+    }
   };
 
   const incidencias = useMemo(() => {
     const texto = filtroBusqueda.trim().toLowerCase();
 
-    const filtradas = incidenciasData.filter((incidencia) => {
+      const filtradas = incidenciasData.filter((incidencia) => {
+      const ubicacion = String(incidencia.ubicacion || "").toLowerCase();
+      const arrendatario = String(incidencia.arrendatario || "").toLowerCase();
+      const descripcion = String(incidencia.descripcion || "").toLowerCase();
+
       const coincideBusqueda =
-        incidencia.ubicacion.toLowerCase().includes(texto) ||
-        incidencia.arrendatario.toLowerCase().includes(texto) ||
-        incidencia.descripcion.toLowerCase().includes(texto);
+        ubicacion.includes(texto) ||
+        arrendatario.includes(texto) ||
+        descripcion.includes(texto);
 
       const coincideEstado =
         filtroEstado === "todas" ? true : incidencia.status === filtroEstado;
@@ -227,6 +324,24 @@ const HomeIncidencias = () => {
             </div>
 
             <div className="home-incidencias-table-body">
+              {loading ? (
+                <div className="home-incidencias-empty-state">
+                  Cargando incidencias...
+                </div>
+              ) : null}
+
+              {!loading && error ? (
+                <div className="home-incidencias-empty-state home-incidencias-empty-state--error">
+                  {error}
+                </div>
+              ) : null}
+
+              {!loading && !error && incidencias.length === 0 ? (
+                <div className="home-incidencias-empty-state">
+                  Aun no has reportado incidencias.
+                </div>
+              ) : null}
+
               {incidencias.map((incidencia) => (
                 <article className="home-incidencias-row" key={incidencia.id}>
                   <div className="home-incidencias-cell home-incidencias-image-cell">
@@ -313,6 +428,10 @@ const HomeIncidencias = () => {
             </div>
 
             <div className="home-incidencias-modal-body">
+              {error ? (
+                <div className="home-incidencias-modal-error">{error}</div>
+              ) : null}
+
               <label
                 htmlFor="nueva-incidencia-descripcion"
                 className="home-incidencias-modal-label"
@@ -338,10 +457,10 @@ const HomeIncidencias = () => {
                 type="button"
                 className="home-incidencias-modal-submit"
                 onClick={crearIncidencia}
-                disabled={!nuevaDescripcion.trim()}
+                disabled={!nuevaDescripcion.trim() || enviando}
               >
                 <i className="bi bi-send" />
-                Enviar incidencia
+                {enviando ? "Enviando..." : "Enviar incidencia"}
               </button>
             </div>
           </div>

@@ -1,233 +1,294 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { api } from "../../api";
 import "./Incidencias.css";
 
+const leerRespuesta = async (response) => {
+  const text = await response.text();
+
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { raw: text };
+  }
+};
+
+const normalizarIncidencia = (incidencia) => ({
+  id: incidencia?.id ?? incidencia?.requestid ?? Date.now(),
+  status:
+    incidencia?.status === "resuelta" ||
+    String(incidencia?.status || "").toUpperCase() === "COMPLETED"
+      ? "resuelta"
+      : "pendiente",
+  fecha:
+    incidencia?.fecha ||
+    incidencia?.requestdate ||
+    incidencia?.request_date ||
+    new Date().toISOString(),
+  img:
+    incidencia?.img ||
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
+  ubicacion:
+    incidencia?.ubicacion ||
+    incidencia?.apartment_address ||
+    "Sin ubicacion",
+  arrendatario:
+    incidencia?.arrendatario ||
+    incidencia?.tenant_name ||
+    "Sin asignar",
+  avatar: incidencia?.avatar || null,
+  descripcion:
+    incidencia?.descripcion ||
+    incidencia?.description ||
+    "Sin descripcion",
+});
+
+const obtenerMarcaTiempo = (fecha) => {
+  const timestamp = new Date(fecha).getTime();
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
 const Incidencias = () => {
-  const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [incidenciasData, setIncidenciasData] = useState([]);
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
-  const [paginaActual, setPaginaActual] = useState(1);
-  const elementosPorPagina = 5;
+  const [filtroEstado, setFiltroEstado] = useState("todas");
+  const [orden, setOrden] = useState("recientes");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const [incidencias, setIncidencias] = useState([
-    {
-      id: 1,
-      status: "resuelto",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion: "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
-      arrendatario: "Jose Eduardo Amaya",
-      descripcion: "Fuga de agua en el lavabo del baño principal.",
-    },
-    {
-      id: 2,
-      status: "resuelto",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion: "21 de Marzo 456, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: null,
-      descripcion: "No enciende la luz del pasillo exterior.",
-    },
-    {
-      id: 3,
-      status: "pendiente",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion: "Departamento Corredor Privado Puerta Norte Int. 199, 34155 Jardines Dgo",
-      precio: 6000,
-      arrendatario: "Jose Eduardo Amaya",
-      descripcion: "El boiler no calienta correctamente.",
-    },
-    {
-      id: 4,
-      status: "pendiente",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion: "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "Jose Eduardo Amaya",
-      descripcion: "Humedad visible en una pared de la recamara.",
-    },
-    {
-      id: 5,
-      status: "resuelto",
-      img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400",
-      ubicacion: "Cipreces 123, Col. Centro, 34000 Durango, Dgo.",
-      precio: 6000,
-      arrendatario: "Jose Eduardo Amaya",
-      descripcion: "La cerradura de la puerta principal se atora.",
-    },
-  ]);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
 
-  const cambiarEstado = (id) => {
-    setIncidencias((prev) =>
-      prev.map((p) => {
-        if (p.id !== id || p.status === "archivado") return p;
-        return {
-          ...p,
-          status: p.status === "pendiente" ? "resuelto" : "pendiente",
-        };
-      })
-    );
+    const cargarIncidencias = async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch(api("/maintenancerequests"), {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await leerRespuesta(response);
+
+        if (!response.ok) {
+          throw new Error(
+            data?.message ||
+              data?.error ||
+              (data?.raw?.startsWith("<!DOCTYPE") ? "La API devolvio HTML y no JSON. Revisa la ruta desplegada." : null) ||
+              "No se pudieron cargar las incidencias"
+          );
+        }
+
+        setIncidenciasData(Array.isArray(data) ? data.map(normalizarIncidencia) : []);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "No se pudieron cargar las incidencias");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarIncidencias();
+  }, []);
+
+  const restablecerFiltros = () => {
+    setFiltroBusqueda("");
+    setFiltroEstado("todas");
+    setOrden("recientes");
   };
 
-  const incidenciasFiltradas = incidencias
-    .filter((p) => {
-      if (filtroStatus === "todos") return true;
-      return p.status === filtroStatus;
-    })
-    .filter((p) => {
-      const texto = filtroBusqueda.toLowerCase();
-      return (
-        p.ubicacion.toLowerCase().includes(texto) ||
-        (p.arrendatario && p.arrendatario.toLowerCase().includes(texto)) ||
-        (p.descripcion && p.descripcion.toLowerCase().includes(texto)) ||
-        p.id.toString().includes(texto)
-      );
+  const incidencias = useMemo(() => {
+    const texto = filtroBusqueda.trim().toLowerCase();
+
+    const filtradas = incidenciasData.filter((incidencia) => {
+      const ubicacion = String(incidencia.ubicacion || "").toLowerCase();
+      const arrendatario = String(incidencia.arrendatario || "").toLowerCase();
+      const descripcion = String(incidencia.descripcion || "").toLowerCase();
+
+      const coincideBusqueda =
+        ubicacion.includes(texto) ||
+        arrendatario.includes(texto) ||
+        descripcion.includes(texto);
+
+      const coincideEstado =
+        filtroEstado === "todas" ? true : incidencia.status === filtroEstado;
+
+      return coincideBusqueda && coincideEstado;
     });
 
-  const totalPaginas = Math.max(
-    1,
-    Math.ceil(incidenciasFiltradas.length / elementosPorPagina)
-  );
+    return [...filtradas].sort((a, b) => {
+      const fechaA = obtenerMarcaTiempo(a.fecha);
+      const fechaB = obtenerMarcaTiempo(b.fecha);
+      const idA = Number(a.id) || 0;
+      const idB = Number(b.id) || 0;
 
-  useEffect(() => {
-    setPaginaActual(1);
-  }, [filtroStatus, filtroBusqueda]);
+      if (orden === "recientes") {
+        if (fechaB !== fechaA) {
+          return fechaB - fechaA;
+        }
 
-  useEffect(() => {
-    if (paginaActual > totalPaginas) {
-      setPaginaActual(totalPaginas);
-    }
-  }, [paginaActual, totalPaginas]);
+        return idB - idA;
+      }
 
-  const inicio = (paginaActual - 1) * elementosPorPagina;
-  const incidenciasPaginadas = incidenciasFiltradas.slice(
-    inicio,
-    inicio + elementosPorPagina
-  );
+      if (fechaA !== fechaB) {
+        return fechaA - fechaB;
+      }
 
-  const getStatusDot = (status) => {
-    switch (status) {
-      case "resuelto":
-        return "status-dot status-disponible";
-      case "pendiente":
-        return "status-dot status-ocupado";
-      default:
-        return "";
-    }
-  };
+      return idA - idB;
+    });
+  }, [filtroBusqueda, filtroEstado, incidenciasData, orden]);
 
   return (
-    <div className="bg-light min-vh-100">
-      <div className="apartment-page" />
-
-      <div className="container py-4">
-        <div className="d-flex align-items-center mb-3">
-          <div className="search-pill d-flex align-items-center">
-            <i className="bi bi-search search-icon" />
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Buscar..."
-              value={filtroBusqueda}
-              onChange={(e) => setFiltroBusqueda(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="mb-3">
-          <span className="status-dot status-disponible" /> Resuelta
-          <span className="status-dot status-ocupado ms-3" /> Pendiente
-        </div>
-
-        <div className="filter-btns incidencias-filter-btns mb-4">
-          <button
-            className={`btn incidencia-filter-btn${filtroStatus === "todos" ? " is-active" : ""}`}
-            onClick={() => setFiltroStatus("todos")}
-          >
-            Todas
-          </button>
-
-          <button
-            className={`btn incidencia-filter-btn${filtroStatus === "resuelto" ? " is-active" : ""}`}
-            onClick={() => setFiltroStatus("resuelto")}
-          >
-            Resueltas
-          </button>
-
-          <button
-            className={`btn incidencia-filter-btn${filtroStatus === "pendiente" ? " is-active" : ""}`}
-            onClick={() => setFiltroStatus("pendiente")}
-          >
-            Pendientes
-          </button>
-        </div>
-
-        <div className="row table-header mb-2">
-          <div className="col-4">Ubicación</div>
-          <div className="col-3">Arrendatario</div>
-          <div className="col-3">Descripcion de incidencia</div>
-        </div>
-
-        {incidenciasPaginadas.map((prop) => (
-          <div className="row property-card" key={prop.id}>
-            <div className="col-4 d-flex align-items-center">
-              <span className={getStatusDot(prop.status)} />
-              <img src={prop.img} className="property-img me-2" alt="Departamento" />
-              <div>
-                <p className="mb-1 fw-semibold">{prop.ubicacion}</p>
-                <small>{prop.precio}</small>
-              </div>
-            </div>
-
-            <div className="col-3 d-flex align-items-center justify-content-center flex-column">
-              <i className="bi bi-person-circle fs-3 text-secondary" />
-              <span>{prop.arrendatario || "Sin asignar"}</span>
-            </div>
-
-            <div className="col-3 d-flex align-items-center">
-              <span>{prop.descripcion || "-"}</span>
-            </div>
-
-            <div className="col-2 text-start">
-              {prop.status === "resuelto" ? (
-                <button className="btn-status ocupado" onClick={() => cambiarEstado(prop.id)}>
-                  <i className="bi bi-x-circle" />
-                  Resuelta
-                </button>
-              ) : (
-                <button
-                  className="btn-status disponible"
-                  onClick={() => cambiarEstado(prop.id)}
-                >
-                  <i className="bi bi-check-circle" />
-                  Pendiente
-                </button>
-              )}
+    <div className="incidencias-page">
+      <div className="container-fluid px-4 px-lg-5 py-4 py-lg-5">
+        <div className="incidencias-shell">
+          <div className="incidencias-header">
+            <div>
+              <h1 className="incidencias-title">Incidencias</h1>
+              <p className="incidencias-subtitle">
+                Consulta aqui todas las incidencias reportadas en el sistema.
+              </p>
             </div>
           </div>
-        ))}
 
-        <nav className="mt-4">
-          <ul className="pagination justify-content-center custom-pagination">
-            {Array.from({ length: totalPaginas }, (_, index) => {
-              const numeroPagina = index + 1;
-              return (
-                <li
-                  key={numeroPagina}
-                  className={`page-item${
-                    paginaActual === numeroPagina ? " active" : ""
-                  }`}
-                >
-                  <button
-                    type="button"
-                    className="page-link"
-                    onClick={() => setPaginaActual(numeroPagina)}
-                  >
-                    {numeroPagina}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+          <div className="incidencias-toolbar">
+            <label className="incidencias-search">
+              <i className="bi bi-search" />
+              <input
+                type="text"
+                placeholder="Buscar una incidencia..."
+                value={filtroBusqueda}
+                onChange={(e) => setFiltroBusqueda(e.target.value)}
+              />
+            </label>
+
+            <div className="incidencias-sort-group">
+              <button
+                type="button"
+                className={`incidencias-sort-btn ${orden === "recientes" ? "is-active" : ""}`}
+                onClick={() => setOrden("recientes")}
+              >
+                <i className="bi bi-calendar4-week" />
+                Mas recientes primero
+              </button>
+              <button
+                type="button"
+                className={`incidencias-sort-btn ${orden === "antiguas" ? "is-active" : ""}`}
+                onClick={() => setOrden("antiguas")}
+              >
+                <i className="bi bi-calendar4-event" />
+                Mas antiguas primero
+              </button>
+            </div>
+          </div>
+
+          <div className="incidencias-filters">
+            <button
+              type="button"
+              className={`incidencias-filter-btn ${filtroEstado === "todas" ? "is-active" : ""}`}
+              onClick={restablecerFiltros}
+            >
+              Todas
+            </button>
+            <button
+              type="button"
+              className={`incidencias-filter-btn ${filtroEstado === "resuelta" ? "is-active is-success" : ""}`}
+              onClick={() => setFiltroEstado("resuelta")}
+            >
+              Resueltas
+            </button>
+            <button
+              type="button"
+              className={`incidencias-filter-btn ${filtroEstado === "pendiente" ? "is-active is-warning" : ""}`}
+              onClick={() => setFiltroEstado("pendiente")}
+            >
+              Pendientes
+            </button>
+          </div>
+
+          <div className="incidencias-table-card">
+            <div className="incidencias-table-head">
+              <span>Imagen</span>
+              <span>Ubicacion</span>
+              <span>Arrendatario</span>
+              <span>Incidencia</span>
+              <span>Estado</span>
+            </div>
+
+            <div className="incidencias-table-body">
+              {loading ? (
+                <div className="incidencias-empty-state">Cargando incidencias...</div>
+              ) : null}
+
+              {!loading && error ? (
+                <div className="incidencias-empty-state incidencias-empty-state--error">
+                  {error}
+                </div>
+              ) : null}
+
+              {!loading && !error && incidencias.length === 0 ? (
+                <div className="incidencias-empty-state">
+                  No hay incidencias registradas para este arrendador.
+                </div>
+              ) : null}
+
+              {incidencias.map((incidencia) => (
+                <article className="incidencias-row" key={incidencia.id}>
+                  <div className="incidencias-cell incidencias-image-cell">
+                    <span className="incidencias-mobile-label">Imagen</span>
+                    <img
+                      src={incidencia.img}
+                      alt="Vivienda"
+                      className="incidencias-image"
+                    />
+                  </div>
+
+                  <div className="incidencias-cell">
+                    <span className="incidencias-mobile-label">Ubicacion</span>
+                    <p className="incidencias-location">{incidencia.ubicacion}</p>
+                  </div>
+
+                  <div className="incidencias-cell">
+                    <span className="incidencias-mobile-label">Arrendatario</span>
+                    <div className="incidencias-tenant">
+                      {incidencia.avatar ? (
+                        <img
+                          src={incidencia.avatar}
+                          alt={incidencia.arrendatario}
+                          className="incidencias-avatar"
+                        />
+                      ) : (
+                        <div className="incidencias-avatar incidencias-avatar--placeholder">
+                          <i className="bi bi-person-fill" />
+                        </div>
+                      )}
+                      <span>{incidencia.arrendatario}</span>
+                    </div>
+                  </div>
+
+                  <div className="incidencias-cell">
+                    <span className="incidencias-mobile-label">Incidencia</span>
+                    <div className="incidencias-description-box">
+                      {incidencia.descripcion}
+                    </div>
+                  </div>
+
+                  <div className="incidencias-cell">
+                    <span className="incidencias-mobile-label">Estado</span>
+                    <span
+                      className={`incidencias-status-badge ${
+                        incidencia.status === "resuelta" ? "is-success" : "is-warning"
+                      }`}
+                    >
+                      {incidencia.status === "resuelta" ? "Resuelta" : "Pendiente"}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
