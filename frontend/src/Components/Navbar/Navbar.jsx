@@ -96,7 +96,7 @@ const Navbar = () => {
 
           {/* Links Collapse */}
           {!isTenant && (
-            <div className={`collapse navbar-collapse justify-content-center order-3 order-lg-2 w-100 w-lg-auto ${isNavOpen ? 'show mt-4 pb-3' : ''}`}>
+            <div className={`collapse navbar-collapse justify-content-center order-3 order-lg-2 w-lg-auto ${isNavOpen ? 'show mt-4 pb-3' : ''}`}>
               <div className="d-flex flex-column flex-lg-row align-items-center gap-3 gap-lg-4 mx-auto bg-light px-4 py-3 py-lg-2 rounded-4" style={{ borderRadius: isNavOpen ? '1rem' : '50rem' }}>
                 <Link to="/viviendas" onClick={() => setIsNavOpen(false)} className={`text-decoration-none small fw-medium ${isActive("/viviendas")}`}>
                   Viviendas
@@ -176,9 +176,9 @@ const Navbar = () => {
 
             {/* Mobile Toggler */}
             {!isTenant && (
-              <button 
-                className="navbar-toggler border-0 px-1 ms-1 d-lg-none" 
-                type="button" 
+              <button
+                className="navbar-toggler border-0 px-1 ms-1 d-lg-none"
+                type="button"
                 onClick={() => setIsNavOpen(!isNavOpen)}
                 style={{ boxShadow: "none" }}
               >

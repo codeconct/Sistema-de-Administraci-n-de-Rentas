@@ -20,8 +20,13 @@ router.get("/apartments", authMiddleware, async (req, res) => {
           t.name AS tenant_name,
           i.duedate AS latest_due_date
       FROM apartments a
-      LEFT JOIN rentalcontracts rc
-          ON rc.apartmentid = a.id
+      LEFT JOIN LATERAL (
+          SELECT id, depositamount, tenantid
+          FROM rentalcontracts
+          WHERE apartmentid = a.id
+          ORDER BY startdate DESC NULLS LAST, id DESC
+          LIMIT 1
+      ) rc ON true
       LEFT JOIN tenants t
           ON rc.tenantid = t.id
       LEFT JOIN LATERAL (

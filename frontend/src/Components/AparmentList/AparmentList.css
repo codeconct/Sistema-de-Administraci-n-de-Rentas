@@ -18,11 +18,29 @@
     align-items: center;
   }
 
-  /* ✅ Add vertical lines between columns */
-  .property-card .col-4,
-  .property-card .col-3,
-  .property-card .col-2 {
-    border-right: 1px solid #dee2e6;
+  /* Responsive card styles */
+  @media (max-width: 991px) {
+    .responsive-card {
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .mobile-label {
+      width: 110px;
+      flex-shrink: 0;
+      color: #6c757d;
+    }
+    .property-card {
+      border-bottom: none !important;
+    }
+  }
+
+  @media (min-width: 992px) {
+    .border-end-lg {
+      border-right: 1px solid #dee2e6;
+    }
   }
 
   /* Search box */
@@ -62,10 +80,7 @@
 
 
 
-  /* Remove the last border on the right side */
-  .property-card .col-3.text-end {
-    border-right: none;
-  }
+  /* Right border previously handled */
 
   .property-img {
     width: 100px;

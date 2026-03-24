@@ -71,14 +71,14 @@ const Viviendas = () => {
 
   return (
     <div className="bg-light min-vh-100">
-      <div className="container-fluid px-5">
+      <div className="container-fluid px-3 px-md-5 py-4">
 
-        <div className="d-flex justify-content-between align-items-center page-header">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 page-header mb-4">
           <div>
             <h2 className="fw-bold">Contratos</h2>
             <p className="text-muted mb-0">Consulta los contratos que han sido generados en el sistema.</p>
           </div>
-          <button className="btn btn-dark">
+          <button className="btn btn-dark align-self-start align-self-md-auto">
             <i className="bi bi-plus"></i> Nuevo contrato
           </button>
         </div>
@@ -129,15 +129,17 @@ const Viviendas = () => {
                   </td>
                   <td className="price-text">${prop.depositamount} MXN</td>
                   <td className="text-center">
-                    <button 
-                      className="btn btn-outline-secondary action-btn2 btn-sm "
-                      onClick={() => setEditingContractId(prop.id)}
-                    >
-                      <i className="bi bi-pencil"></i>  Editar
-                    </button> <br />
-                    <Link to={"/contratos/" + prop.id} className="btn btn-outline-secondary action-btn2 btn-sm ">
-                      <i className="bi bi-eye"></i> Ver detalles
-                    </Link>
+                    <div className="d-flex flex-column flex-xl-row justify-content-center gap-2">
+                      <button 
+                        className="btn btn-outline-secondary action-btn2 btn-sm text-nowrap"
+                        onClick={() => setEditingContractId(prop.id)}
+                      >
+                        <i className="bi bi-pencil"></i> Editar
+                      </button>
+                      <Link to={"/contratos/" + prop.id} className="btn btn-outline-secondary action-btn2 btn-sm text-nowrap">
+                        <i className="bi bi-eye"></i> Ver detalles
+                      </Link>
+                    </div>
                   </td>
                 </tr>))}
 
@@ -146,7 +148,7 @@ const Viviendas = () => {
           </table>
         </div>
 
-        <div className="d-flex justify-content-between align-items-center footer-pagination">
+        <div className="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 footer-pagination mt-4">
           <span className="text-muted small">Mostrando {contratos.length} contratos</span>
 
           <nav>

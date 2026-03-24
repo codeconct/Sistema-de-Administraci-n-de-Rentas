@@ -25,6 +25,7 @@ const Viviendas = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroBusqueda, setFiltroBusqueda] = useState("");
   const [selectedApartment, setSelectedApartment] = useState(null);
+  const [contractApartmentId, setContractApartmentId] = useState(null);
 
   const handleSelect = (apartment) => {
     setSelectedApartment(apartment);
@@ -204,7 +205,7 @@ const Viviendas = () => {
           <ContractWizardModal
             show={showContractModal}
             onClose={() => setShowContractModal(false)}
-            selectedApartmentId={selectedApartment ? selectedApartment.id : null}
+            selectedApartmentId={contractApartmentId}
 
           />
         </div>
@@ -244,16 +245,17 @@ const Viviendas = () => {
         </div>
 
         {/* Table header */}
-        <div className="row table-header mb-2">
-          <div className="col-3">Ubicación</div>
-          <div className="col-2">Arrendatario</div>
-          <div className="col-2">Fecha de Pago</div>
+        <div className="row table-header mb-2 d-none d-lg-flex fw-bold text-muted px-3">
+          <div className="col-lg-3">Ubicación</div>
+          <div className="col-lg-2 text-center">Arrendatario</div>
+          <div className="col-lg-2">Fecha de Pago</div>
+          <div className="col-lg-5 text-end">Acciones</div>
         </div>
 
         {/* Property list */}
         {propiedadesPaginadas.map((prop) => (
-          <div className="row property-card" key={prop.id}>
-            <div className="col-3 d-flex align-items-center">
+          <div className="row property-card responsive-card mx-0 mb-3 mb-lg-0" key={prop.id}>
+            <div className="col-12 col-lg-3 d-flex align-items-center border-end-lg pb-3 pb-lg-0">
               <span className={getStatusDot(prop.status)}></span>
               <img
                 src="https://th.bing.com/th/id/OIP.6XIv3DVREt05mi0sSNtUDgHaE8?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"
@@ -266,18 +268,20 @@ const Viviendas = () => {
               </div>
             </div>
 
-            <div className="col-2 d-flex align-items-center justify-content-center flex-column">
-              <i className="bi bi-person-circle fs-3  text-secondary"></i>
-              <span>{prop.tenant_name}</span>
+            <div className="col-12 col-lg-2 d-flex align-items-center justify-content-lg-center flex-row flex-lg-column gap-2 gap-lg-0 border-end-lg py-2 py-lg-0">
+              <span className="d-lg-none fw-bold mobile-label">Arrendatario:</span>
+              <i className="bi bi-person-circle fs-3 text-secondary d-none d-lg-block"></i>
+              <span>{prop.tenant_name || 'Sin asignar'}</span>
             </div>
 
-            <div className="col-1 d-flex align-items-center">
-              <span>{prop.latest_due_date ? formatDate(prop.latest_due_date) : ''}</span>
+            <div className="col-12 col-lg-2 d-flex align-items-center border-end-lg py-2 py-lg-0 gap-2">
+              <span className="d-lg-none fw-bold mobile-label">Fecha de Pago:</span>
+              <span>{prop.latest_due_date ? formatDate(prop.latest_due_date) : '-'}</span>
             </div>
 
             {/* Butons */}
-            <div className="col-6 d-flex justify-content-end align-items-center gap-3">
-              <div className="actions-stack-box">
+            <div className="col-12 col-lg-5 d-flex flex-column flex-sm-row justify-content-lg-end align-items-stretch align-items-sm-center gap-3 pt-3 pt-lg-0">
+              <div className="actions-stack-box w-100 flex-sm-grow-1 flex-lg-grow-0">
                 <button
                   className="box-action-btn"
                   onClick={() => handleSelect(prop)}
@@ -311,7 +315,7 @@ const Viviendas = () => {
                 )}
               </div>
 
-              <div className="contract-links-stack">
+              <div className="contract-links-stack w-100 flex-sm-grow-1 flex-lg-grow-0">
                 {prop.tenant_name ?
                   <Link to={"/contratos/" + prop.rc_id} className="contract-link-text-btn ">
                     <TbContract size={16} />
@@ -321,7 +325,7 @@ const Viviendas = () => {
                   <button
                     type="button"
                     className="contract-link-text-btn"
-                    onClick={() => { handleSelect(prop); setShowContractModal(true); }}
+                    onClick={() => { setContractApartmentId(prop.id); setShowContractModal(true); }}
                   >
                     <TbContract size={16} />
                     Agregar Contrato
