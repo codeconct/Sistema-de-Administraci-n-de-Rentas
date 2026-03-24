@@ -7,6 +7,11 @@ import fs from 'fs';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config.js';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const router = Router();
 const UNDEFINED_COLUMN = '42703';
@@ -62,23 +67,7 @@ const ensureMaintenanceRequestsTable = async () => {
   return maintenanceRequestsReadyPromise;
 };
 
-const ensureUploadDir = () => {
-  if (!fs.existsSync(UPLOAD_ROOT)) {
-    fs.mkdirSync(UPLOAD_ROOT, { recursive: true });
-  }
-};
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    ensureUploadDir();
-    cb(null, UPLOAD_ROOT);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const random = crypto.randomBytes(8).toString('hex');
-    cb(null, `request_${req.params.id}_${Date.now()}_${random}${ext}`);
-  },
-});
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -360,9 +349,31 @@ router.post(
         return res.status(404).json({ message: 'Request not found' });
       }
 
-      const insertPromises = req.files.map((file) => {
+      const insertPromises = req.files.map(async (file) => {
         const tipoMime = file.mimetype || 'application/octet-stream';
         const tipo = tipoMime.startsWith('video/') ? 'VIDEO' : 'IMAGEN';
+
+        const ext = path.extname(file.originalname).toLowerCase();
+        const random = crypto.randomBytes(8).toString('hex');
+        const uniqueName = `request_${requestId}_${Date.now()}_${random}${ext}`;
+
+        const { error } = await supabase.storage
+          .from('maintenancerequests')
+          .upload(uniqueName, file.buffer, {
+            contentType: tipoMime,
+            upsert: false
+          });
+
+        if (error) {
+          throw error;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('maintenancerequests')
+          .getPublicUrl(uniqueName);
+
+        const storagePath = publicUrlData.publicUrl;
+
         return pool.query(
           `
             INSERT INTO maintenancerequest_media
@@ -372,11 +383,11 @@ router.post(
           `,
           [
             requestId,
-            file.filename,
+            uniqueName,
             file.originalname,
             tipoMime,
             file.size,
-            file.path,
+            storagePath,
             tipo,
           ]
         );
@@ -475,6 +486,9 @@ router.get('/maintenancerequests/media/:mediaId', async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view media' });
     }
 
+    if (media.storage_path && media.storage_path.startsWith('http')) {
+      return res.redirect(media.storage_path);
+    }
     return res.sendFile(path.resolve(media.storage_path));
   } catch (err) {
     console.error('Error descargando media:', err.message);
