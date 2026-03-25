@@ -9,6 +9,7 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
     street: "",
     division: "",
     int_num: "",
+    ext_num: "",
     city: "",
     state: ""
   });
@@ -49,6 +50,7 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
         street: "",
         division: "",
         int_num: "",
+        ext_num: "",
         city: "",
         state: ""
       });
@@ -89,15 +91,26 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
                     required
                   />
                 </div>
+                <div className="mb-3">
+                  <label className="form-label fw-semibold">Calle</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="street"
+                    value={formData.street}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label fw-semibold">Calle</label>
+                    <label className="form-label fw-semibold">Núm Int</label>
                     <input
                       type="text"
                       className="form-control"
                       name="street"
-                      value={formData.street}
+                      value={formData.ext_num}
                       onChange={handleChange}
                       required
                     />

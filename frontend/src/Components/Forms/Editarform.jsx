@@ -10,6 +10,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
     street: "",
     division: "",
     int_num: "",
+    ext_num: "",
     city: "",
     state: ""
   });
@@ -22,6 +23,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
         street: apartment.street || "",
         division: apartment.division || "",
         int_num: apartment.int_num || "",
+        ext_num: apartment.ext_num || "",
         city: apartment.city || "",
         state: apartment.state || ""
       });
@@ -89,15 +91,25 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
                     onChange={handleChange}
                   />
                 </div>
+                <div className="mb-3">
+                  <label className="form-label">Calle</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="street"
+                    value={formData.street}
+                    onChange={handleChange}
+                  />
+                </div>
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Calle</label>
+                    <label className="form-label">Núm Ext</label>
                     <input
                       type="text"
                       className="form-control"
-                      name="street"
-                      value={formData.street}
+                      name="ext_num"
+                      value={formData.ext_num}
                       onChange={handleChange}
                     />
                   </div>

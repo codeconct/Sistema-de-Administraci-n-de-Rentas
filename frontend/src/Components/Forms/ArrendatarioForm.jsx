@@ -32,15 +32,6 @@ export default function ArrendatarioForm({ data, update }) {
                     />
                 </div>
             </div>
-
-            <div className="mb-3">
-                <label className="form-label">Domicilio</label>
-                <input
-                    type="text"
-                    className="form-control"
-                    value={data.address}
-                    onChange={(e) => update("address", e.target.value)} />
-            </div>
         </>
     );
 }

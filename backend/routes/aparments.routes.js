@@ -138,11 +138,11 @@ router.get('/apartments/:id', authMiddleware, async (req, res) => {
 // POST (create) a new apartment
 router.post('/apartments', authMiddleware, async (req, res) => {
   const ownerId = req.user.id;
-  const { postal_code, street, division, int_num, name, city, state } = req.body;
+  const { postal_code, street, division, int_num, name, city, state, ext_num } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO apartments (ownerid, postal_code, street, division, int_num, name, city, state) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *',
-      [ownerId, postal_code, street, division, int_num, name, city, state]
+      'INSERT INTO apartments (ownerid, postal_code, street, division, int_num, name, city, state, ext_num) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      [ownerId, postal_code, street, division, int_num, name, city, state, ext_num]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -267,7 +267,8 @@ router.put('/apartments/:id', authMiddleware, async (req, res) => {
     name,
     city,
     state,
-    status
+    status,
+    ext_num
   } = req.body;
 
   try {
@@ -282,7 +283,8 @@ router.put('/apartments/:id', authMiddleware, async (req, res) => {
         name = $5,
         city = $6,
         state = $7,
-        status = $8
+        status = $8,
+        ext_num = $9
       WHERE id = $9 AND ownerid = $10
       RETURNING *
       `,
@@ -296,7 +298,8 @@ router.put('/apartments/:id', authMiddleware, async (req, res) => {
         state,
         status,
         id,
-        ownerId
+        ownerId,
+        ext_num
       ]
     );
 
