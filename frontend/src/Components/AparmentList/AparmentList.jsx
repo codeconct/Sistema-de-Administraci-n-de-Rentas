@@ -166,7 +166,7 @@ const Viviendas = () => {
       <div className="container py-4">
 
         {/* Search + Add */}
-        <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="apartments-toolbar d-flex justify-content-between align-items-center mb-3">
           <div className="search-pill d-flex align-items-center">
             <i className="bi bi-search search-icon"></i>
             <input
@@ -179,7 +179,7 @@ const Viviendas = () => {
           </div>
 
           <button
-            className="btn btn-dark"
+            className="btn btn-dark new-home-btn"
             onClick={() => setShowPropiertiesModal(true)}
           >
             + Nueva vivienda

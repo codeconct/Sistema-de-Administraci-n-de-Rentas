@@ -76,9 +76,16 @@
   color: #a8a8a8;
 }
 
-/*Crear Contrato button*/
+.apartments-toolbar {
+  gap: 16px;
+  flex-wrap: wrap;
+}
 
-
+.new-home-btn {
+  white-space: nowrap;
+  padding: 0.7rem 1.1rem;
+  border-radius: 12px;
+}
 
   /* Right border previously handled */
 
@@ -295,4 +302,26 @@
   background: #1f1f1f;
   color: #fff;
   border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .apartments-toolbar {
+    align-items: stretch !important;
+  }
+
+  .search-pill {
+    width: 100%;
+  }
+
+  .new-home-btn {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .new-home-btn {
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+  }
 }
