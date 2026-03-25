@@ -156,3 +156,52 @@ body {
   border-top: 1px solid #F0F0F0;
   font-size: 0.9rem;
 }
+
+.dashboard-global-month,
+.dashboard-month-filter {
+  min-width: 0;
+  width: fit-content;
+  max-width: 156px;
+  margin-right: auto;
+}
+
+.dashboard-global-month .form-select,
+.dashboard-month-filter .form-select {
+  min-width: 118px;
+  padding-right: 1.75rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+}
+
+.dashboard-charge-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  background: #e9edf7;
+}
+
+.dashboard-charge-toggle button {
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  border-radius: 999px;
+  min-width: 26px;
+  height: 24px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.dashboard-charge-toggle button.is-active {
+  background: #ffffff;
+  color: #1b2559;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+@media (max-width: 768px) {
+  .dashboard-global-month,
+  .dashboard-month-filter {
+    width: 100%;
+  }
+}

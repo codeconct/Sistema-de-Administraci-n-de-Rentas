@@ -24,9 +24,27 @@ const THEME = {
   linePink: '#FFB5E8'
 };
 
+const MONTH_OPTIONS = [
+  { value: 'todos', label: 'Todos los meses' },
+  { value: '1', label: 'Enero' },
+  { value: '2', label: 'Febrero' },
+  { value: '3', label: 'Marzo' },
+  { value: '4', label: 'Abril' },
+  { value: '5', label: 'Mayo' },
+  { value: '6', label: 'Junio' },
+  { value: '7', label: 'Julio' },
+  { value: '8', label: 'Agosto' },
+  { value: '9', label: 'Septiembre' },
+  { value: '10', label: 'Octubre' },
+  { value: '11', label: 'Noviembre' },
+  { value: '12', label: 'Diciembre' }
+];
+
 const Dashboard = () => {
   const [moraSettings, setMoraSettings] = useState({ tipo: 'PORCENTAJE', valor: 10 });
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('todos');
+  const [chargeView, setChargeView] = useState('pendiente');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dashboardData, setDashboardData] = useState({
@@ -36,16 +54,29 @@ const Dashboard = () => {
     facturasVencidas: 0,
     facturasTotal: 0,
     cobroPendiente: 0,
+    cobroVencido: 0,
     dataIngresos: [],
     dataIncidencias: [],
     dataBaseInquilinos: []
   });
 
+  const incidenciasVisibles = useMemo(
+    () => dashboardData.dataIncidencias.filter((item) => item.name !== 'Por resolver'),
+    [dashboardData.dataIncidencias]
+  );
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await fetch(api("/dashboard/admin"), {
+      const params = new URLSearchParams();
+      if (selectedMonth !== 'todos') {
+        params.set('month', selectedMonth);
+        params.set('year', String(new Date().getFullYear()));
+      }
+
+      const response = await fetch(api(`/dashboard/admin${params.toString() ? `?${params.toString()}` : ''}`), {
+        cache: "no-store",
         headers: {
           "Authorization": `Bearer ${localStorage.getItem('token')}`
         }
@@ -68,7 +99,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [selectedMonth]);
 
   // Listen for configuration changes from the Navbar Modal
   useEffect(() => {
@@ -109,9 +140,20 @@ const Dashboard = () => {
     }
 
     return procesados;
-  }, [moraSettings, searchQuery, dashboardData.dataBaseInquilinos]);
+  }, [dashboardData.dataBaseInquilinos, moraSettings, searchQuery]);
 
-  const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(val);
+  const formatCurrency = (val) => {
+    const safeValue = Number.isFinite(Number(val)) ? Number(val) : 0;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0
+    }).format(safeValue);
+  };
+  const chargeLabel = chargeView === 'vencido' ? 'Cobro Vencido' : 'Cobro Pendiente';
+  const chargeAmount = chargeView === 'vencido'
+    ? (dashboardData.cobroVencido ?? 0)
+    : (dashboardData.cobroPendiente ?? 0);
 
   return (
     <div className="min-vh-100 d-flex flex-column font-sans" style={{ backgroundColor: THEME.bgApp }}>
@@ -123,6 +165,21 @@ const Dashboard = () => {
           <p className="m-0 mt-1 fs-6" style={{ color: '#707EAE' }}>
             Consulta estadísticas e información importante de las rentas.
           </p>
+        </div>
+
+        <div className="dashboard-global-month bg-white rounded-pill px-2 py-1 shadow-sm border border-light mb-4">
+          <select
+            className="form-select border-0 shadow-none bg-transparent"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            style={{ color: THEME.textDark, fontSize: '14px' }}
+          >
+            {MONTH_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         {loading ? (
@@ -172,11 +229,29 @@ const Dashboard = () => {
           </div>
           <div className="col-md-3">
             <div className="h-100 p-3 rounded-4 d-flex flex-column justify-content-center" style={{ backgroundColor: THEME.bgCard }}>
-              <div className="d-flex align-items-center gap-2 mb-1">
-                <CreditCard size={18} style={{ color: THEME.textLight }} />
-                <span className="fw-medium" style={{ color: THEME.textLight, fontSize: '14px' }}>Cobro Pendiente</span>
+              <div className="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <div className="d-flex align-items-center gap-2">
+                  <CreditCard size={18} style={{ color: THEME.textLight }} />
+                  <span className="fw-medium" style={{ color: THEME.textLight, fontSize: '14px' }}>{chargeLabel}</span>
+                </div>
+                <div className="dashboard-charge-toggle">
+                  <button
+                    type="button"
+                    className={chargeView === 'pendiente' ? 'is-active' : ''}
+                    onClick={() => setChargeView('pendiente')}
+                  >
+                    P
+                  </button>
+                  <button
+                    type="button"
+                    className={chargeView === 'vencido' ? 'is-active' : ''}
+                    onClick={() => setChargeView('vencido')}
+                  >
+                    V
+                  </button>
+                </div>
               </div>
-              <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>{formatCurrency(dashboardData.cobroPendiente)}</div>
+              <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>{formatCurrency(chargeAmount)}</div>
             </div>
           </div>
         </div>
@@ -212,18 +287,18 @@ const Dashboard = () => {
                   <div style={{ width: '100%', height: 220 }}>
                     <ResponsiveContainer>
                         <PieChart>
-                            <Pie data={dashboardData.dataIncidencias} innerRadius={65} outerRadius={85} dataKey="value" stroke="none">
-                                {dashboardData.dataIncidencias.map((entry, index) => (
+                            <Pie data={incidenciasVisibles} innerRadius={65} outerRadius={85} dataKey="value" stroke="none">
+                                {incidenciasVisibles.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
-                                <Label value={dashboardData.dataIncidencias.reduce((acc, curr) => acc + curr.value, 0)} position="center" fill={THEME.textDark} style={{ fontSize: '32px', fontWeight: 'bold' }} />
+                                <Label value={incidenciasVisibles.reduce((acc, curr) => acc + curr.value, 0)} position="center" fill={THEME.textDark} style={{ fontSize: '32px', fontWeight: 'bold' }} />
                             </Pie>
                         </PieChart>
                     </ResponsiveContainer>
                  </div>
               </div>
               <div className="d-flex justify-content-around mt-2 text-center">
-                  {dashboardData.dataIncidencias.map((item, index) => (
+                  {incidenciasVisibles.map((item, index) => (
                       <div key={index} className="d-flex flex-column align-items-center">
                           <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, marginBottom: 4 }}></div>
                           <span className="fw-bold" style={{ color: THEME.textDark, fontSize: '14px' }}>{item.value}</span>
@@ -243,16 +318,18 @@ const Dashboard = () => {
                     <span style={{ color: THEME.textLight, fontSize: '14px' }}>Gestión y estado de pagos</span>
                 </div>
                 
-                <div className="input-group w-auto bg-white rounded-pill px-3 py-2 shadow-sm border border-light">
-                    <Search size={18} style={{ color: THEME.textLight }} className="align-self-center"/>
-                    <input 
-                        type="text" 
-                        className="form-control border-0 shadow-none bg-transparent ms-2" 
-                        placeholder="Buscar inquilino o depto..." 
-                        style={{ width: '220px', fontSize: '14px', color: THEME.textDark }}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
+                <div className="d-flex flex-column flex-md-row align-items-stretch align-items-md-center gap-2">
+                    <div className="input-group w-auto bg-white rounded-pill px-3 py-2 shadow-sm border border-light">
+                        <Search size={18} style={{ color: THEME.textLight }} className="align-self-center"/>
+                        <input 
+                            type="text" 
+                            className="form-control border-0 shadow-none bg-transparent ms-2" 
+                            placeholder="Buscar inquilino o depto..." 
+                            style={{ width: '220px', fontSize: '14px', color: THEME.textDark }}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                 </div>
             </div>
             
