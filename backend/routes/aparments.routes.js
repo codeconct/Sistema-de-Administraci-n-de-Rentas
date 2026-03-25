@@ -284,7 +284,7 @@ router.put('/apartments/:id', authMiddleware, async (req, res) => {
         city = $6,
         state = $7,
         status = $8,
-        ext_num = $9
+        ext_num = $11
       WHERE id = $9 AND ownerid = $10
       RETURNING *
       `,
