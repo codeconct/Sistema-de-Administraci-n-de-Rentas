@@ -11,7 +11,6 @@ const Home = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [datos, setDatos] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [downloadingContract, setDownloadingContract] = useState(false);
 
   // 1. Cargar datos desde la base de datos al abrir la pagina
   useEffect(() => {
@@ -76,37 +75,6 @@ const Home = () => {
     }
   };
 
-  // 3. Funcion para descargar el contrato
-  const handleDescargarContrato = async () => {
-    if (!datos?.contractDocument || !datos.contractDocument.filepath) {
-      alert("No hay contrato disponible para descargar.");
-      return;
-    }
-
-    setDownloadingContract(true);
-    try {
-      const fileUrl = datos.contractDocument.filepath;
-      const fileName = `contrato-${datos.datosVivienda.invoiceid}.pdf`;
-      const response = await fetch(fileUrl);
-      if (!response.ok) throw new Error("Error en la descarga");
-
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    } catch (error) {
-      console.error("Error descargando contrato:", error);
-      const fileUrl = datos.contractDocument.filepath;
-      window.open(fileUrl, "_blank");
-    } finally {
-      setDownloadingContract(false);
-    }
-  };
-
   if (loading) {
     return (
       <div className="home-container" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh" }}>
@@ -155,20 +123,9 @@ const Home = () => {
               <span>{estaPagado ? "Al corriente" : (isProcessing ? "Procesando..." : "Pagar")}</span>
             </div>
 
-            <div
-              className="action-item blue"
-              onClick={handleDescargarContrato}
-              style={{
-                cursor: downloadingContract ? "not-allowed" : "pointer",
-                opacity: downloadingContract ? 0.6 : 1
-              }}
-            >
-              {downloadingContract ? (
-                <Loader size={28} className="animate-spin" />
-              ) : (
-                <FileDown size={28} />
-              )}
-              <span>{downloadingContract ? "Descargando..." : "Descargar Contrato"}</span>
+            <div className="action-item blue">
+              <FileText size={28} />
+              <span>Ver Contrato</span>
             </div>
 
             <div
