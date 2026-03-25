@@ -4,31 +4,40 @@ import { FileText, CreditCard, AlertCircle, FileDown, Loader } from "lucide-reac
 import { useNavigate } from "react-router-dom";
 import { REACT_APP_API_URL } from "../../config";
 
-const token = localStorage.getItem("token");
-
 const Home = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [datos, setDatos] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloadingContract, setDownloadingContract] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // 1. Cargar datos desde la Base de Datos al abrir la página
   useEffect(() => {
     const fetchDatos = async () => {
       try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          throw new Error("No se encontró la sesión del usuario.");
+        }
+
         // Pedimos los datos del inquilino 1 (Ajustar si manejan login real después)
         const response = await fetch(`${REACT_APP_API_URL}/dashboard-cliente`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (!response.ok) throw new Error("Error en la respuesta del servidor");
+        if (!response.ok) {
+          const errorBody = await response.json().catch(() => null);
+          throw new Error(errorBody?.message || errorBody?.error || "Error en la respuesta del servidor");
+        }
 
         const data = await response.json();
         setDatos(data);
-        console.log(data);
+        setErrorMessage("");
       } catch (error) {
         console.error("Error cargando dashboard:", error);
+        setErrorMessage(error.message || "No se pudo cargar la información de Home.");
       } finally {
         setLoading(false);
       }
@@ -43,11 +52,18 @@ const Home = () => {
     setIsProcessing(true);
 
     try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("No se encontró la sesión del usuario.");
+      }
+
       // Usamos REACT_APP_API_URL para que funcione tanto en Vercel como en Local
       const response = await fetch(`${REACT_APP_API_URL}/pagos/openpay`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           invoiceid: datos.datosVivienda.invoiceid,
@@ -89,6 +105,12 @@ const Home = () => {
 
     setDownloadingContract(true);
     try {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("No se encontró la sesión del usuario.");
+      }
+
       const response = await fetch(
         `${REACT_APP_API_URL}/documents/${datos.contractDocument.documentid}/download`,
         {
@@ -133,7 +155,9 @@ const Home = () => {
     return (
       <div className="home-container">
         <h4 className="title">¡Bienvenido!</h4>
-        <p className="subtitle">Actualmente no tienes contratos activos ni facturas pendientes en el sistema.</p>
+        <p className="subtitle">
+          {errorMessage || "Actualmente no tienes contratos activos ni facturas pendientes en el sistema."}
+        </p>
       </div>
     );
   }
