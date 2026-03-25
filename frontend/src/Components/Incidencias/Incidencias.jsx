@@ -61,6 +61,12 @@ const Incidencias = () => {
     const token = obtenerToken();
     return api(`/maintenancerequests/media/${id}?token=${encodeURIComponent(token)}`);
   };
+  const obtenerUrlMedia = (media) => {
+    if (media?.storage_path && /^https?:\/\//i.test(media.storage_path)) {
+      return media.storage_path;
+    }
+    return media?.id ? construirMediaUrl(media.id) : "";
+  };
   const abrirEvidencia = (url) => {
     if (!url) {
       return;
@@ -264,14 +270,14 @@ const Incidencias = () => {
                     {incidencia.media?.[0] ? (
                       incidencia.media[0].tipo === "VIDEO" ? (
                         <video
-                          src={construirMediaUrl(incidencia.media[0].id)}
+                          src={obtenerUrlMedia(incidencia.media[0])}
                           className="incidencias-image"
                           controls
                           preload="metadata"
                         />
                       ) : (
                         <img
-                          src={construirMediaUrl(incidencia.media[0].id)}
+                          src={obtenerUrlMedia(incidencia.media[0])}
                           alt="Evidencia"
                           className="incidencias-image"
                         />
@@ -319,14 +325,14 @@ const Incidencias = () => {
                           media.tipo === "VIDEO" ? (
                             <div className="incidencias-media-card" key={media.id}>
                               <video
-                                src={construirMediaUrl(media.id)}
+                                src={obtenerUrlMedia(media)}
                                 controls
                                 preload="metadata"
                               />
                               <button
                                 type="button"
                                 className="incidencias-media-btn"
-                                onClick={() => abrirEvidencia(construirMediaUrl(media.id))}
+                                onClick={() => abrirEvidencia(obtenerUrlMedia(media))}
                               >
                                 Ver evidencia
                               </button>
@@ -334,13 +340,13 @@ const Incidencias = () => {
                           ) : (
                             <div className="incidencias-media-card" key={media.id}>
                               <img
-                                src={construirMediaUrl(media.id)}
+                                src={obtenerUrlMedia(media)}
                                 alt="Evidencia"
                               />
                               <button
                                 type="button"
                                 className="incidencias-media-btn"
-                                onClick={() => abrirEvidencia(construirMediaUrl(media.id))}
+                                onClick={() => abrirEvidencia(obtenerUrlMedia(media))}
                               >
                                 Ver evidencia
                               </button>
