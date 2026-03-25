@@ -220,7 +220,7 @@ router.post('/rentalcontracts', upload.single("file"), async (req, res) => {
     const monthlyAmount = depositamount || 0;
     const monthsDuration = getMonthsDuration(startdate, enddate);
 
-    for (let i = 0; i < monthsDuration; i++) {
+    for (let i = 1; i < monthsDuration; i++) {
       const dueDate = new Date(start);
       dueDate.setMonth(dueDate.getMonth() + i);
 
