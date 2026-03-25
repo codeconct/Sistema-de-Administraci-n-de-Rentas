@@ -17,7 +17,7 @@ import openpayRouter from './routes/openpay.routes.js';
 import reportesRouter from './routes/reportes.routes.js';
 import notificacionesRouter from './routes/notificaciones.routes.js';
 import ticketsRouter from './routes/tickets.js';
-import dashboardRouter from './routes/dashboard.routes.js';
+import dashboardRouter from './routes/dashboardAdmin.routes.js';
 
 //import Pagosrouter from './routes/PagoNotif.js';
 
