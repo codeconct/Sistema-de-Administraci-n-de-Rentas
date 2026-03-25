@@ -110,8 +110,37 @@ const mapRequestRow = (row) => ({
   ubicacion: row.apartment_address || 'Sin ubicacion',
   arrendatario: row.tenant_name || 'Sin asignar',
   avatar: null,
-  img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400'
+  img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400',
+  media: Array.isArray(row.media) ? row.media : [],
 });
+
+const getMediaByRequestIds = async (requestIds) => {
+  if (!Array.isArray(requestIds) || requestIds.length === 0) {
+    return new Map();
+  }
+
+  const result = await pool.query(
+    `
+      SELECT *
+      FROM maintenancerequest_media
+      WHERE request_id = ANY($1::int[])
+      ORDER BY request_id ASC, created_at DESC
+    `,
+    [requestIds]
+  );
+
+  const mediaByRequestId = new Map();
+
+  result.rows.forEach((row) => {
+    const key = Number(row.request_id);
+    if (!mediaByRequestId.has(key)) {
+      mediaByRequestId.set(key, []);
+    }
+    mediaByRequestId.get(key).push(row);
+  });
+
+  return mediaByRequestId;
+};
 
 const runRequestsQuery = async (role, userId) => {
   await ensureMaintenanceRequestsTable();
@@ -233,7 +262,19 @@ router.get('/maintenancerequests', authMiddleware, async (req, res) => {
   try {
     await ensureMaintenanceRequestsTable();
     const result = await runRequestsQuery(req.user.role, req.user.id);
-    res.json(result.rows.map(mapRequestRow));
+    const requestIds = result.rows
+      .map((row) => Number(row.request_id))
+      .filter((id) => Number.isInteger(id));
+    const mediaByRequestId = await getMediaByRequestIds(requestIds);
+
+    res.json(
+      result.rows.map((row) =>
+        mapRequestRow({
+          ...row,
+          media: mediaByRequestId.get(Number(row.request_id)) || [],
+        })
+      )
+    );
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

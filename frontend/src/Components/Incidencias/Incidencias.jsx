@@ -69,12 +69,15 @@ const Incidencias = () => {
   };
 
   useEffect(() => {
+    const controller = new AbortController();
+
     const cargarIncidencias = async () => {
       try {
         setLoading(true);
         setError("");
 
         const response = await fetch(api("/maintenancerequests"), {
+          signal: controller.signal,
           headers: {
             Authorization: `Bearer ${obtenerToken()}`,
           },
@@ -92,42 +95,25 @@ const Incidencias = () => {
         }
 
         const base = Array.isArray(data) ? data.map(normalizarIncidencia) : [];
-        const enriquecidas = await Promise.all(
-          base.map(async (incidencia) => {
-            try {
-              const mediaResponse = await fetch(
-                api(`/maintenancerequests/${incidencia.id}/media`),
-                {
-                  headers: {
-                    Authorization: `Bearer ${obtenerToken()}`,
-                  },
-                }
-              );
-              const mediaData = await leerRespuesta(mediaResponse);
-              if (!mediaResponse.ok) {
-                return incidencia;
-              }
-              return {
-                ...incidencia,
-                media: Array.isArray(mediaData) ? mediaData : [],
-              };
-            } catch (mediaErr) {
-              console.error(mediaErr);
-              return incidencia;
-            }
-          })
-        );
-
-        setIncidenciasData(enriquecidas);
+        setIncidenciasData(base);
       } catch (err) {
+        if (err.name === "AbortError") {
+          return;
+        }
         console.error(err);
         setError(err.message || "No se pudieron cargar las incidencias");
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     cargarIncidencias();
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   const restablecerFiltros = () => {
