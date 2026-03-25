@@ -5,7 +5,6 @@ import pool from '../db.js';  // adjust path if needed
 import express from 'express';
 import multer from "multer";
 import { createClient } from '@supabase/supabase-js';
-import { authMiddleware } from '../middlewares/auth.js';
 
 const router = Router();
 
@@ -89,63 +88,6 @@ router.get('/documents/:id', async (req, res) => {
 });
 
 // ✅ CREATE document
-router.get('/documents/:id/download', authMiddleware, async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const result = await pool.query(
-      `SELECT d.documentid, d.filepath, d.type, rc.tenantid, a.ownerid
-       FROM documents d
-       JOIN rentalcontracts rc ON d.contractid = rc.id
-       JOIN apartments a ON rc.apartmentid = a.id
-       WHERE d.documentid = $1`,
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-
-    const document = result.rows[0];
-    const userId = req.user.id;
-    const canAccess =
-      String(document.tenantid) === String(userId) ||
-      String(document.ownerid) === String(userId);
-
-    if (!canAccess) {
-      return res.status(403).json({ message: 'Forbidden' });
-    }
-
-    const remoteResponse = await fetch(document.filepath);
-
-    if (!remoteResponse.ok) {
-      return res.status(502).json({ message: 'Could not fetch contract file' });
-    }
-
-    const fileBuffer = Buffer.from(await remoteResponse.arrayBuffer());
-    const contentType =
-      remoteResponse.headers.get('content-type') || 'application/octet-stream';
-    const urlPath = new URL(document.filepath).pathname;
-    const originalName = decodeURIComponent(
-      urlPath.split('/').pop() || `contrato-${document.documentid}.pdf`
-    );
-    const extension = originalName.includes('.')
-      ? originalName.split('.').pop()
-      : 'pdf';
-    const downloadName = `contrato-${document.documentid}.${extension}`;
-
-    res.setHeader('Content-Type', contentType);
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename="${downloadName}"`
-    );
-    res.send(fileBuffer);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 router.post('/documents', async (req, res) => {
   const { contractid, type, filepath } = req.body;
   try {
