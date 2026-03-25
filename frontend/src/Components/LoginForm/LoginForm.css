@@ -157,6 +157,65 @@ form .input-fuaq{
     color: black;
 }
 
+.login-faq {
+    margin-top: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.login-faq h2 {
+    margin: 0 0 2px;
+    font-size: 1rem;
+    color: #111827;
+    text-align: left;
+}
+
+.login-faq-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.login-faq-question {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border: none;
+    background: transparent;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    box-shadow: none;
+}
+
+.login-faq-question:hover {
+    background: #eef2f7;
+}
+
+.login-faq-question i {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.login-faq-answer {
+    padding: 0 16px 14px;
+}
+
+.login-faq-answer p {
+    margin: 0;
+    color: #4b5563;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
 @media (max-width: 768px) {
     .login-page {
         align-items: flex-start;
@@ -175,6 +234,15 @@ form .input-fuaq{
         font-size: 28px;
         background-size: 64px 84px;
         padding-right: 112px;
+    }
+
+    .login-faq-question {
+        padding: 13px 14px;
+        font-size: 0.9rem;
+    }
+
+    .login-faq-answer {
+        padding: 0 14px 13px;
     }
 }
 
@@ -223,5 +291,78 @@ form .input-fuaq{
     form .remember-forgot {
         font-size: 13px;
     }
+
+    .login-faq-answer p {
+        font-size: 0.84rem;
+    }
 }
 
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: min(500px, 90%);
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.modal-content p {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    cursor: pointer;
+    color: #555;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: #000;
+}
+
+.privacy-link {
+    color: #111827;
+    text-decoration: underline;
+    cursor: pointer;
+    font-weight: 700;
+    transition: color 0.2s ease;
+}
+.privacy-link:hover {
+    color: #000;
+}

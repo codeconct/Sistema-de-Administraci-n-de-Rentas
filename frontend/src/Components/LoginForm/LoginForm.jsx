@@ -5,10 +5,17 @@ import { FaLock } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 
+
 const LoginForm = () => {
 
   const [action, setAction] = useState('');
+  const [faqOpenIndex, setFaqOpenIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
 
   const registerLink = () => {
     setAction(' active');
@@ -83,12 +90,38 @@ const LoginForm = () => {
               </p>
             </div>
             <div className="input-fuaq">
-              <p>By continuing, you agree to Administración de Rentas Terms of Service and acknowledge that you have read our Privacy Policy. Information Collection Notice.
+              <p>By continuing, you agree to Administración de Rentas Terms of Service and acknowledge that you have read our <span className="privacy-link" onClick={toggleModal}>Privacy Policy</span>. Information Collection Notice.
               </p>
             </div>
           </form>
         </div>
       </div>
+
+      {isModalOpen && (
+        <div className="modal-overlay" onClick={toggleModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={toggleModal}>&times;</button>
+            <h2>Términos y Políticas de Privacidad</h2>
+            <p><strong>1. Introducción</strong><br/>
+              Bienvenido a Administración de Rentas. Valoramos su privacidad y estamos comprometidos a proteger sus datos personales. Esta política le informará cómo cuidamos sus datos personales y sus derechos.
+            </p>
+            <p><strong>2. Los datos que recopilamos</strong><br/>
+              Podemos recopilar, usar, almacenar y transferir diferentes tipos de datos personales sobre usted: Datos de identidad, datos de contacto, datos financieros y datos de transacciones.
+            </p>
+            <p><strong>3. Cómo usamos sus datos</strong><br/>
+              Solo utilizaremos sus datos personales cuando la ley nos lo permita. Lo más común es utilizarlos para formalizar y cumplir contratos con usted o respaldar nuestros intereses legítimos.
+            </p>
+            <p><strong>4. Seguridad</strong><br/>
+              Hemos implementado medidas de seguridad apropiadas para evitar que sus datos personales se pierdan, utilicen o accedan accidentalmente de manera no autorizada.
+            </p>
+            <p><strong>5. Sus derechos</strong><br/>
+              En ciertas circunstancias, usted tiene derechos según las leyes de protección de datos con respecto a sus datos personales (solicitar acceso, corrección, eliminación, restricción, etc.).
+            </p>
+            <button className="btn btn-dark w-100" style={{marginTop: "15px"}} onClick={toggleModal}>Cerrar / Entendido</button>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
