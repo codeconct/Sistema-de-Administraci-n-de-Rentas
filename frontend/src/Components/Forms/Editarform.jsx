@@ -114,7 +114,7 @@ export default function EditApartmentModal({ apartment, onClose, onUpdated }) {
                     />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label">Núm Int</label>
+                    <label className="form-label">Núm Int (Opcional)</label>
                     <input
                       type="text"
                       className="form-control"

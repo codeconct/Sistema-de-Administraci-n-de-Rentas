@@ -98,9 +98,9 @@ const LoginForm = () => {
       </div>
 
       {isModalOpen && (
-        <div className="modal-overlay" onClick={toggleModal}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close" onClick={toggleModal}>&times;</button>
+        <div className="modal-overlay2" onClick={toggleModal}>
+          <div className="modal-content2" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close2" onClick={toggleModal}>&times;</button>
             <h2>Términos y Políticas de Privacidad</h2>
             <p><strong>1. Introducción</strong><br />
               Bienvenido a Administración de Rentas. Valoramos su privacidad y estamos comprometidos a proteger sus datos personales. Esta política le informará cómo cuidamos sus datos personales y sus derechos.

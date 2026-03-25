@@ -105,7 +105,7 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
 
                 <div className="row">
                   <div className="col-md-6 mb-3">
-                    <label className="form-label fw-semibold">Núm Int</label>
+                    <label className="form-label fw-semibold">Núm Ext</label>
                     <input
                       type="text"
                       className="form-control"
@@ -116,7 +116,7 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
                     />
                   </div>
                   <div className="col-md-6 mb-3">
-                    <label className="form-label fw-semibold">Núm Int</label>
+                    <label className="form-label fw-semibold">Núm Int (Opcional)</label>
                     <input
                       type="text"
                       className="form-control"
