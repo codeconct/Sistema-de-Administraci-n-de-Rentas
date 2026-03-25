@@ -209,7 +209,7 @@ export default function ContractDetails() {
                                     <tbody>
                                         {invoices.map((p, index) => (
                                             <tr key={p.id}>
-                                                <td>{formatDate(p.created_at)}</td>
+                                                <td>{formatDate(p.duedate)}</td>
                                                 <td>Pago de renta</td>
                                                 <td className="text-warning fw-semibold">
                                                     ${p.amount - p.total_paid}
