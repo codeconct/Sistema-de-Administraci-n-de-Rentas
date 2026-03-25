@@ -7,47 +7,111 @@ import { authMiddleware } from '../middlewares/auth.js'
 const router = Router();
 
 // --- NUEVA RUTA: INICIAR PAGO CON OPENPAY ---
-router.post('/pagos/openpay', authMiddleware, (req, res) => {
-    const id = req.user.id;
-    const { monto, descripcion, cliente } = req.body;
-    const openpay = new Openpay(process.env.OPENPAY_MERCHANT_ID, process.env.OPENPAY_PRIVATE_KEY, false);
-    const customerName = cliente?.nombre || req.user.name || 'Inquilino';
-    const customerLastName = cliente?.apellidos || 'Cliente';
-    const customerPhone = cliente?.telefono || '';
-    const customerEmail = cliente?.correo || `${String(req.user.name || 'cliente').replace(/\s+/g, '.').toLowerCase()}@example.com`;
+router.post('/pagos/openpay', authMiddleware, async (req, res) => {
+    const userId = req.user.id;
+    const openpay = new Openpay(
+        process.env.OPENPAY_MERCHANT_ID,
+        process.env.OPENPAY_PRIVATE_KEY,
+        false
+    );
 
-    const chargeRequest = {
-        method: 'card',
-        amount: monto,
-        description: descripcion,
-        order_id: `REC-${Date.now()}`,
-        customer: {
-            name: customerName,
-            last_name: customerLastName,
-            phone_number: customerPhone,
-            email: customerEmail
-        },
-        send_email: true,
-        confirm: false,
-        redirect_url: 'http://localhost:3000/Home?pago=exitoso'
-    };
+    const client = await pool.connect();
 
-    openpay.charges.create(chargeRequest, (error, charge) => {
-        if (error) {
-            console.error("❌ Error de Openpay:", error);
-            return res.status(400).json({
+    try {
+        /* -------- GET TENANT -------- */
+        const tenantResult = await client.query(
+            `
+            SELECT id, name, email, phone
+            FROM tenants
+            WHERE id = $1
+            `,
+            [userId]
+        );
+
+        if (tenantResult.rows.length === 0) {
+            return res.status(404).json({
                 success: false,
-                message: "No se pudo generar el cobro",
-                detalles: error.description
+                message: "Tenant not found"
             });
         }
 
-        console.log("✅ Link de Openpay generado exitosamente");
-        res.status(200).json({
-            success: true,
-            payment_url: charge.payment_method.url
+        const tenant = tenantResult.rows[0];
+
+        /* -------- GET LAST UNPAID INVOICE -------- */
+        const invoiceResult = await client.query(
+            `
+            SELECT i.*
+            FROM invoices i
+            JOIN rentalcontracts rc ON rc.id = i.contractid
+            WHERE rc.tenantid = $1
+              AND i.status = 'pending'  -- adjust if your status differs
+            ORDER BY i.duedate ASC
+            LIMIT 1
+            `,
+            [userId]
+        );
+
+        if (invoiceResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No unpaid invoices found"
+            });
+        }
+
+        const invoice = invoiceResult.rows[0];
+
+        /* -------- BUILD CUSTOMER -------- */
+        const customerName = tenant.name || 'Inquilino';
+        const customerLastName = ''; // adjust if you store it separately
+        const customerPhone = tenant.phone || '';
+        const customerEmail =
+            tenant.email ||
+            `${String(tenant.name || 'cliente').replace(/\s+/g, '.').toLowerCase()}@example.com`;
+
+        /* -------- CREATE CHARGE -------- */
+        const chargeRequest = {
+            method: 'card',
+            amount: invoice.amount, // <-- from invoice
+            description: `Pago de renta - Factura #${invoice.id}`,
+            order_id: `REC-${invoice.id}-${Date.now()}`,
+            customer: {
+                name: customerName,
+                last_name: customerLastName,
+                phone_number: customerPhone,
+                email: customerEmail
+            },
+            send_email: true,
+            confirm: false,
+            redirect_url: 'http://localhost:3000/Home?pago=exitoso'
+        };
+
+        openpay.charges.create(chargeRequest, (error, charge) => {
+            if (error) {
+                console.error("❌ Error de Openpay:", error);
+                return res.status(400).json({
+                    success: false,
+                    message: "No se pudo generar el cobro",
+                    detalles: error.description
+                });
+            }
+
+            console.log("✅ Link de Openpay generado");
+            res.status(200).json({
+                success: true,
+                payment_url: charge.payment_method.url,
+                invoice_id: invoice.id
+            });
         });
-    });
+
+    } catch (err) {
+        console.error("❌ Server error:", err);
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    } finally {
+        client.release();
+    }
 });
 
 router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
