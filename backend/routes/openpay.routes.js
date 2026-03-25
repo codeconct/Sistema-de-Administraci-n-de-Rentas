@@ -118,9 +118,9 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
     try {
         const id = req.user.id;
 
-        // 👉 MODIFICADO: Agregamos i.id as invoiceid
+        // 👉 MODIFICADO: Agregamos contractid para obtener el documento
         const queryFactura = `
-      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.street as address, a.division
+      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.street as address, a.division, rc.id as contractid
       FROM invoices i
       JOIN rentalcontracts rc ON i.contractid = rc.id
       JOIN tenants t ON rc.tenantid = t.id
@@ -139,9 +139,24 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
     `;
         const resRecibos = await pool.query(queryRecibos, [id]);
 
+        let contractDocument = null;
+
+        // Obtener el documento del contrato si existe
+        if (resFactura.rows[0] && resFactura.rows[0].contractid) {
+            const queryDocument = `
+        SELECT documentid, filepath, type
+        FROM documents
+        WHERE contractid = $1 AND type = 'CONTRACT'
+        LIMIT 1
+      `;
+            const resDocument = await pool.query(queryDocument, [resFactura.rows[0].contractid]);
+            contractDocument = resDocument.rows[0] || null;
+        }
+
         res.json({
             datosVivienda: resFactura.rows[0] || null,
-            historialRecibos: resRecibos.rows || []
+            historialRecibos: resRecibos.rows || [],
+            contractDocument: contractDocument
         });
     } catch (err) {
         console.error("❌ Error en dashboard:", err.message);

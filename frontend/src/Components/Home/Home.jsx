@@ -11,6 +11,7 @@ const Home = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [datos, setDatos] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [downloadingContract, setDownloadingContract] = useState(false);
 
   // 1. Cargar datos desde la Base de Datos al abrir la página
   useEffect(() => {
@@ -79,6 +80,44 @@ const Home = () => {
     }
   };
 
+  // 3. Función para descargar el contrato
+  const handleDescargarContrato = async () => {
+    if (!datos?.contractDocument?.documentid) {
+      alert("No hay contrato disponible para descargar.");
+      return;
+    }
+
+    setDownloadingContract(true);
+    try {
+      const response = await fetch(
+        `${REACT_APP_API_URL}/documents/${datos.contractDocument.documentid}/download`,
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+      if (!response.ok) throw new Error('Error en la descarga');
+      
+      const blob = await response.blob();
+      const contentDisposition = response.headers.get('content-disposition') || '';
+      const fileNameMatch = contentDisposition.match(/filename="([^"]+)"/i);
+      const fileName =
+        fileNameMatch?.[1] || `contrato-${datos.contractDocument.documentid}.pdf`;
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error("Error descargando contrato:", error);
+      // Si fetch falla, intentar método alternativo (abrir en pestaña nueva)
+      alert("No se pudo descargar el contrato. Intenta de nuevo en un momento.");
+    } finally {
+      setDownloadingContract(false);
+    }
+  };
+
   // --- PANTALLAS DE CARGA Y ERRORES ---
 
   if (loading) {
@@ -134,9 +173,20 @@ const Home = () => {
               <span>{estaPagado ? 'Al corriente' : (isProcessing ? 'Procesando...' : 'Pagar')}</span>
             </div>
 
-            <div className="action-item blue">
-              <FileText size={28} />
-              <span>Ver Contrato</span>
+            <div 
+              className="action-item blue"
+              onClick={handleDescargarContrato}
+              style={{ 
+                cursor: downloadingContract ? 'not-allowed' : 'pointer',
+                opacity: downloadingContract ? 0.6 : 1
+              }}
+            >
+              {downloadingContract ? (
+                <Loader size={28} className="animate-spin" />
+              ) : (
+                <FileDown size={28} />
+              )}
+              <span>{downloadingContract ? 'Descargando...' : 'Descargar Contrato'}</span>
             </div>
 
             <div
