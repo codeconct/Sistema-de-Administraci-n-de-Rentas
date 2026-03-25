@@ -73,7 +73,7 @@ router.post('/pagos/openpay', authMiddleware, async (req, res) => {
             method: 'card',
             amount: invoice.amount, // <-- from invoice
             description: `Pago de renta - Factura #${invoice.id}`,
-            order_id: `REC-${invoice.id}-${Date.now()}`,
+            order_id: `REC-${invoice.id}`,
             customer: {
                 name: customerName,
                 last_name: customerLastName,
