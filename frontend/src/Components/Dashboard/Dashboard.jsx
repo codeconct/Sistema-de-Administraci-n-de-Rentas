@@ -8,30 +8,10 @@ import {
 } from 'lucide-react';
 import './Dashboard.css';
 
-// --- 1. DATA ---
-const dataIngresos = [
-  { name: 'Jan', ingreso: 4000, gasto: 2400, neto: 1400 },
-  { name: 'Feb', ingreso: 5000, gasto: 1398, neto: 2210 },
-  { name: 'Mar', ingreso: 2000, gasto: 3800, neto: 2290 },
-  { name: 'Apr', ingreso: 2780, gasto: 3908, neto: 2000 },
-  { name: 'May', ingreso: 1890, gasto: 4800, neto: 2181 },
-  { name: 'Jun', ingreso: 2390, gasto: 3800, neto: 2500 },
-];
+import { api } from '../../api';
 
-const dataIncidencias = [
-  { name: 'Por resolver', value: 11, color: '#F4C8FC' },
-  { name: 'Resueltas', value: 8, color: '#3A2C60' },
-  { name: 'Pendientes', value: 5, color: '#A685FA' }
-];
+// --- defaults will be initialized in state ---
 
-const dataBaseInquilinos = [
-  { id: 1, departamento: "101", inquilino: "Juan Pérez", montoOriginal: 5000, estatus: "Pagado", mesesRestantes: 10 },
-  { id: 2, departamento: "102", inquilino: "Ana García", montoOriginal: 4500, estatus: "Pendiente", mesesRestantes: 2 },
-  { id: 3, departamento: "201", inquilino: "Carlos López", montoOriginal: 5500, estatus: "Vencido", mesesRestantes: 8 },
-  { id: 4, departamento: "202", inquilino: "Maria Rodriguez", montoOriginal: 4800, estatus: "Pagado", mesesRestantes: 5 },
-  { id: 5, departamento: "301", inquilino: "Luis Gonzalez", montoOriginal: 6000, estatus: "Vencido", mesesRestantes: 18 },
-  { id: 6, departamento: "302", inquilino: "Pedro Sánchez", montoOriginal: 5200, estatus: "Pagado", mesesRestantes: 1 },
-];
 
 // --- 2. THEME COLORS ---
 const THEME = {
@@ -47,6 +27,37 @@ const THEME = {
 const Dashboard = () => {
   const [moraSettings, setMoraSettings] = useState({ tipo: 'PORCENTAJE', valor: 10 });
   const [searchQuery, setSearchQuery] = useState('');
+  const [dashboardData, setDashboardData] = useState({
+    gananciaMensual: 0,
+    viviendasOcupadas: 0,
+    viviendasTotal: 0,
+    facturasVencidas: 0,
+    facturasTotal: 0,
+    cobroPendiente: 0,
+    dataIngresos: [],
+    dataIncidencias: [],
+    dataBaseInquilinos: []
+  });
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await fetch(api("/dashboard/admin"), {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setDashboardData(data);
+      }
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
   // Listen for configuration changes from the Navbar Modal
   useEffect(() => {
@@ -64,7 +75,7 @@ const Dashboard = () => {
   // --- 3. LOGIC & FILTERING ---
   const datosProcesados = useMemo(() => {
     // 1. Calculate Mora (Late Fees)
-    let procesados = dataBaseInquilinos.map(item => {
+    let procesados = dashboardData.dataBaseInquilinos.map(item => {
       let montoFinal = item.montoOriginal;
       let tieneMora = false;
       if (item.estatus === 'Vencido') {
@@ -87,7 +98,7 @@ const Dashboard = () => {
     }
 
     return procesados;
-  }, [moraSettings, searchQuery]);
+  }, [moraSettings, searchQuery, dashboardData.dataBaseInquilinos]);
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(val);
 
@@ -111,7 +122,7 @@ const Dashboard = () => {
                 <TrendingUp size={18} style={{ color: THEME.textLight }} />
                 <span className="fw-medium" style={{ color: THEME.textLight, fontSize: '14px' }}>Ganancia Mensual</span>
               </div>
-              <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>$15,568</div>
+              <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>{formatCurrency(dashboardData.gananciaMensual)}</div>
             </div>
           </div>
           <div className="col-md-3">
@@ -121,7 +132,7 @@ const Dashboard = () => {
                 <span className="fw-medium" style={{ color: THEME.textLight, fontSize: '14px' }}>Viviendas Ocupadas</span>
               </div>
               <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>
-                250 <span className="fs-6 fw-normal" style={{ color: '#05CD99' }}>/ 500</span>
+                {dashboardData.viviendasOcupadas} <span className="fs-6 fw-normal" style={{ color: '#05CD99' }}>/ {dashboardData.viviendasTotal}</span>
               </div>
             </div>
           </div>
@@ -132,7 +143,7 @@ const Dashboard = () => {
                 <span className="fw-medium" style={{ color: THEME.textLight, fontSize: '14px' }}>Facturas Vencidas</span>
               </div>
               <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>
-                7 <span className="fs-6 fw-normal" style={{ color: '#E31A1A' }}>/ 250</span>
+                {dashboardData.facturasVencidas} <span className="fs-6 fw-normal" style={{ color: '#E31A1A' }}>/ {dashboardData.facturasTotal}</span>
               </div>
             </div>
           </div>
@@ -142,7 +153,7 @@ const Dashboard = () => {
                 <CreditCard size={18} style={{ color: THEME.textLight }} />
                 <span className="fw-medium" style={{ color: THEME.textLight, fontSize: '14px' }}>Cobro Pendiente</span>
               </div>
-              <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>$10,220</div>
+              <div className="fw-bold" style={{ color: THEME.textDark, fontSize: '24px' }}>{formatCurrency(dashboardData.cobroPendiente)}</div>
             </div>
           </div>
         </div>
@@ -156,7 +167,7 @@ const Dashboard = () => {
               </div>
               <div style={{ width: '100%', height: 280 }}>
                 <ResponsiveContainer>
-                  <LineChart data={dataIngresos} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                  <LineChart data={dashboardData.dataIngresos} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
                     <CartesianGrid vertical={false} stroke="#E0E5F2" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: THEME.textLight, fontSize: 12 }} dy={10} />
                     <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 5px 15px rgba(0,0,0,0.1)' }} />
@@ -175,21 +186,21 @@ const Dashboard = () => {
                  <h5 className="fw-bold m-0" style={{ color: THEME.textDark }}>Incidencias</h5>
               </div>
               <div className="flex-grow-1 position-relative d-flex align-items-center justify-content-center">
-                 <div style={{ width: '100%', height: 220 }}>
+                  <div style={{ width: '100%', height: 220 }}>
                     <ResponsiveContainer>
                         <PieChart>
-                            <Pie data={dataIncidencias} innerRadius={65} outerRadius={85} dataKey="value" stroke="none">
-                                {dataIncidencias.map((entry, index) => (
+                            <Pie data={dashboardData.dataIncidencias} innerRadius={65} outerRadius={85} dataKey="value" stroke="none">
+                                {dashboardData.dataIncidencias.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.color} />
                                 ))}
-                                <Label value="24" position="center" fill={THEME.textDark} style={{ fontSize: '32px', fontWeight: 'bold' }} />
+                                <Label value={dashboardData.dataIncidencias.reduce((acc, curr) => acc + curr.value, 0)} position="center" fill={THEME.textDark} style={{ fontSize: '32px', fontWeight: 'bold' }} />
                             </Pie>
                         </PieChart>
                     </ResponsiveContainer>
                  </div>
               </div>
               <div className="d-flex justify-content-around mt-2 text-center">
-                  {dataIncidencias.map((item, index) => (
+                  {dashboardData.dataIncidencias.map((item, index) => (
                       <div key={index} className="d-flex flex-column align-items-center">
                           <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: item.color, marginBottom: 4 }}></div>
                           <span className="fw-bold" style={{ color: THEME.textDark, fontSize: '14px' }}>{item.value}</span>
