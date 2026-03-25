@@ -78,9 +78,6 @@ const Viviendas = () => {
             <h2 className="fw-bold">Contratos</h2>
             <p className="text-muted mb-0">Consulta los contratos que han sido generados en el sistema.</p>
           </div>
-          <button className="btn btn-dark align-self-start align-self-md-auto">
-            <i className="bi bi-plus"></i> Nuevo contrato
-          </button>
         </div>
 
         <div className="mb-4">
@@ -130,7 +127,7 @@ const Viviendas = () => {
                   <td className="price-text">${prop.depositamount} MXN</td>
                   <td className="text-center">
                     <div className="d-flex flex-column flex-xl-row justify-content-center gap-2">
-                      <button 
+                      <button
                         className="btn btn-outline-secondary action-btn2 btn-sm text-nowrap"
                         onClick={() => setEditingContractId(prop.id)}
                       >
