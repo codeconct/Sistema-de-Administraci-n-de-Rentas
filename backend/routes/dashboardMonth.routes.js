@@ -142,24 +142,76 @@ router.get('/dashboard/admin', authMiddleware, async (req, res) => {
 
     const facturasResult = await runWithFallback(
       `
+        WITH pagos_por_factura AS (
+          SELECT invoiceid, COALESCE(SUM(amount), 0) AS total_paid
+          FROM payments
+          GROUP BY invoiceid
+        )
         SELECT
           COUNT(*) AS total_invoices,
-          SUM(CASE WHEN i.status = 'PENDING' AND i.duedate < CURRENT_DATE THEN 1 ELSE 0 END) AS overdue_invoices,
-          SUM(CASE WHEN i.status = 'PENDING' THEN i.amount ELSE 0 END) AS pending_amount,
-          SUM(CASE WHEN i.status = 'PENDING' AND i.duedate < CURRENT_DATE THEN i.amount ELSE 0 END) AS overdue_amount
+          SUM(
+            CASE
+              WHEN i.status = 'PENDING'
+                AND i.duedate < CURRENT_DATE
+                AND GREATEST(i.amount - COALESCE(ppf.total_paid, 0), 0) > 0
+              THEN 1
+              ELSE 0
+            END
+          ) AS overdue_invoices,
+          SUM(
+            CASE
+              WHEN i.status = 'PENDING'
+              THEN GREATEST(i.amount - COALESCE(ppf.total_paid, 0), 0)
+              ELSE 0
+            END
+          ) AS pending_amount,
+          SUM(
+            CASE
+              WHEN i.status = 'PENDING' AND i.duedate < CURRENT_DATE
+              THEN GREATEST(i.amount - COALESCE(ppf.total_paid, 0), 0)
+              ELSE 0
+            END
+          ) AS overdue_amount
         FROM invoices i
+        LEFT JOIN pagos_por_factura ppf ON ppf.invoiceid = i.id
         JOIN rentalcontracts rc ON i.contractid = rc.id
         JOIN apartments a ON rc.apartmentid = a.id
         WHERE a.ownerid = $1
           ${invoicesDateFilter}
       `,
       `
+        WITH pagos_por_factura AS (
+          SELECT invoiceid, COALESCE(SUM(amount), 0) AS total_paid
+          FROM payments
+          GROUP BY invoiceid
+        )
         SELECT
           COUNT(*) AS total_invoices,
-          SUM(CASE WHEN i.status = 'PENDING' AND i.duedate < CURRENT_DATE THEN 1 ELSE 0 END) AS overdue_invoices,
-          SUM(CASE WHEN i.status = 'PENDING' THEN i.amount ELSE 0 END) AS pending_amount,
-          SUM(CASE WHEN i.status = 'PENDING' AND i.duedate < CURRENT_DATE THEN i.amount ELSE 0 END) AS overdue_amount
+          SUM(
+            CASE
+              WHEN i.status = 'PENDING'
+                AND i.duedate < CURRENT_DATE
+                AND GREATEST(i.amount - COALESCE(ppf.total_paid, 0), 0) > 0
+              THEN 1
+              ELSE 0
+            END
+          ) AS overdue_invoices,
+          SUM(
+            CASE
+              WHEN i.status = 'PENDING'
+              THEN GREATEST(i.amount - COALESCE(ppf.total_paid, 0), 0)
+              ELSE 0
+            END
+          ) AS pending_amount,
+          SUM(
+            CASE
+              WHEN i.status = 'PENDING' AND i.duedate < CURRENT_DATE
+              THEN GREATEST(i.amount - COALESCE(ppf.total_paid, 0), 0)
+              ELSE 0
+            END
+          ) AS overdue_amount
         FROM invoices i
+        LEFT JOIN pagos_por_factura ppf ON ppf.invoiceid = i.invoiceid
         JOIN rentalcontracts rc ON i.contractid = rc.contractid
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         WHERE a.ownerid = $1
