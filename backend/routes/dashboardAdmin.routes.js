@@ -218,7 +218,7 @@ router.get('/dashboard/admin', authMiddleware, async (req, res) => {
             'S/N'
           ) AS departamento,
           t.name AS inquilino,
-          COALESCE(last_invoice.amount, rc.depositamount, a.monthlyrent, 0) AS monto_original,
+          COALESCE(last_invoice.amount, rc.depositamount, 0) AS monto_original,
           (
             SELECT
               CASE
@@ -263,7 +263,7 @@ router.get('/dashboard/admin', authMiddleware, async (req, res) => {
           ) AS computed_status,
           GREATEST(EXTRACT(MONTH FROM AGE(rc.enddate, CURRENT_DATE))::integer, 0) AS meses_restantes
         FROM rentalcontracts rc
-        JOIN tenants t ON rc.tenantid = t.tenantid
+        JOIN tenants t ON rc.tenantid = t.id
         JOIN apartments a ON rc.apartmentid = a.apartmentid
         LEFT JOIN LATERAL (
           SELECT amount

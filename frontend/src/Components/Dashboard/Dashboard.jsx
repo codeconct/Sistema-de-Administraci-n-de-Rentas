@@ -27,6 +27,8 @@ const THEME = {
 const Dashboard = () => {
   const [moraSettings, setMoraSettings] = useState({ tipo: 'PORCENTAJE', valor: 10 });
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [dashboardData, setDashboardData] = useState({
     gananciaMensual: 0,
     viviendasOcupadas: 0,
@@ -41,17 +43,26 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
+      setLoading(true);
+      setError('');
       const response = await fetch(api("/dashboard/admin"), {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem('token')}`
         }
       });
-      if (response.ok) {
-        const data = await response.json();
-        setDashboardData(data);
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data?.error || data?.message || 'No se pudo cargar el dashboard');
       }
+
+      setDashboardData(data);
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
+      setError(err.message || 'No se pudo cargar el dashboard');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,6 +124,18 @@ const Dashboard = () => {
             Consulta estadísticas e información importante de las rentas.
           </p>
         </div>
+
+        {loading ? (
+          <div className="alert alert-light border rounded-4 mb-4">
+            Cargando dashboard...
+          </div>
+        ) : null}
+
+        {error ? (
+          <div className="alert alert-danger rounded-4 mb-4">
+            {error}
+          </div>
+        ) : null}
 
         {/* --- KPI CARDS --- */}
         <div className="row g-3 mb-4">
