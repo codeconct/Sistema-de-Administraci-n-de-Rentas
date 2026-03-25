@@ -150,41 +150,103 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
 });
 
 router.post('/webhooks/openpay', async (req, res) => {
-    console.log("🔔 Webhook recibido de Openpay. Evento:", req.body.type);
+    console.log("🔔 Webhook recibido de Openpay:", req.body.type);
+
+    const client = await pool.connect();
 
     try {
         const evento = req.body;
-        console.log(evento);
 
-        if (evento.type === 'charge.succeeded') {
-            const transaccion = evento.transaction;
-            const orderId = transaccion.order_id; // Ejemplo: "REC-5"
-            const monto = transaccion.amount;
-
-            // Verificamos que traiga nuestro identificador
-            if (orderId && orderId.startsWith('REC-')) {
-                const invoiceId = orderId.split('-')[1]; // Extraemos el "5"
-
-                console.log(`✅ Pago detectado. Actualizando Recibo ID: ${invoiceId}...`);
-
-                // Cambiamos el estado en la base de datos a PAGADO
-                await pool.query("UPDATE invoices SET status = 'PAID' WHERE id = $1", [invoiceId]);
-
-                // Guardamos el registro en la tabla de pagos
-                await pool.query(
-                    "INSERT INTO payments (invoiceid, paymentdate, amount, method) VALUES ($1, CURRENT_DATE, $2, 'TARJETA_OPENPAY')",
-                    [invoiceId, monto]
-                );
-
-                console.log("💾 ¡Recibo procesado y actualizado con éxito!");
-            }
+        /* -------- VALIDATE EVENT -------- */
+        if (!evento || evento.type !== 'charge.succeeded') {
+            return res.status(200).send('Evento ignorado');
         }
 
-        // MANDATORIO: Responder 200 OK para que Openpay deje de insistir
+        const transaccion = evento.transaction;
+
+        if (!transaccion) {
+            return res.status(400).send('Invalid payload');
+        }
+
+        const { order_id, amount, id: openpayChargeId } = transaccion;
+
+        if (!order_id || !order_id.startsWith('REC-')) {
+            return res.status(200).send('No es un pago válido del sistema');
+        }
+
+        /* -------- EXTRACT INVOICE ID -------- */
+        // Supports formats like REC-5 or REC-5-123456789
+        const parts = order_id.split('-');
+        const invoiceId = parts[1];
+
+        if (!invoiceId) {
+            return res.status(400).send('Invalid order_id');
+        }
+
+        console.log(`✅ Procesando pago para invoice ${invoiceId}`);
+
+        await client.query('BEGIN');
+
+        /* -------- CHECK IF ALREADY PROCESSED (IDEMPOTENCY) -------- */
+        const existingPayment = await client.query(
+            `SELECT id FROM payments WHERE external_id = $1`,
+            [openpayChargeId]
+        );
+
+        if (existingPayment.rows.length > 0) {
+            console.log("⚠️ Webhook duplicado ignorado");
+            await client.query('ROLLBACK');
+            return res.status(200).send('Duplicado');
+        }
+
+        /* -------- CHECK INVOICE STATUS -------- */
+        const invoiceResult = await client.query(
+            `SELECT id, status FROM invoices WHERE id = $1 FOR UPDATE`,
+            [invoiceId]
+        );
+
+        if (invoiceResult.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).send('Invoice no encontrada');
+        }
+
+        const invoice = invoiceResult.rows[0];
+
+        if (invoice.status === 'PAID') {
+            console.log("⚠️ Invoice ya estaba pagada");
+            await client.query('ROLLBACK');
+            return res.status(200).send('Ya pagada');
+        }
+
+        /* -------- UPDATE INVOICE -------- */
+        await client.query(
+            `UPDATE invoices 
+             SET status = 'PAID', paidat = NOW() 
+             WHERE id = $1`,
+            [invoiceId]
+        );
+
+        /* -------- INSERT PAYMENT -------- */
+        await client.query(
+            `INSERT INTO payments 
+             (invoiceid, paymentdate, amount, method, external_id)
+             VALUES ($1, NOW(), $2, 'OPENPAY_CARD', $3)`,
+            [invoiceId, amount, openpayChargeId]
+        );
+
+        await client.query('COMMIT');
+
+        console.log("💾 Pago aplicado correctamente");
+
         res.status(200).send('Webhook procesado');
+
     } catch (error) {
-        console.error("❌ Error procesando el Webhook:", error.message);
+        await client.query('ROLLBACK');
+        console.error("❌ Error en webhook:", error);
+
         res.status(500).send('Error interno');
+    } finally {
+        client.release();
     }
 });
 
