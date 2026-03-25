@@ -109,7 +109,7 @@ export default function ViviendaForm({ show, onClose, onCreated }) {
                     <input
                       type="text"
                       className="form-control"
-                      name="street"
+                      name="ext_num"
                       value={formData.ext_num}
                       onChange={handleChange}
                       required
