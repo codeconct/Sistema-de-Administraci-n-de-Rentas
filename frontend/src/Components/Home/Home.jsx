@@ -132,7 +132,7 @@ const Home = () => {
 
             <div className="action-item blue">
               <FileText size={28} />
-              <button onClick={() => downloadDocument(datos.datosVivienda.contractid)}>
+              <button onClick={() => openDocument(datos.datosVivienda.contractid)}>
                 Descargar contrato
               </button>
             </div>
