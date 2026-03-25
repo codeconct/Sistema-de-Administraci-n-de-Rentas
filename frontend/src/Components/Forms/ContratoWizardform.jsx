@@ -42,9 +42,9 @@ async function createContract(data) {
     if (!response.ok) {
       throw new Error(
         result?.error ||
-          result?.message ||
-          (result?.raw?.startsWith("<!DOCTYPE") ? "La API devolvio HTML y no JSON." : null) ||
-          "Error creating contract"
+        result?.message ||
+        (result?.raw?.startsWith("<!DOCTYPE") ? "La API devolvio HTML y no JSON." : null) ||
+        "Error creating contract"
       );
     }
 
@@ -95,7 +95,8 @@ export default function ContractWizardModal({ show, onClose, selectedApartmentId
         apartmentid: selectedApartmentId, // you must have this
         tenant: formData.tenant,
         guarantor: formData.guarantor,
-        startdate: formData.contract.startDate,
+        startdate: formData.contract.startdate,
+        enddate: formData.contract.enddate,
         monthlyAmount: formData.contract.monthlyAmount,
         depositamount: formData.contract.price,
         status: "ACTIVE",

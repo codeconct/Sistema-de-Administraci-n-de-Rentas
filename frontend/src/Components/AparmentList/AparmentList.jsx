@@ -138,7 +138,7 @@ const Viviendas = () => {
     .filter((p) => filtroStatus === "todos" || p.status === filtroStatus)
     .filter((p) => {
       const texto = filtroBusqueda.toLowerCase();
-      const addressString = `${p.street || ''} ${p.int_num || ''} ${p.division || ''} ${p.postal_code || ''}`.toLowerCase();
+      const addressString = `${p.street || ''} ${p.ext_num || ''} ${p.division || ''} ${p.postal_code || ''}`.toLowerCase();
       return (
         addressString.includes(texto) ||
         p.id.toString().includes(texto)

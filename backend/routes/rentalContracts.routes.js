@@ -209,7 +209,7 @@ router.post('/rentalcontracts', upload.single("file"), async (req, res) => {
 
       // OPTIONAL: store file in DB
       await client.query(
-        `INSERT INTO contract_documents (contractid, fileurl, filename)
+        `INSERT INTO documents (contractid, fileurl, filename)
          VALUES ($1, $2, $3)`,
         [contract.id, fileUrl, uniqueName]
       );
