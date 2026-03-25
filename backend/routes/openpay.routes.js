@@ -5,6 +5,19 @@ import Openpay from 'openpay';
 import { authMiddleware } from '../middlewares/auth.js'
 
 const router = Router();
+const UNDEFINED_COLUMN = '42703';
+
+const runWithFallback = async (primaryQuery, fallbackQuery, values) => {
+    try {
+        return await pool.query(primaryQuery, values);
+    } catch (err) {
+        if (err?.code !== UNDEFINED_COLUMN || !fallbackQuery) {
+            throw err;
+        }
+
+        return pool.query(fallbackQuery, values);
+    }
+};
 
 // --- NUEVA RUTA: INICIAR PAGO CON OPENPAY ---
 router.post('/pagos/openpay', authMiddleware, async (req, res) => {
@@ -119,37 +132,80 @@ router.get('/dashboard-cliente', authMiddleware, async (req, res) => {
         const id = req.user.id;
 
         // 👉 MODIFICADO: Agregamos contractid para obtener el documento
-        const queryFactura = `
-      SELECT i.id as invoiceid, i.amount, i.duedate, i.status, t.name, t.phone, t.email, a.street as address, a.division, rc.id as contractid
-      FROM invoices i
-      JOIN rentalcontracts rc ON i.contractid = rc.id
-      JOIN tenants t ON rc.tenantid = t.id
-      JOIN apartments a ON rc.apartmentid = a.id
-      WHERE t.id = $1
-      ORDER BY i.duedate DESC LIMIT 1
-    `;
-        const resFactura = await pool.query(queryFactura, [id]);
+        const resFactura = await runWithFallback(
+            `
+            SELECT
+                i.id AS invoiceid,
+                i.amount,
+                i.duedate,
+                i.status,
+                t.name,
+                t.phone,
+                t.email,
+                CONCAT_WS(', ', a.street, a.division, a.int_num, a.city, a.state, a.postal_code) AS address,
+                rc.id AS contractid
+            FROM invoices i
+            JOIN rentalcontracts rc ON i.contractid = rc.id
+            JOIN tenants t ON rc.tenantid = t.id
+            JOIN apartments a ON rc.apartmentid = a.id
+            WHERE t.id = $1
+            ORDER BY i.duedate DESC, i.id DESC
+            LIMIT 1
+            `,
+            `
+            SELECT
+                i.id AS invoiceid,
+                i.amount,
+                i.duedate,
+                i.status,
+                t.name,
+                t.phone,
+                t.email,
+                a.address,
+                rc.contractid AS contractid
+            FROM invoices i
+            JOIN rentalcontracts rc ON i.contractid = rc.contractid
+            JOIN tenants t ON rc.tenantid = t.tenantid
+            JOIN apartments a ON rc.apartmentid = a.apartmentid
+            WHERE t.tenantid = $1
+            ORDER BY i.duedate DESC, i.id DESC
+            LIMIT 1
+            `,
+            [id]
+        );
 
-        const queryRecibos = `
-      SELECT i.id, i.duedate, i.amount 
-      FROM invoices i
-      JOIN rentalcontracts rc ON i.contractid = rc.id
-      WHERE rc.tenantid = $1 AND i.status = 'PAID'
-      ORDER BY i.duedate DESC
-    `;
-        const resRecibos = await pool.query(queryRecibos, [id]);
+        const resRecibos = await runWithFallback(
+            `
+            SELECT i.id, i.duedate, i.amount
+            FROM invoices i
+            JOIN rentalcontracts rc ON i.contractid = rc.id
+            WHERE rc.tenantid = $1 AND i.status = 'PAID'
+            ORDER BY i.duedate DESC, i.id DESC
+            `,
+            `
+            SELECT i.id, i.duedate, i.amount
+            FROM invoices i
+            JOIN rentalcontracts rc ON i.contractid = rc.contractid
+            WHERE rc.tenantid = $1 AND i.status = 'PAID'
+            ORDER BY i.duedate DESC, i.id DESC
+            `,
+            [id]
+        );
 
         let contractDocument = null;
 
         // Obtener el documento del contrato si existe
         if (resFactura.rows[0] && resFactura.rows[0].contractid) {
-            const queryDocument = `
-        SELECT documentid, filepath, type
-        FROM documents
-        WHERE contractid = $1 AND type = 'CONTRACT'
-        LIMIT 1
-      `;
-            const resDocument = await pool.query(queryDocument, [resFactura.rows[0].contractid]);
+            const resDocument = await pool.query(
+                `
+                SELECT documentid, filepath, type
+                FROM documents
+                WHERE contractid = $1 AND type = 'CONTRACT'
+                ORDER BY documentid DESC
+                LIMIT 1
+                `,
+                [resFactura.rows[0].contractid]
+            );
             contractDocument = resDocument.rows[0] || null;
         }
 
