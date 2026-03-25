@@ -1,8 +1,8 @@
 /*Base del Login*/
 .wrapper {
     position: relative;
-    width: 420px;
-    height: 550px;
+    width: min(420px, 100%);
+    min-height: 550px;
     background: rgb(255, 255, 255);
     border-radius: 25px;
     color: black;
@@ -19,6 +19,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+  padding: 24px 16px;
   background: url('./../Assets/fondo01.png')
   no-repeat;
   background-size: cover;
@@ -130,7 +131,7 @@ form button{
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     cursor: pointer;
     font-size: 16px;
-    color: rgb(0, 0, 0);
+    color: rgb(255, 255, 255);
     font-weight: 700;
 }
 
@@ -154,5 +155,73 @@ form .input-fuaq{
     text-align: center;
     margin: 20px 0 15px;
     color: black;
+}
+
+@media (max-width: 768px) {
+    .login-page {
+        align-items: flex-start;
+        padding: 32px 16px;
+    }
+
+    .wrapper {
+        min-height: auto;
+    }
+
+    .wrapper .form-box {
+        padding: 32px 24px;
+    }
+
+    form h1 {
+        font-size: 28px;
+        background-size: 64px 84px;
+        padding-right: 112px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-page {
+        padding: 16px 12px;
+    }
+
+    .wrapper {
+        border-radius: 20px;
+        width: 100%;
+    }
+
+    .wrapper .form-box {
+        padding: 24px 18px;
+    }
+
+    form h1 {
+        font-size: 24px;
+        text-align: left;
+        background-size: 52px 68px;
+        background-position: top right;
+        padding-right: 72px;
+        line-height: 1.2;
+    }
+
+    form .input-box {
+        height: 48px;
+        margin: 22px 0;
+    }
+
+    .input-box input {
+        font-size: 15px;
+        padding: 16px 42px 16px 16px;
+    }
+
+    form .remember-forgot {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+        margin: -8px 0 18px;
+    }
+
+    form .input-fuaq,
+    form .register-link,
+    form .remember-forgot {
+        font-size: 13px;
+    }
 }
 
