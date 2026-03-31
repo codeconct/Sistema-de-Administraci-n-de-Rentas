@@ -79,7 +79,7 @@ const LoginForm = () => {
               <input type="password" placeholder='Password' required /> <FaLock className='icon' />
             </div>
             <div className="remember-forgot">
-              <label><input type='checkbox' />Remember me</label>
+              <label><input type='checkbox' />Recuerdame</label>
               <a href='#'> </a>
             </div>
 
@@ -90,7 +90,7 @@ const LoginForm = () => {
               </p>
             </div>
             <div className="input-fuaq">
-              <p>By continuing, you agree to Administración de Rentas Terms of Service and acknowledge that you have read our <span className="privacy-link" onClick={toggleModal}>Privacy Policy</span>. Information Collection Notice.
+              <p>Al continuar, usted acepta los Términos de Sistema de Administración de Rentas y reconoce haber leído nuestra <span className="privacy-link" onClick={toggleModal}>Política de Privacidad</span>. Aviso de recopilación de información.
               </p>
             </div>
           </form>
