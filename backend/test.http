@@ -30,7 +30,7 @@ Content-Type: application/json
 DELETE http://localhost:5555/api/apartments/1
 
 ### Create owner
-POST http://localhost:5555/api/owners
+POST http://sistema-de-administraci-n-de-rentas-xyir-pekl0cpn5.vercel.app/api/owners
 Content-Type: application/json
 
 {
@@ -38,7 +38,7 @@ Content-Type: application/json
   "phone": "123456789",
   "email": "example@example",
   "governmentid": "INE",
-  "password": "12345678"
+  "password": "Evangelion"
 }
 
 
