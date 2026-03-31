@@ -57,6 +57,40 @@ router.post("/documents/upload", upload.single("file"), async (req, res) => {
   }
 });
 
+router.get("/documents/contract/:contractId", async (req, res) => {
+  const { contractId } = req.params;
+
+  try {
+    // 1. Get document from DB
+    const result = await pool.query(
+      `SELECT filename FROM documents WHERE contractid = $1 LIMIT 1`,
+      [contractId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+
+    const { filename } = result.rows[0];
+
+    // 2. Generate signed URL
+    const { data, error } = await supabase.storage
+      .from("Documents")
+      .createSignedUrl(filename, 60); // 60 sec
+
+    if (error) throw error;
+
+    // 3. Return URL
+    res.json({
+      url: data.signedUrl,
+      filename
+    });
+
+  } catch (error) {
+    console.error("Error getting document:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // ✅ GET all documents
 router.get('/documents', async (req, res) => {
@@ -69,23 +103,6 @@ router.get('/documents', async (req, res) => {
   }
 });
 
-// ✅ GET document by ID
-router.get('/documents/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    const result = await pool.query(
-      'SELECT * FROM documents WHERE documentid = $1',
-      [id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: 'Document not found' });
-    }
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // ✅ CREATE document
 router.post('/documents', async (req, res) => {

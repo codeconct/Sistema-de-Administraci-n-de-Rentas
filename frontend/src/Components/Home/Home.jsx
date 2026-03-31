@@ -6,6 +6,13 @@ import { REACT_APP_API_URL } from "../../config";
 
 const token = localStorage.getItem("token");
 
+const openDocument = async (contractId) => {
+  const res = await fetch(`/api/documents/contract/${contractId}`);
+  const data = await res.json();
+
+  window.open(data.url, "_blank");
+};
+
 const Home = () => {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -125,7 +132,9 @@ const Home = () => {
 
             <div className="action-item blue">
               <FileText size={28} />
-              <span>Ver Contrato</span>
+              <button onClick={() => openDocument(datos.datosVivienda.contractid)}>
+                Descargar contrato
+              </button>
             </div>
 
             <div
