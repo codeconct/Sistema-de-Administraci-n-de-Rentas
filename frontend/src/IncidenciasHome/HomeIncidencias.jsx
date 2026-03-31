@@ -630,7 +630,7 @@ const HomeIncidencias = () => {
                 htmlFor="nueva-incidencia-descripcion"
                 className="home-incidencias-modal-label"
               >
-                Descripcion
+                Descripción
               </label>
               <textarea
                 id="nueva-incidencia-descripcion"
